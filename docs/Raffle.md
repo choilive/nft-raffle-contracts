@@ -99,32 +99,10 @@ creates a donation on an raffle
 |---|---|---|
 | _donation | Raffle.Donation | object contains parameters for donation created
 
-### donationPerAddress
-
-```solidity
-function donationPerAddress(address) external view returns (uint256)
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | address | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
 ### donations
 
 ```solidity
-function donations(uint256, address) external view returns (uint256 raffleID, address donor, uint256 amount, uint256 timestamp)
+function donations(uint256, address, uint256) external view returns (uint256 raffleID, uint256 amount, uint256 timestamp)
 ```
 
 
@@ -137,15 +115,38 @@ function donations(uint256, address) external view returns (uint256 raffleID, ad
 |---|---|---|
 | _0 | uint256 | undefined
 | _1 | address | undefined
+| _2 | uint256 | undefined
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
 | raffleID | uint256 | undefined
-| donor | address | undefined
 | amount | uint256 | undefined
 | timestamp | uint256 | undefined
+
+### donorsArrayPerCycle
+
+```solidity
+function donorsArrayPerCycle(uint256, uint256) external view returns (address)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+| _1 | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
 
 ### getRoleAdmin
 
@@ -209,27 +210,22 @@ function hasRole(bytes32 role, address account) external view returns (bool)
 |---|---|---|
 | _0 | bool | undefined
 
-### nftsClaimed
+### nftAuthorWallet
 
 ```solidity
-function nftsClaimed(uint256) external view returns (bool)
+function nftAuthorWallet() external view returns (address)
 ```
 
 
 
 
 
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
 
 #### Returns
 
 | Name | Type | Description |
 |---|---|---|
-| _0 | bool | undefined
+| _0 | address | undefined
 
 ### owner
 
@@ -268,7 +264,7 @@ function raffleCount() external view returns (uint256)
 ### raffles
 
 ```solidity
-function raffles(uint256) external view returns (address nftContract, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount, bool isActive)
+function raffles(uint256) external view returns (address nftContract, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
 ```
 
 
@@ -289,7 +285,6 @@ function raffles(uint256) external view returns (address nftContract, uint256 st
 | startTime | uint256 | undefined
 | endTime | uint256 | undefined
 | minimumDonationAmount | uint256 | undefined
-| isActive | bool | undefined
 
 ### renounceOwnership
 
@@ -336,6 +331,22 @@ function revokeRole(bytes32 role, address account) external nonpayable
 | role | bytes32 | undefined
 | account | address | undefined
 
+### sendNFTRewards
+
+```solidity
+function sendNFTRewards(uint256 raffleID) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
 ### setDAOWalletAddress
 
 ```solidity
@@ -351,6 +362,22 @@ sets DAO wallet address for transfering funds
 | Name | Type | Description |
 |---|---|---|
 | _DAOWallet | address | address of DAO wallet
+
+### setNftAuthorWalletAddress
+
+```solidity
+function setNftAuthorWalletAddress(address _nftAuthorWallet) external nonpayable
+```
+
+sets NFT author wallet address for transfering NFT at the end of raffle cycle
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _nftAuthorWallet | address | address of NFT author wallet
 
 ### supportsInterface
 
@@ -373,6 +400,29 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### totalDonationPerAddressPerCycle
+
+```solidity
+function totalDonationPerAddressPerCycle(uint256, address) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+| _1 | address | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### totalDonations
 
@@ -533,6 +583,22 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 | role `indexed` | bytes32 | undefined |
 | account `indexed` | address | undefined |
 | sender `indexed` | address | undefined |
+
+### nftAuthorWalletAddressSet
+
+```solidity
+event nftAuthorWalletAddressSet(address nftAuthorWallet)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| nftAuthorWallet  | address | undefined |
 
 
 

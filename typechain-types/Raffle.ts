@@ -25,7 +25,6 @@ export declare namespace Raffle {
     startTime: BigNumberish;
     endTime: BigNumberish;
     minimumDonationAmount: BigNumberish;
-    isActive: boolean;
   };
 
   export type RaffleStructOutput = [
@@ -33,32 +32,23 @@ export declare namespace Raffle {
     BigNumber[],
     BigNumber,
     BigNumber,
-    BigNumber,
-    boolean
+    BigNumber
   ] & {
     nftContract: string;
     tokenIDs: BigNumber[];
     startTime: BigNumber;
     endTime: BigNumber;
     minimumDonationAmount: BigNumber;
-    isActive: boolean;
   };
 
   export type DonationStruct = {
     raffleID: BigNumberish;
-    donor: string;
     amount: BigNumberish;
     timestamp: BigNumberish;
   };
 
-  export type DonationStructOutput = [
-    BigNumber,
-    string,
-    BigNumber,
-    BigNumber
-  ] & {
+  export type DonationStructOutput = [BigNumber, BigNumber, BigNumber] & {
     raffleID: BigNumber;
-    donor: string;
     amount: BigNumber;
     timestamp: BigNumber;
   };
@@ -70,22 +60,25 @@ export interface RaffleInterface extends utils.Interface {
     "DAOWallet()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "USDC()": FunctionFragment;
-    "createRaffle((address,uint256[],uint256,uint256,uint256,bool))": FunctionFragment;
-    "donate((uint256,address,uint256,uint256))": FunctionFragment;
-    "donationPerAddress(address)": FunctionFragment;
-    "donations(uint256,address)": FunctionFragment;
+    "createRaffle((address,uint256[],uint256,uint256,uint256))": FunctionFragment;
+    "donate((uint256,uint256,uint256))": FunctionFragment;
+    "donations(uint256,address,uint256)": FunctionFragment;
+    "donorsArrayPerCycle(uint256,uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
-    "nftsClaimed(uint256)": FunctionFragment;
+    "nftAuthorWallet()": FunctionFragment;
     "owner()": FunctionFragment;
     "raffleCount()": FunctionFragment;
     "raffles(uint256)": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
+    "sendNFTRewards(uint256)": FunctionFragment;
     "setDAOWalletAddress(address)": FunctionFragment;
+    "setNftAuthorWalletAddress(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
+    "totalDonationPerAddressPerCycle(uint256,address)": FunctionFragment;
     "totalDonations()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
@@ -105,12 +98,12 @@ export interface RaffleInterface extends utils.Interface {
     values: [Raffle.DonationStruct]
   ): string;
   encodeFunctionData(
-    functionFragment: "donationPerAddress",
-    values: [string]
+    functionFragment: "donations",
+    values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "donations",
-    values: [BigNumberish, string]
+    functionFragment: "donorsArrayPerCycle",
+    values: [BigNumberish, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -125,8 +118,8 @@ export interface RaffleInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "nftsClaimed",
-    values: [BigNumberish]
+    functionFragment: "nftAuthorWallet",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
   encodeFunctionData(
@@ -150,12 +143,24 @@ export interface RaffleInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "sendNFTRewards",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setDAOWalletAddress",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setNftAuthorWalletAddress",
     values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "totalDonationPerAddressPerCycle",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "totalDonations",
@@ -177,11 +182,11 @@ export interface RaffleInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "donations", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "donationPerAddress",
+    functionFragment: "donorsArrayPerCycle",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "donations", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -189,7 +194,7 @@ export interface RaffleInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "nftsClaimed",
+    functionFragment: "nftAuthorWallet",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
@@ -208,11 +213,23 @@ export interface RaffleInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "sendNFTRewards",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "setDAOWalletAddress",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "setNftAuthorWalletAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "supportsInterface",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "totalDonationPerAddressPerCycle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -232,6 +249,7 @@ export interface RaffleInterface extends utils.Interface {
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
+    "nftAuthorWalletAddressSet(address)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "DAOWalletAddressSet"): EventFragment;
@@ -241,6 +259,7 @@ export interface RaffleInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "nftAuthorWalletAddressSet"): EventFragment;
 }
 
 export type DAOWalletAddressSetEvent = TypedEvent<
@@ -295,6 +314,14 @@ export type RoleRevokedEvent = TypedEvent<
 
 export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
+export type nftAuthorWalletAddressSetEvent = TypedEvent<
+  [string],
+  { nftAuthorWallet: string }
+>;
+
+export type nftAuthorWalletAddressSetEventFilter =
+  TypedEventFilter<nftAuthorWalletAddressSetEvent>;
+
 export interface Raffle extends BaseContract {
   contractName: "Raffle";
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -339,23 +366,24 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    donationPerAddress(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
-
     donations(
       arg0: BigNumberish,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         raffleID: BigNumber;
-        donor: string;
         amount: BigNumber;
         timestamp: BigNumber;
       }
     >;
+
+    donorsArrayPerCycle(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -371,10 +399,7 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    nftsClaimed(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
+    nftAuthorWallet(overrides?: CallOverrides): Promise<[string]>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
 
@@ -384,12 +409,11 @@ export interface Raffle extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber] & {
         nftContract: string;
         startTime: BigNumber;
         endTime: BigNumber;
         minimumDonationAmount: BigNumber;
-        isActive: boolean;
       }
     >;
 
@@ -409,8 +433,18 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    sendNFTRewards(
+      raffleID: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setNftAuthorWalletAddress(
+      _nftAuthorWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -418,6 +452,12 @@ export interface Raffle extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    totalDonationPerAddressPerCycle(
+      arg0: BigNumberish,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     totalDonations(overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -443,23 +483,24 @@ export interface Raffle extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  donationPerAddress(
-    arg0: string,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
-
   donations(
     arg0: BigNumberish,
     arg1: string,
+    arg2: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, string, BigNumber, BigNumber] & {
+    [BigNumber, BigNumber, BigNumber] & {
       raffleID: BigNumber;
-      donor: string;
       amount: BigNumber;
       timestamp: BigNumber;
     }
   >;
+
+  donorsArrayPerCycle(
+    arg0: BigNumberish,
+    arg1: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -475,7 +516,7 @@ export interface Raffle extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  nftsClaimed(arg0: BigNumberish, overrides?: CallOverrides): Promise<boolean>;
+  nftAuthorWallet(overrides?: CallOverrides): Promise<string>;
 
   owner(overrides?: CallOverrides): Promise<string>;
 
@@ -485,12 +526,11 @@ export interface Raffle extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber, boolean] & {
+    [string, BigNumber, BigNumber, BigNumber] & {
       nftContract: string;
       startTime: BigNumber;
       endTime: BigNumber;
       minimumDonationAmount: BigNumber;
-      isActive: boolean;
     }
   >;
 
@@ -510,8 +550,18 @@ export interface Raffle extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  sendNFTRewards(
+    raffleID: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setDAOWalletAddress(
     _DAOWallet: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setNftAuthorWalletAddress(
+    _nftAuthorWallet: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -519,6 +569,12 @@ export interface Raffle extends BaseContract {
     interfaceId: BytesLike,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  totalDonationPerAddressPerCycle(
+    arg0: BigNumberish,
+    arg1: string,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   totalDonations(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -544,23 +600,24 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    donationPerAddress(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     donations(
       arg0: BigNumberish,
       arg1: string,
+      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, BigNumber, BigNumber] & {
+      [BigNumber, BigNumber, BigNumber] & {
         raffleID: BigNumber;
-        donor: string;
         amount: BigNumber;
         timestamp: BigNumber;
       }
     >;
+
+    donorsArrayPerCycle(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -576,10 +633,7 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    nftsClaimed(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
+    nftAuthorWallet(overrides?: CallOverrides): Promise<string>;
 
     owner(overrides?: CallOverrides): Promise<string>;
 
@@ -589,12 +643,11 @@ export interface Raffle extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber, boolean] & {
+      [string, BigNumber, BigNumber, BigNumber] & {
         nftContract: string;
         startTime: BigNumber;
         endTime: BigNumber;
         minimumDonationAmount: BigNumber;
-        isActive: boolean;
       }
     >;
 
@@ -612,8 +665,18 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    sendNFTRewards(
+      raffleID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setNftAuthorWalletAddress(
+      _nftAuthorWallet: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -621,6 +684,12 @@ export interface Raffle extends BaseContract {
       interfaceId: BytesLike,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    totalDonationPerAddressPerCycle(
+      arg0: BigNumberish,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     totalDonations(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -699,6 +768,13 @@ export interface Raffle extends BaseContract {
       account?: string | null,
       sender?: string | null
     ): RoleRevokedEventFilter;
+
+    "nftAuthorWalletAddressSet(address)"(
+      nftAuthorWallet?: null
+    ): nftAuthorWalletAddressSetEventFilter;
+    nftAuthorWalletAddressSet(
+      nftAuthorWallet?: null
+    ): nftAuthorWalletAddressSetEventFilter;
   };
 
   estimateGas: {
@@ -718,14 +794,16 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    donationPerAddress(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     donations(
       arg0: BigNumberish,
       arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    donorsArrayPerCycle(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -746,10 +824,7 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    nftsClaimed(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    nftAuthorWallet(overrides?: CallOverrides): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -773,13 +848,29 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    sendNFTRewards(
+      raffleID: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setNftAuthorWalletAddress(
+      _nftAuthorWallet: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    totalDonationPerAddressPerCycle(
+      arg0: BigNumberish,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -810,14 +901,16 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    donationPerAddress(
-      arg0: string,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     donations(
       arg0: BigNumberish,
       arg1: string,
+      arg2: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    donorsArrayPerCycle(
+      arg0: BigNumberish,
+      arg1: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -838,10 +931,7 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    nftsClaimed(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    nftAuthorWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -868,13 +958,29 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    sendNFTRewards(
+      raffleID: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    setNftAuthorWalletAddress(
+      _nftAuthorWallet: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     supportsInterface(
       interfaceId: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    totalDonationPerAddressPerCycle(
+      arg0: BigNumberish,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 

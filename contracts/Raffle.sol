@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // TODO - implement access control!
   address public DAOWallet;
+  address public nftAuthorWallet;
   uint256 public raffleCount;
   IERC20 public USDC;
   uint256 public totalDonations;
@@ -19,7 +20,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     uint256 startTime;
     uint256 endTime;
     uint256 minimumDonationAmount;
-    bool isActive;
   }
 
   struct Donation {
@@ -44,6 +44,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   );
   event DonationPlaced(address from, uint256 raffleId, uint256 amount);
   event DAOWalletAddressSet(address walletAddress);
+  event nftAuthorWalletAddressSet(address nftAuthorWallet);
 
   // --------------------------------------------------------------
   // CUSTOM ERRORS
@@ -76,6 +77,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     emit DAOWalletAddressSet(_DAOWallet);
   }
 
+  /**
+        @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
+        @param _nftAuthorWallet address of NFT author wallet
+    */
+  function setNftAuthorWalletAddress(address _nftAuthorWallet)
+    public
+    onlyOwner
+  {
+    if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
+    nftAuthorWallet = _nftAuthorWallet;
+    emit nftAuthorWalletAddressSet(_nftAuthorWallet);
+  }
+
   function createRaffle(Raffle memory _raffle) public returns (uint256) {
     // TODO - only curator can create raffle!!
     //TODO // IArtizenNFT NftContract = IArtizenNFT(_raffle.nftContract);
@@ -106,7 +120,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
       revert DonationTooLow();
 
-    donations[raffleId][msg.sender] = _donation;
+    // donations[raffleId][msg.sender] = _donation; // TODO check this
     _donation.timestamp = block.timestamp; // TODO check this
 
     totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation.amount;
