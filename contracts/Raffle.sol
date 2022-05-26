@@ -149,4 +149,16 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   function _calcRandomDonor(uint256 raffleID) internal view returns (address) {
     // TODO- random donor needs to be added here
   }
+
+  // --------------------------------------------------------------
+  // VIEW FUNCTIONS
+  // --------------------------------------------------------------
+
+  function getTotalDonationsPerCycle(uint256 raffleID)
+    public
+    view
+    returns (uint256)
+  {
+    return totalDonationsPerCycle[raffleID];
+  }
 }
