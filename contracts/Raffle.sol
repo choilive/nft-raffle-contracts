@@ -45,4 +45,18 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     USDC = IERC20(_usdc);
     USDC.approve(address(this), type(uint256).max);
   }
+
+  // --------------------------------------------------------------
+  // STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
+
+  /**
+        @notice sets DAO wallet address for transfering funds
+        @param _DAOWallet address of DAO wallet
+    */
+  function setDAOWalletAddress(address _DAOWallet) public onlyOwner {
+    if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
+    DAOWallet = _DAOWallet;
+    emit DAOWalletAddressSet(_DAOWallet);
+  }
 }
