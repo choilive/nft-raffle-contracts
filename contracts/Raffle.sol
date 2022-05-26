@@ -29,13 +29,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // // EVENTS
   // // --------------------------------------------------------------
 
-  event RaffleCreated(uint256 startTime, uint256 endTime);
+  event RaffleCreated(
+    uint256 startTime,
+    uint256 endTime,
+    uint256 minimumDonationAmount
+  );
   event DonationPlaced(address from, uint256 raffleId, uint256 amount);
   event DAOWalletAddressSet(address walletAddress);
 
   // --------------------------------------------------------------
   // CUSTOM ERRORS
   // --------------------------------------------------------------
+  error IncorrectTimesGiven();
+  error ZeroAddressNotAllowed();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -58,5 +64,26 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
     DAOWallet = _DAOWallet;
     emit DAOWalletAddressSet(_DAOWallet);
+  }
+
+  function createRaffle(Raffle memory _raffle) public returns (uint256) {
+    // TODO - only curator can create raffle!!
+    IArtizenNFT NftContract = IArtizenNFT(_raffle.nftContract);
+    if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
+
+    raffleCount++;
+    raffles[raffleCount] = _raffle;
+    raffles[raffleCount].isActive = true; // TODO
+
+    emit RaffleCreated(
+      _raffle.startTime,
+      _raffle.endTime,
+      _raffle.minimumDonationAmount
+    );
+
+    //TODO  transfer NFTs to contract ADD quantity!!
+    NftContract.transferFrom(_raffle.nftOwner, address(this), _raffle.tokenID);
+
+    return raffleCount;
   }
 }
