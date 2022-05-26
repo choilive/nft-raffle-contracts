@@ -170,4 +170,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   {
     return totalDonationsPerCycle[raffleID];
   }
+
+  function getDonorsPerCycle(uint256 raffleID) public view returns (address[]) {
+    return donorsArrayPerCycle[raffleID];
+  }
 }
