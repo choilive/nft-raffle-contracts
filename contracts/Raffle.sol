@@ -53,6 +53,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   error ZeroAddressNotAllowed();
   error RaffleHasEnded();
   error DonationTooLow();
+  error RaffleHasNotEnded();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -137,6 +138,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   }
 
   function sendNFTRewards(uint256 raffleID) public onlyOwner {
+    if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
     // Recepients:
     // 1. top donor in raffle
     //2. random donor in raffle
@@ -171,7 +173,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     return totalDonationsPerCycle[raffleID];
   }
 
-  function getDonorsPerCycle(uint256 raffleID) public view returns (address[]) {
+  function getDonorsPerCycle(uint256 raffleID)
+    public
+    view
+    returns (address[] memory)
+  {
     return donorsArrayPerCycle[raffleID];
+  }
+
+  function getTotalDonationPerAddressPerCycle(uint256 raffleID, address account)
+    public
+    view
+    returns (uint256)
+  {
+    return totalDonationPerAddressPerCycle[raffleID][account];
   }
 }

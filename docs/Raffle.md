@@ -148,6 +148,28 @@ function donorsArrayPerCycle(uint256, uint256) external view returns (address)
 |---|---|---|
 | _0 | address | undefined
 
+### getDonorsPerCycle
+
+```solidity
+function getDonorsPerCycle(uint256 raffleID) external view returns (address[])
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address[] | undefined
+
 ### getRoleAdmin
 
 ```solidity
@@ -169,6 +191,29 @@ function getRoleAdmin(bytes32 role) external view returns (bytes32)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes32 | undefined
+
+### getTotalDonationPerAddressPerCycle
+
+```solidity
+function getTotalDonationPerAddressPerCycle(uint256 raffleID, address account) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+| account | address | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### getTotalDonationsPerCycle
 
@@ -652,6 +697,17 @@ error IncorrectTimesGiven()
 
 ```solidity
 error RaffleHasEnded()
+```
+
+
+
+
+
+
+### RaffleHasNotEnded
+
+```solidity
+error RaffleHasNotEnded()
 ```
 
 
