@@ -129,6 +129,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
     totalDonationsPerCycle[raffleId] += _donation.amount;
 
+    donorsArrayPerCycle[raffleId].push(msg.sender);
     //transfer funds to contract
     USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
 
@@ -147,7 +148,15 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // INTERNAL STATE-MODIFYING FUNCTIONS
   // --------------------------------------------------------------
   function _calcRandomDonor(uint256 raffleID) internal view returns (address) {
-    // TODO- random donor needs to be added here
+    uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
+
+    uint256 randomIndex = uint256(
+      keccak256(abi.encodePacked(block.timestamp, msg.sender))
+    ) % amountOfDonors;
+
+    address winner = donorsArrayPerCycle[raffleID][randomIndex];
+
+    return winner;
   }
 
   // --------------------------------------------------------------

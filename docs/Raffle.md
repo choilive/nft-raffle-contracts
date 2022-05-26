@@ -170,6 +170,28 @@ function getRoleAdmin(bytes32 role) external view returns (bytes32)
 |---|---|---|
 | _0 | bytes32 | undefined
 
+### getTotalDonationsPerCycle
+
+```solidity
+function getTotalDonationsPerCycle(uint256 raffleID) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### grantRole
 
 ```solidity
