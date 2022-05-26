@@ -9,6 +9,7 @@ import {
   CallOverrides,
   ContractTransaction,
   Overrides,
+  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -17,13 +18,62 @@ import { FunctionFragment, Result, EventFragment } from "@ethersproject/abi";
 import { Listener, Provider } from "@ethersproject/providers";
 import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 
+export declare namespace Raffle {
+  export type RaffleStruct = {
+    nftContract: string;
+    tokenIDs: BigNumberish[];
+    startTime: BigNumberish;
+    endTime: BigNumberish;
+    minimumDonationAmount: BigNumberish;
+    isActive: boolean;
+  };
+
+  export type RaffleStructOutput = [
+    string,
+    BigNumber[],
+    BigNumber,
+    BigNumber,
+    BigNumber,
+    boolean
+  ] & {
+    nftContract: string;
+    tokenIDs: BigNumber[];
+    startTime: BigNumber;
+    endTime: BigNumber;
+    minimumDonationAmount: BigNumber;
+    isActive: boolean;
+  };
+
+  export type DonationStruct = {
+    raffleID: BigNumberish;
+    donor: string;
+    amount: BigNumberish;
+    timestamp: BigNumberish;
+  };
+
+  export type DonationStructOutput = [
+    BigNumber,
+    string,
+    BigNumber,
+    BigNumber
+  ] & {
+    raffleID: BigNumber;
+    donor: string;
+    amount: BigNumber;
+    timestamp: BigNumber;
+  };
+}
+
 export interface RaffleInterface extends utils.Interface {
   contractName: "Raffle";
   functions: {
     "DAOWallet()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "USDC()": FunctionFragment;
+    "createRaffle((address,uint256[],uint256,uint256,uint256,bool))": FunctionFragment;
+    "donate((uint256,address,uint256,uint256))": FunctionFragment;
     "donationPerAddress(address)": FunctionFragment;
+    "donations(uint256,address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
@@ -34,6 +84,7 @@ export interface RaffleInterface extends utils.Interface {
     "renounceOwnership()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
+    "setDAOWalletAddress(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "totalDonations()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
@@ -46,8 +97,20 @@ export interface RaffleInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "USDC", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "createRaffle",
+    values: [Raffle.RaffleStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "donate",
+    values: [Raffle.DonationStruct]
+  ): string;
+  encodeFunctionData(
     functionFragment: "donationPerAddress",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "donations",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "getRoleAdmin",
@@ -87,6 +150,10 @@ export interface RaffleInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "setDAOWalletAddress",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
@@ -106,9 +173,15 @@ export interface RaffleInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "USDC", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "createRaffle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
+  decodeFunctionResult(
     functionFragment: "donationPerAddress",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "donations", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
@@ -135,6 +208,10 @@ export interface RaffleInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "setDAOWalletAddress",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
@@ -151,7 +228,7 @@ export interface RaffleInterface extends utils.Interface {
     "DAOWalletAddressSet(address)": EventFragment;
     "DonationPlaced(address,uint256,uint256)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
-    "RaffleCreated(uint256,uint256)": EventFragment;
+    "RaffleCreated(uint256,uint256,uint256)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
@@ -190,8 +267,8 @@ export type OwnershipTransferredEventFilter =
   TypedEventFilter<OwnershipTransferredEvent>;
 
 export type RaffleCreatedEvent = TypedEvent<
-  [BigNumber, BigNumber],
-  { startTime: BigNumber; endTime: BigNumber }
+  [BigNumber, BigNumber, BigNumber],
+  { startTime: BigNumber; endTime: BigNumber; minimumDonationAmount: BigNumber }
 >;
 
 export type RaffleCreatedEventFilter = TypedEventFilter<RaffleCreatedEvent>;
@@ -252,10 +329,33 @@ export interface Raffle extends BaseContract {
 
     USDC(overrides?: CallOverrides): Promise<[string]>;
 
+    createRaffle(
+      _raffle: Raffle.RaffleStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    donate(
+      _donation: Raffle.DonationStruct,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     donationPerAddress(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    donations(
+      arg0: BigNumberish,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber, BigNumber] & {
+        raffleID: BigNumber;
+        donor: string;
+        amount: BigNumber;
+        timestamp: BigNumber;
+      }
+    >;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
@@ -309,6 +409,11 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setDAOWalletAddress(
+      _DAOWallet: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -328,10 +433,33 @@ export interface Raffle extends BaseContract {
 
   USDC(overrides?: CallOverrides): Promise<string>;
 
+  createRaffle(
+    _raffle: Raffle.RaffleStruct,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  donate(
+    _donation: Raffle.DonationStruct,
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   donationPerAddress(
     arg0: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  donations(
+    arg0: BigNumberish,
+    arg1: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [BigNumber, string, BigNumber, BigNumber] & {
+      raffleID: BigNumber;
+      donor: string;
+      amount: BigNumber;
+      timestamp: BigNumber;
+    }
+  >;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -382,6 +510,11 @@ export interface Raffle extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setDAOWalletAddress(
+    _DAOWallet: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   supportsInterface(
     interfaceId: BytesLike,
     overrides?: CallOverrides
@@ -401,10 +534,33 @@ export interface Raffle extends BaseContract {
 
     USDC(overrides?: CallOverrides): Promise<string>;
 
+    createRaffle(
+      _raffle: Raffle.RaffleStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    donate(
+      _donation: Raffle.DonationStruct,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     donationPerAddress(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    donations(
+      arg0: BigNumberish,
+      arg1: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [BigNumber, string, BigNumber, BigNumber] & {
+        raffleID: BigNumber;
+        donor: string;
+        amount: BigNumber;
+        timestamp: BigNumber;
+      }
+    >;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -456,6 +612,11 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    setDAOWalletAddress(
+      _DAOWallet: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -495,11 +656,16 @@ export interface Raffle extends BaseContract {
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
-    "RaffleCreated(uint256,uint256)"(
+    "RaffleCreated(uint256,uint256,uint256)"(
       startTime?: null,
-      endTime?: null
+      endTime?: null,
+      minimumDonationAmount?: null
     ): RaffleCreatedEventFilter;
-    RaffleCreated(startTime?: null, endTime?: null): RaffleCreatedEventFilter;
+    RaffleCreated(
+      startTime?: null,
+      endTime?: null,
+      minimumDonationAmount?: null
+    ): RaffleCreatedEventFilter;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
@@ -542,8 +708,24 @@ export interface Raffle extends BaseContract {
 
     USDC(overrides?: CallOverrides): Promise<BigNumber>;
 
+    createRaffle(
+      _raffle: Raffle.RaffleStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    donate(
+      _donation: Raffle.DonationStruct,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     donationPerAddress(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    donations(
+      arg0: BigNumberish,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -591,6 +773,11 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setDAOWalletAddress(
+      _DAOWallet: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     supportsInterface(
       interfaceId: BytesLike,
       overrides?: CallOverrides
@@ -613,8 +800,24 @@ export interface Raffle extends BaseContract {
 
     USDC(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    createRaffle(
+      _raffle: Raffle.RaffleStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    donate(
+      _donation: Raffle.DonationStruct,
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     donationPerAddress(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    donations(
+      arg0: BigNumberish,
+      arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -662,6 +865,11 @@ export interface Raffle extends BaseContract {
     revokeRole(
       role: BytesLike,
       account: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setDAOWalletAddress(
+      _DAOWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

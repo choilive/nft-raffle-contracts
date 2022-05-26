@@ -21,10 +21,18 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     uint256 minimumDonationAmount;
     bool isActive;
   }
+
+  struct Donation {
+    uint256 raffleID;
+    // address donor;
+    uint256 amount;
+    uint256 timestamp;
+  }
   mapping(uint256 => Raffle) public raffles;
-  mapping(uint256 => bool) public nftsClaimed;
-  mapping(uint256 => address) private highestDonor;
-  mapping(address => uint256) public donationPerAddress;
+  mapping(uint256 => uint256) private totalDonationsPerCycle;
+  mapping(uint256 => mapping(address => uint256))
+    public totalDonationPerAddressPerCycle;
+  mapping(uint256 => mapping(address => Donation[])) public donations;
   // // --------------------------------------------------------------
   // // EVENTS
   // // --------------------------------------------------------------
@@ -42,6 +50,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // --------------------------------------------------------------
   error IncorrectTimesGiven();
   error ZeroAddressNotAllowed();
+  error RaffleHasEnded();
+  error DonationTooLow();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -68,12 +78,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
   function createRaffle(Raffle memory _raffle) public returns (uint256) {
     // TODO - only curator can create raffle!!
-    IArtizenNFT NftContract = IArtizenNFT(_raffle.nftContract);
+    //TODO // IArtizenNFT NftContract = IArtizenNFT(_raffle.nftContract);
     if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
 
     raffleCount++;
     raffles[raffleCount] = _raffle;
-    raffles[raffleCount].isActive = true; // TODO
 
     emit RaffleCreated(
       _raffle.startTime,
@@ -82,8 +91,32 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     );
 
     //TODO  transfer NFTs to contract ADD quantity!!
-    NftContract.transferFrom(_raffle.nftOwner, address(this), _raffle.tokenID);
+    // NftContract.transferFrom(_raffle.nftOwner, address(this), _raffle.tokenID);
 
     return raffleCount;
+  }
+
+  /**
+        @notice creates a donation on an raffle
+        @param _donation object contains parameters for donation created
+    */
+  function donate(Donation memory _donation) public payable nonReentrant {
+    uint256 raffleId = _donation.raffleID;
+    if (raffles[raffleId].endTime < block.timestamp) revert RaffleHasEnded();
+    if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
+      revert DonationTooLow();
+
+    donations[raffleId][msg.sender] = _donation;
+
+    totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation.amount;
+
+    // add amount to total donations per cycle
+
+    totalDonationsPerCycle[raffleId] += _donation.amount;
+
+    //transfer funds to contract
+    USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
+
+    emit DonationPlaced(msg.sender, raffleId, _donation.amount);
   }
 }

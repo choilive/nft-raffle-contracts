@@ -61,6 +61,44 @@ function USDC() external view returns (contract IERC20)
 |---|---|---|
 | _0 | contract IERC20 | undefined
 
+### createRaffle
+
+```solidity
+function createRaffle(Raffle.Raffle _raffle) external nonpayable returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _raffle | Raffle.Raffle | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### donate
+
+```solidity
+function donate(Raffle.Donation _donation) external payable
+```
+
+creates a donation on an raffle
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _donation | Raffle.Donation | object contains parameters for donation created
+
 ### donationPerAddress
 
 ```solidity
@@ -82,6 +120,32 @@ function donationPerAddress(address) external view returns (uint256)
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined
+
+### donations
+
+```solidity
+function donations(uint256, address) external view returns (uint256 raffleID, address donor, uint256 amount, uint256 timestamp)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+| _1 | address | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+| donor | address | undefined
+| amount | uint256 | undefined
+| timestamp | uint256 | undefined
 
 ### getRoleAdmin
 
@@ -272,6 +336,22 @@ function revokeRole(bytes32 role, address account) external nonpayable
 | role | bytes32 | undefined
 | account | address | undefined
 
+### setDAOWalletAddress
+
+```solidity
+function setDAOWalletAddress(address _DAOWallet) external nonpayable
+```
+
+sets DAO wallet address for transfering funds
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _DAOWallet | address | address of DAO wallet
+
 ### supportsInterface
 
 ```solidity
@@ -385,7 +465,7 @@ event OwnershipTransferred(address indexed previousOwner, address indexed newOwn
 ### RaffleCreated
 
 ```solidity
-event RaffleCreated(uint256 startTime, uint256 endTime)
+event RaffleCreated(uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
 ```
 
 
@@ -398,6 +478,7 @@ event RaffleCreated(uint256 startTime, uint256 endTime)
 |---|---|---|
 | startTime  | uint256 | undefined |
 | endTime  | uint256 | undefined |
+| minimumDonationAmount  | uint256 | undefined |
 
 ### RoleAdminChanged
 
@@ -452,6 +533,53 @@ event RoleRevoked(bytes32 indexed role, address indexed account, address indexed
 | role `indexed` | bytes32 | undefined |
 | account `indexed` | address | undefined |
 | sender `indexed` | address | undefined |
+
+
+
+## Errors
+
+### DonationTooLow
+
+```solidity
+error DonationTooLow()
+```
+
+
+
+
+
+
+### IncorrectTimesGiven
+
+```solidity
+error IncorrectTimesGiven()
+```
+
+
+
+
+
+
+### RaffleHasEnded
+
+```solidity
+error RaffleHasEnded()
+```
+
+
+
+
+
+
+### ZeroAddressNotAllowed
+
+```solidity
+error ZeroAddressNotAllowed()
+```
+
+
+
+
 
 
 
