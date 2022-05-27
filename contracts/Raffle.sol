@@ -35,6 +35,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     public totalDonationPerAddressPerCycle;
   mapping(uint256 => mapping(address => Donation[])) public donations;
   mapping(uint256 => address[]) public donorsArrayPerCycle;
+
   // // --------------------------------------------------------------
   // // EVENTS
   // // --------------------------------------------------------------
@@ -201,6 +202,18 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
     return winner;
+  }
+
+  function _calcTopDonor(uint256 raffleID) internal view returns (address) {
+    // TODO - check this logic
+    uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
+    uint256 donorsArray = donorsArrayPerCycle[raffleID];
+
+    // get total donations per cycle for everyone
+    for (uint256 i = 0; i < amountOfDonors; i++) {
+      getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]);
+    }
+    // TODO find the highest value and the address to it
   }
 
   // --------------------------------------------------------------
