@@ -4,6 +4,7 @@
 export type { AccessControl } from "./AccessControl";
 export type { IAccessControl } from "./IAccessControl";
 export type { Ownable } from "./Ownable";
+export type { IERC1155 } from "./IERC1155";
 export type { IERC20 } from "./IERC20";
 export type { ERC165 } from "./ERC165";
 export type { IERC165 } from "./IERC165";
@@ -12,6 +13,7 @@ export type { Raffle } from "./Raffle";
 export { AccessControl__factory } from "./factories/AccessControl__factory";
 export { IAccessControl__factory } from "./factories/IAccessControl__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
+export { IERC1155__factory } from "./factories/IERC1155__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { ERC165__factory } from "./factories/ERC165__factory";
 export { IERC165__factory } from "./factories/IERC165__factory";

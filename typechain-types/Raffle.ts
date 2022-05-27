@@ -21,7 +21,8 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export declare namespace Raffle {
   export type RaffleStruct = {
     nftContract: string;
-    tokenIDs: BigNumberish[];
+    nftOwner: string;
+    tokenID: BigNumberish;
     startTime: BigNumberish;
     endTime: BigNumberish;
     minimumDonationAmount: BigNumberish;
@@ -29,13 +30,15 @@ export declare namespace Raffle {
 
   export type RaffleStructOutput = [
     string,
-    BigNumber[],
+    string,
+    BigNumber,
     BigNumber,
     BigNumber,
     BigNumber
   ] & {
     nftContract: string;
-    tokenIDs: BigNumber[];
+    nftOwner: string;
+    tokenID: BigNumber;
     startTime: BigNumber;
     endTime: BigNumber;
     minimumDonationAmount: BigNumber;
@@ -60,7 +63,7 @@ export interface RaffleInterface extends utils.Interface {
     "DAOWallet()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "USDC()": FunctionFragment;
-    "createRaffle((address,uint256[],uint256,uint256,uint256))": FunctionFragment;
+    "createRaffle((address,address,uint256,uint256,uint256,uint256))": FunctionFragment;
     "donate((uint256,uint256,uint256))": FunctionFragment;
     "donations(uint256,address,uint256)": FunctionFragment;
     "donorsArrayPerCycle(uint256,uint256)": FunctionFragment;
@@ -452,8 +455,10 @@ export interface Raffle extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
+      [string, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         nftContract: string;
+        nftOwner: string;
+        tokenID: BigNumber;
         startTime: BigNumber;
         endTime: BigNumber;
         minimumDonationAmount: BigNumber;
@@ -585,8 +590,10 @@ export interface Raffle extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [string, BigNumber, BigNumber, BigNumber] & {
+    [string, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
       nftContract: string;
+      nftOwner: string;
+      tokenID: BigNumber;
       startTime: BigNumber;
       endTime: BigNumber;
       minimumDonationAmount: BigNumber;
@@ -718,8 +725,10 @@ export interface Raffle extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [string, BigNumber, BigNumber, BigNumber] & {
+      [string, string, BigNumber, BigNumber, BigNumber, BigNumber] & {
         nftContract: string;
+        nftOwner: string;
+        tokenID: BigNumber;
         startTime: BigNumber;
         endTime: BigNumber;
         minimumDonationAmount: BigNumber;
