@@ -148,6 +148,28 @@ function donorsArrayPerCycle(uint256, uint256) external view returns (address)
 |---|---|---|
 | _0 | address | undefined
 
+### getDonorsPerCycle
+
+```solidity
+function getDonorsPerCycle(uint256 raffleID) external view returns (address[])
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address[] | undefined
+
 ### getRoleAdmin
 
 ```solidity
@@ -169,6 +191,51 @@ function getRoleAdmin(bytes32 role) external view returns (bytes32)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes32 | undefined
+
+### getTotalDonationPerAddressPerCycle
+
+```solidity
+function getTotalDonationPerAddressPerCycle(uint256 raffleID, address account) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+| account | address | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### getTotalDonationsPerCycle
+
+```solidity
+function getTotalDonationsPerCycle(uint256 raffleID) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
 
 ### grantRole
 
@@ -264,7 +331,7 @@ function raffleCount() external view returns (uint256)
 ### raffles
 
 ```solidity
-function raffles(uint256) external view returns (address nftContract, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
+function raffles(uint256) external view returns (address nftContract, address nftOwner, uint256 tokenID, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
 ```
 
 
@@ -282,6 +349,8 @@ function raffles(uint256) external view returns (address nftContract, uint256 st
 | Name | Type | Description |
 |---|---|---|
 | nftContract | address | undefined
+| nftOwner | address | undefined
+| tokenID | uint256 | undefined
 | startTime | uint256 | undefined
 | endTime | uint256 | undefined
 | minimumDonationAmount | uint256 | undefined
@@ -630,6 +699,17 @@ error IncorrectTimesGiven()
 
 ```solidity
 error RaffleHasEnded()
+```
+
+
+
+
+
+
+### RaffleHasNotEnded
+
+```solidity
+error RaffleHasNotEnded()
 ```
 
 
