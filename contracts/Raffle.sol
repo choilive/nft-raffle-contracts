@@ -3,6 +3,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // TODO - implement access control!
@@ -16,7 +17,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // --------------------------------------------------------------
   struct Raffle {
     address nftContract; // address of NFT contract
-    uint256[] tokenIDs;
+    uint256 tokenID;
     uint256 startTime;
     uint256 endTime;
     uint256 minimumDonationAmount;
@@ -131,6 +132,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     totalDonationsPerCycle[raffleId] += _donation.amount;
 
     donorsArrayPerCycle[raffleId].push(msg.sender);
+
+    // TODO if the donation amount is higher than the current highest donation,set msg.sender to top donor
+
     //transfer funds to contract
     USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
 
@@ -138,12 +142,45 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   }
 
   function sendNFTRewards(uint256 raffleID) public onlyOwner {
-    if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
     // Recepients:
     // 1. top donor in raffle
     //2. random donor in raffle
     // 3. DAO wallet
     // 4. artist who created the artwork
+    if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
+
+    // calculate randomDonor
+    address randomDonor = _calculateRandomDonor(raffleID);
+
+    // get topDonor
+
+    // TODO is it more efficent to create an array of winners and loop through it or call trasfer 4times?
+    address nftContractAddress = raffles[raffleID].nftContract;
+    address tokenID = raffles[raffleID].tokenID;
+
+    // transfer to random donor
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      randomDonor,
+      tokenID,
+      1
+    );
+
+    // transfer to DAO Wallet
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      DAOWallet,
+      tokenID,
+      1
+    );
+
+    // transfer to NFT author
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      nftAuthorWallet,
+      tokenID,
+      1
+    );
   }
 
   // --------------------------------------------------------------
