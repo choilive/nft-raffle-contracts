@@ -17,6 +17,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // --------------------------------------------------------------
   struct Raffle {
     address nftContract; // address of NFT contract
+    address nftOwner;
     uint256 tokenID;
     uint256 startTime;
     uint256 endTime;
@@ -94,7 +95,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
   function createRaffle(Raffle memory _raffle) public returns (uint256) {
     // TODO - only curator can create raffle!!
-    //TODO // IArtizenNFT NftContract = IArtizenNFT(_raffle.nftContract);
+    nftContract = IERC1155(_raffle.nftContract);
     if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
 
     raffleCount++;
@@ -106,8 +107,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       _raffle.minimumDonationAmount
     );
 
-    //TODO  transfer NFTs to contract ADD quantity!!
-    // NftContract.transferFrom(_raffle.nftOwner, address(this), _raffle.tokenID);
+    IERC1155(nftContractAddress).safeTransferFrom(
+      _raffle.nftOwner,
+      address(this),
+      _raffle.tokenID,
+      4
+    );
 
     return raffleCount;
   }
