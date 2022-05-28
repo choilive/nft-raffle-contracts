@@ -6,12 +6,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
 contract Raffle is Ownable, AccessControl, ReentrancyGuard {
-  // TODO - implement access control!
   address public DAOWallet;
   address public nftAuthorWallet;
   uint256 public raffleCount;
   IERC20 public USDC;
   uint256 public totalDonations;
+
+  // TODO - implement access control!
+
+  bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
   // -------------------------------------------------------------
   // STORAGE
   // --------------------------------------------------------------
@@ -96,6 +99,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
   function createRaffle(Raffle memory _raffle) public returns (uint256) {
     // TODO - only curator can create raffle!!
+    require(hasRole(CURATOR_ROLE, msg.sender));
     address nftContractAddress = _raffle.nftContract;
     if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
 
@@ -139,8 +143,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     totalDonationsPerCycle[raffleId] += _donation.amount;
 
     donorsArrayPerCycle[raffleId].push(msg.sender);
-
-    // TODO if the donation amount is higher than the current highest donation,set msg.sender to top donor
 
     //transfer funds to contract
     USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
