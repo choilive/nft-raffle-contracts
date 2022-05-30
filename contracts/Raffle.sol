@@ -5,10 +5,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 
+// raffleID => donationIDs
+//address => donationIDs
 contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   address public DAOWallet;
   address public nftAuthorWallet;
   uint256 public raffleCount;
+  uint256 public donationCount;
   IERC20 public USDC;
   uint256 public totalDonations;
 
@@ -36,6 +39,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   mapping(uint256 => uint256) private totalDonationsPerCycle;
   mapping(uint256 => mapping(address => uint256))
     public totalDonationPerAddressPerCycle;
+  // raffleID => address => Donation
   mapping(uint256 => mapping(address => Donation[])) public donations;
   mapping(uint256 => address[]) public donorsArrayPerCycle;
 
@@ -133,7 +137,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
       revert DonationTooLow();
 
-    // donations[raffleId][msg.sender] = _donation; // TODO check this
+    donations[raffleId][msg.sender] = _donation; // TODO check this
     _donation.timestamp = block.timestamp; // TODO check this
 
     totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation.amount;
@@ -164,7 +168,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     // get topDonor
 
     address topDonor = _calcTopDonor(raffleID);
-    // TODO is it more efficent to create an array of winners and loop through it or call trasfer 4times?
+
     address nftContractAddress = raffles[raffleID].nftContract;
     uint256 tokenID = raffles[raffleID].tokenID;
 
