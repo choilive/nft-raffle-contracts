@@ -477,6 +477,22 @@ function sendNFTRewards(uint256 raffleID) external nonpayable
 |---|---|---|
 | raffleID | uint256 | undefined
 
+### setCuratorRole
+
+```solidity
+function setCuratorRole(address curator) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| curator | address | undefined
+
 ### setDAOWalletAddress
 
 ```solidity

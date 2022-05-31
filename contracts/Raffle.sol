@@ -104,6 +104,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
     }
 
+    function setCuratorRole(address curator) public onlyOwner {
+        _grantRole(CURATOR_ROLE, curator);
+    }
+
     function createRaffle(Raffle memory _raffle) public returns (uint256) {
         require(hasRole(CURATOR_ROLE, msg.sender));
         address nftContractAddress = _raffle.nftContract;
@@ -127,13 +131,24 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         );
 
         return raffleCount;
+
+        emit RaffleCreated(
+            _raffle.startTime,
+            _raffle.endTime,
+            _raffle.minimumDonationAmount
+        );
     }
 
     /**
         @notice creates a donation on an raffle
         @param _donation object contains parameters for donation created
     */
-    function donate(Donation memory _donation) public payable nonReentrant {
+    function donate(Donation memory _donation)
+        public
+        payable
+        nonReentrant
+        onlyRole(CURATOR_ROLE)
+    {
         uint256 raffleId = _donation.raffleID;
         if (raffles[raffleId].endTime < block.timestamp)
             revert RaffleHasEnded();

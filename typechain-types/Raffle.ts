@@ -84,6 +84,7 @@ export interface RaffleInterface extends utils.Interface {
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "sendNFTRewards(uint256)": FunctionFragment;
+    "setCuratorRole(address)": FunctionFragment;
     "setDAOWalletAddress(address)": FunctionFragment;
     "setNftAuthorWalletAddress(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
@@ -180,6 +181,10 @@ export interface RaffleInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "setCuratorRole",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setDAOWalletAddress",
     values: [string]
   ): string;
@@ -271,6 +276,10 @@ export interface RaffleInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "revokeRole", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "sendNFTRewards",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setCuratorRole",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -525,6 +534,11 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    setCuratorRole(
+      curator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -672,6 +686,11 @@ export interface Raffle extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  setCuratorRole(
+    curator: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   setDAOWalletAddress(
     _DAOWallet: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -816,6 +835,8 @@ export interface Raffle extends BaseContract {
       raffleID: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setCuratorRole(curator: string, overrides?: CallOverrides): Promise<void>;
 
     setDAOWalletAddress(
       _DAOWallet: string,
@@ -1028,6 +1049,11 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    setCuratorRole(
+      curator: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     setDAOWalletAddress(
       _DAOWallet: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1163,6 +1189,11 @@ export interface Raffle extends BaseContract {
 
     sendNFTRewards(
       raffleID: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setCuratorRole(
+      curator: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
