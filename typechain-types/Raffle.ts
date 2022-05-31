@@ -66,7 +66,8 @@ export interface RaffleInterface extends utils.Interface {
     "USDC()": FunctionFragment;
     "createRaffle((address,address,uint256,uint256,uint256,uint256))": FunctionFragment;
     "donate((uint256,uint256,uint256))": FunctionFragment;
-    "donations(uint256,address,uint256)": FunctionFragment;
+    "donationCount()": FunctionFragment;
+    "donations(uint256)": FunctionFragment;
     "donorsArrayPerCycle(uint256,uint256)": FunctionFragment;
     "getDonorsPerCycle(uint256)": FunctionFragment;
     "getHighestDonationPerCycle(uint256)": FunctionFragment;
@@ -89,7 +90,6 @@ export interface RaffleInterface extends utils.Interface {
     "setNftAuthorWalletAddress(address)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "totalDonationPerAddressPerCycle(uint256,address)": FunctionFragment;
-    "totalDonations()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
   };
 
@@ -112,8 +112,12 @@ export interface RaffleInterface extends utils.Interface {
     values: [Raffle.DonationStruct]
   ): string;
   encodeFunctionData(
+    functionFragment: "donationCount",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "donations",
-    values: [BigNumberish, string, BigNumberish]
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "donorsArrayPerCycle",
@@ -201,10 +205,6 @@ export interface RaffleInterface extends utils.Interface {
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "totalDonations",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "transferOwnership",
     values: [string]
   ): string;
@@ -224,6 +224,10 @@ export interface RaffleInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "donate", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "donationCount",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "donations", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "donorsArrayPerCycle",
@@ -296,10 +300,6 @@ export interface RaffleInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "totalDonationPerAddressPerCycle",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "totalDonations",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -434,10 +434,10 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    donationCount(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     donations(
       arg0: BigNumberish,
-      arg1: string,
-      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
@@ -560,8 +560,6 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
-    totalDonations(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -586,10 +584,10 @@ export interface Raffle extends BaseContract {
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  donationCount(overrides?: CallOverrides): Promise<BigNumber>;
+
   donations(
     arg0: BigNumberish,
-    arg1: string,
-    arg2: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
     [BigNumber, BigNumber, BigNumber] & {
@@ -712,8 +710,6 @@ export interface Raffle extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
-  totalDonations(overrides?: CallOverrides): Promise<BigNumber>;
-
   transferOwnership(
     newOwner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -736,12 +732,12 @@ export interface Raffle extends BaseContract {
     donate(
       _donation: Raffle.DonationStruct,
       overrides?: CallOverrides
-    ): Promise<void>;
+    ): Promise<BigNumber>;
+
+    donationCount(overrides?: CallOverrides): Promise<BigNumber>;
 
     donations(
       arg0: BigNumberish,
-      arg1: string,
-      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
       [BigNumber, BigNumber, BigNumber] & {
@@ -859,8 +855,6 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    totalDonations(overrides?: CallOverrides): Promise<BigNumber>;
-
     transferOwnership(
       newOwner: string,
       overrides?: CallOverrides
@@ -964,10 +958,10 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    donationCount(overrides?: CallOverrides): Promise<BigNumber>;
+
     donations(
       arg0: BigNumberish,
-      arg1: string,
-      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1075,8 +1069,6 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    totalDonations(overrides?: CallOverrides): Promise<BigNumber>;
-
     transferOwnership(
       newOwner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -1104,10 +1096,10 @@ export interface Raffle extends BaseContract {
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    donationCount(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     donations(
       arg0: BigNumberish,
-      arg1: string,
-      arg2: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1217,8 +1209,6 @@ export interface Raffle extends BaseContract {
       arg1: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
-
-    totalDonations(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     transferOwnership(
       newOwner: string,

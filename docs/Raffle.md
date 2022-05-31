@@ -103,7 +103,7 @@ function createRaffle(Raffle.Raffle _raffle) external nonpayable returns (uint25
 ### donate
 
 ```solidity
-function donate(Raffle.Donation _donation) external payable
+function donate(Raffle.Donation _donation) external payable returns (uint256)
 ```
 
 creates a donation on an raffle
@@ -116,10 +116,33 @@ creates a donation on an raffle
 |---|---|---|
 | _donation | Raffle.Donation | object contains parameters for donation created
 
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### donationCount
+
+```solidity
+function donationCount() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### donations
 
 ```solidity
-function donations(uint256, address, uint256) external view returns (uint256 raffleID, uint256 amount, uint256 timestamp)
+function donations(uint256) external view returns (uint256 raffleID, uint256 amount, uint256 timestamp)
 ```
 
 
@@ -131,8 +154,6 @@ function donations(uint256, address, uint256) external view returns (uint256 raf
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined
-| _1 | address | undefined
-| _2 | uint256 | undefined
 
 #### Returns
 
@@ -563,23 +584,6 @@ function totalDonationPerAddressPerCycle(uint256, address) external view returns
 |---|---|---|
 | _0 | uint256 | undefined
 | _1 | address | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### totalDonations
-
-```solidity
-function totalDonations() external view returns (uint256)
-```
-
-
-
-
-
 
 #### Returns
 
