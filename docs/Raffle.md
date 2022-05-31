@@ -170,6 +170,28 @@ function getDonorsPerCycle(uint256 raffleID) external view returns (address[])
 |---|---|---|
 | _0 | address[] | undefined
 
+### getHighestDonationPerCycle
+
+```solidity
+function getHighestDonationPerCycle(uint256 raffleID) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getRoleAdmin
 
 ```solidity

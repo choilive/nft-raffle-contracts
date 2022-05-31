@@ -68,6 +68,7 @@ export interface RaffleInterface extends utils.Interface {
     "donations(uint256,address,uint256)": FunctionFragment;
     "donorsArrayPerCycle(uint256,uint256)": FunctionFragment;
     "getDonorsPerCycle(uint256)": FunctionFragment;
+    "getHighestDonationPerCycle(uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "getTotalDonationPerAddressPerCycle(uint256,address)": FunctionFragment;
     "getTotalDonationsPerCycle(uint256)": FunctionFragment;
@@ -113,6 +114,10 @@ export interface RaffleInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "getDonorsPerCycle",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getHighestDonationPerCycle",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -207,6 +212,10 @@ export interface RaffleInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getDonorsPerCycle",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getHighestDonationPerCycle",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -420,6 +429,11 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string[]]>;
 
+    getHighestDonationPerCycle(
+      raffleID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     getTotalDonationPerAddressPerCycle(
@@ -555,6 +569,11 @@ export interface Raffle extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string[]>;
 
+  getHighestDonationPerCycle(
+    raffleID: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   getTotalDonationPerAddressPerCycle(
@@ -689,6 +708,11 @@ export interface Raffle extends BaseContract {
       raffleID: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string[]>;
+
+    getHighestDonationPerCycle(
+      raffleID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
@@ -896,6 +920,11 @@ export interface Raffle extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    getHighestDonationPerCycle(
+      raffleID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -1015,6 +1044,11 @@ export interface Raffle extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     getDonorsPerCycle(
+      raffleID: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getHighestDonationPerCycle(
       raffleID: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
