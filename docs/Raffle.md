@@ -186,6 +186,29 @@ function donorsArrayPerCycle(uint256, uint256) external view returns (address)
 |---|---|---|
 | _0 | address | undefined
 
+### getDonationCountPerAddressPerCycle
+
+```solidity
+function getDonationCountPerAddressPerCycle(address donor, uint256 raffleID) external nonpayable returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| donor | address | undefined
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getDonorsPerCycle
 
 ```solidity
