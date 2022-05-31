@@ -181,9 +181,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
         // get topDonor
 
-        // TODO is it more efficent to create an array of winners and loop through it or call trasfer 4times?
+        address topDonor = getTopDonor(raffleID);
+
         address nftContractAddress = raffles[raffleID].nftContract;
         uint256 tokenID = raffles[raffleID].tokenID;
+
+        // transfer to random donor
+        IERC1155(nftContractAddress).safeTransferFrom(
+            address(this),
+            topDonor,
+            tokenID,
+            1,
+            ""
+        );
 
         // transfer to random donor
         IERC1155(nftContractAddress).safeTransferFrom(
@@ -277,5 +287,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         returns (uint256)
     {
         return highestDonation[raffleID];
+    }
+
+    function getTopDonor(uint256 raffleID) public view returns (address) {
+        return topDonor[raffleID];
     }
 }
