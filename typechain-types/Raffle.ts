@@ -60,6 +60,7 @@ export declare namespace Raffle {
 export interface RaffleInterface extends utils.Interface {
   contractName: "Raffle";
   functions: {
+    "CURATOR_ROLE()": FunctionFragment;
     "DAOWallet()": FunctionFragment;
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "USDC()": FunctionFragment;
@@ -91,6 +92,10 @@ export interface RaffleInterface extends utils.Interface {
     "transferOwnership(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "CURATOR_ROLE",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "DAOWallet", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "DEFAULT_ADMIN_ROLE",
@@ -199,6 +204,10 @@ export interface RaffleInterface extends utils.Interface {
     values: [string]
   ): string;
 
+  decodeFunctionResult(
+    functionFragment: "CURATOR_ROLE",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "DAOWallet", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "DEFAULT_ADMIN_ROLE",
@@ -398,6 +407,8 @@ export interface Raffle extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    CURATOR_ROLE(overrides?: CallOverrides): Promise<[string]>;
+
     DAOWallet(overrides?: CallOverrides): Promise<[string]>;
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<[string]>;
@@ -542,6 +553,8 @@ export interface Raffle extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
+
+  CURATOR_ROLE(overrides?: CallOverrides): Promise<string>;
 
   DAOWallet(overrides?: CallOverrides): Promise<string>;
 
@@ -688,6 +701,8 @@ export interface Raffle extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
+    CURATOR_ROLE(overrides?: CallOverrides): Promise<string>;
+
     DAOWallet(overrides?: CallOverrides): Promise<string>;
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -910,6 +925,8 @@ export interface Raffle extends BaseContract {
   };
 
   estimateGas: {
+    CURATOR_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
+
     DAOWallet(overrides?: CallOverrides): Promise<BigNumber>;
 
     DEFAULT_ADMIN_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1041,6 +1058,8 @@ export interface Raffle extends BaseContract {
   };
 
   populateTransaction: {
+    CURATOR_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     DAOWallet(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     DEFAULT_ADMIN_ROLE(

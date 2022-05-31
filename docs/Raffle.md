@@ -10,6 +10,23 @@
 
 ## Methods
 
+### CURATOR_ROLE
+
+```solidity
+function CURATOR_ROLE() external view returns (bytes32)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined
+
 ### DAOWallet
 
 ```solidity
