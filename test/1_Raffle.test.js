@@ -24,6 +24,7 @@ let NFTContract, NFTInstance;
 
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
+const { start } = require("repl");
 
 const USDC = new ethers.Contract(
   constants.POLYGON.USDC,
@@ -39,10 +40,10 @@ describe("Raffle Contract Tests", function () {
     ownerAddress = await owner.getAddress();
     daoWalletAddress = await owner.getAddress();
     nftAuthorAddress = await nftAuthor.getAddress();
-    curatorAddress = await curator.getAddress();
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
+    curatorAddress = await curator.getAddress();
 
     // Deploy Raffle
     RaffleContract = await ethers.getContractFactory("Raffle");
@@ -112,16 +113,19 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("Create raffle function", function () {
-    it("creates raffle with correct details", async () => {
+    it.only("creates raffle with correct details", async () => {
+      console.log(startTime, endTime);
       let newRaffle = await createRaffleObject(
-        owner.address,
         NFTInstance.address,
-        1,
+        ownerAddress,
+        BigNumber.from(1),
         startTime,
         endTime,
+        BigNumber.from(10),
+        owner.address,
         BigNumber.from(10)
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
     it("only curator can create raffle", async () => {});
     it("reverts if incorrect times given", async () => {});
