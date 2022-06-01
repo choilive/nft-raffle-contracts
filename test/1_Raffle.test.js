@@ -11,6 +11,7 @@ let donor1, donor1Address;
 let donor2, donor2Address;
 let donor3, donor3Address;
 let donor4, donor4Address;
+let curator, curatorAddress;
 let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
@@ -25,13 +26,13 @@ const USDC = new ethers.Contract(
 
 describe("Raffle Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, nftAuthor, donor1, donor2, donor3] =
+    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, curator] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
     daoWalletAddress = await owner.getAddress();
     nftAuthorAddress = await nftAuthor.getAddress();
-
+    curatorAddress = await curator.getAddress();
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
@@ -70,6 +71,9 @@ describe("Raffle Contract Tests", function () {
     //   RaffleInstance.address,
     //   true
     // );
+
+    // Add curator role
+    await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
   });
 
   describe("Setter functions", function () {
@@ -98,12 +102,22 @@ describe("Raffle Contract Tests", function () {
   });
   describe("Create raffle function", function () {
     it("creates raffle with correct details", async () => {});
+    it("only curator can create raffle", async () => {});
+    it("reverts if incorrect times given", async () => {});
+    it("contract receives NFTs on raffle creation", async () => {});
+    it("emits Raffle created event properly", async () => {});
   });
   describe("Donate function", function () {
-    it("", async () => {});
+    it("creates donation with correct details", async () => {});
+    it("reverts if incorrect times given", async () => {});
+    it("reverts if donation is too low", async () => {});
+    it("transfers donation into DAO Wallet", async () => {});
+    it("emits Donation created event properly", async () => {});
   });
   describe("SendNFTsToWinners function", function () {
-    it("", async () => {});
+    it("reverts if donation is still active", async () => {});
+    it("emits events properly", async () => {});
+    it("calculates winners correctly,NFT reflect in winners balances", async () => {});
   });
   describe("View functions", function () {
     it("", async () => {});

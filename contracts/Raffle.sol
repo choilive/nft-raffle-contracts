@@ -61,6 +61,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   event DonationPlaced(address from, uint256 raffleId, uint256 amount);
   event DAOWalletAddressSet(address walletAddress);
   event nftAuthorWalletAddressSet(address nftAuthorWallet);
+  event NFTsentToWinner(uint256 raffleID, address winner);
 
   // --------------------------------------------------------------
   // CUSTOM ERRORS
@@ -221,6 +222,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       ""
     );
 
+    emit NFTsentToWinner(raffleID, topDonor);
+
     // transfer to random donor
     IERC1155(nftContractAddress).safeTransferFrom(
       address(this),
@@ -230,6 +233,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       ""
     );
 
+    emit NFTsentToWinner(raffleID, randomDonor);
     // transfer to DAO Wallet
     IERC1155(nftContractAddress).safeTransferFrom(
       address(this),
@@ -238,7 +242,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       1,
       ""
     );
-
+    emit NFTsentToWinner(raffleID, DAOWallet);
     // transfer to NFT author
     IERC1155(nftContractAddress).safeTransferFrom(
       address(this),
@@ -247,6 +251,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       1,
       ""
     );
+    emit NFTsentToWinner(raffleID, nftAuthorWallet);
   }
 
   function getDonationCountPerAddressPerCycle(address donor, uint256 raffleID)
@@ -287,7 +292,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // --------------------------------------------------------------
 
   function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
-    return raffle[raffleID];
+    return raffles[raffleID];
   }
 
   function getTotalDonationsPerCycle(uint256 raffleID)
