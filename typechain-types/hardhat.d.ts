@@ -57,9 +57,9 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Raffle__factory>;
     getContractFactory(
-      name: "MyToken",
+      name: "RewardNFT",
       signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MyToken__factory>;
+    ): Promise<Contracts.RewardNFT__factory>;
 
     getContractAt(
       name: "AccessControl",
@@ -117,10 +117,10 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Raffle>;
     getContractAt(
-      name: "MyToken",
+      name: "RewardNFT",
       address: string,
       signer?: ethers.Signer
-    ): Promise<Contracts.MyToken>;
+    ): Promise<Contracts.RewardNFT>;
 
     // default types
     getContractFactory(

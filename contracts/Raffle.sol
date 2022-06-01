@@ -77,7 +77,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
   constructor(address _usdc) {
     USDC = IERC20(_usdc);
-    USDC.approve(address(this), type(uint256).max);
   }
 
   // --------------------------------------------------------------
