@@ -85,7 +85,7 @@ describe("Raffle Contract Tests", function () {
 
     // set times
     startTime = await currentTime();
-    endTime = await fastForward(constants.TEST.oneMonth);
+    endTime = startTime + constants.TEST.oneMonth;
   });
 
   describe("Setter functions", function () {
