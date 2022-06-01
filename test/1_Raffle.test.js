@@ -96,4 +96,16 @@ describe("Raffle Contract Tests", function () {
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
+  describe("Create raffle function", function () {
+    it("creates raffle with correct details", async () => {});
+  });
+  describe("Donate function", function () {
+    it("", async () => {});
+  });
+  describe("SendNFTsToWinners function", function () {
+    it("", async () => {});
+  });
+  describe("View functions", function () {
+    it("", async () => {});
+  });
 });
