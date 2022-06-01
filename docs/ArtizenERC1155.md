@@ -117,44 +117,6 @@ function mint(address to, uint256 id, uint256 amount, bytes data) external nonpa
 | amount | uint256 | undefined
 | data | bytes | undefined
 
-### mintBatchWithUri
-
-```solidity
-function mintBatchWithUri(address[] to, uint256[] ids, uint256[] amounts, string[] uris) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| to | address[] | undefined
-| ids | uint256[] | undefined
-| amounts | uint256[] | undefined
-| uris | string[] | undefined
-
-### mintWithUri
-
-```solidity
-function mintWithUri(address to, uint256 id, uint256 amount, string tokenUri) external nonpayable
-```
-
-
-
-
-
-#### Parameters
-
-| Name | Type | Description |
-|---|---|---|
-| to | address | undefined
-| id | uint256 | undefined
-| amount | uint256 | undefined
-| tokenUri | string | undefined
-
 ### safeBatchTransferFrom
 
 ```solidity
@@ -220,7 +182,7 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 
 
 
-
+*See {IERC165-supportsInterface}.*
 
 #### Parameters
 

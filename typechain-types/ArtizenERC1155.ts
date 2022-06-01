@@ -25,8 +25,6 @@ export interface ArtizenERC1155Interface extends utils.Interface {
     "batchMint(address,uint256[],uint256[],bytes)": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "mint(address,uint256,uint256,bytes)": FunctionFragment;
-    "mintBatchWithUri(address[],uint256[],uint256[],string[])": FunctionFragment;
-    "mintWithUri(address,uint256,uint256,string)": FunctionFragment;
     "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)": FunctionFragment;
     "safeTransferFrom(address,address,uint256,uint256,bytes)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
@@ -53,14 +51,6 @@ export interface ArtizenERC1155Interface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "mint",
     values: [string, BigNumberish, BigNumberish, BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mintBatchWithUri",
-    values: [string[], BigNumberish[], BigNumberish[], string[]]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "mintWithUri",
-    values: [string, BigNumberish, BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "safeBatchTransferFrom",
@@ -91,14 +81,6 @@ export interface ArtizenERC1155Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
-  decodeFunctionResult(
-    functionFragment: "mintBatchWithUri",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "mintWithUri",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "safeBatchTransferFrom",
     data: BytesLike
@@ -232,22 +214,6 @@ export interface ArtizenERC1155 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    mintBatchWithUri(
-      to: string[],
-      ids: BigNumberish[],
-      amounts: BigNumberish[],
-      uris: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    mintWithUri(
-      to: string,
-      id: BigNumberish,
-      amount: BigNumberish,
-      tokenUri: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     safeBatchTransferFrom(
       from: string,
       to: string,
@@ -314,22 +280,6 @@ export interface ArtizenERC1155 extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  mintBatchWithUri(
-    to: string[],
-    ids: BigNumberish[],
-    amounts: BigNumberish[],
-    uris: string[],
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  mintWithUri(
-    to: string,
-    id: BigNumberish,
-    amount: BigNumberish,
-    tokenUri: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
   safeBatchTransferFrom(
     from: string,
     to: string,
@@ -393,22 +343,6 @@ export interface ArtizenERC1155 extends BaseContract {
       id: BigNumberish,
       amount: BigNumberish,
       data: BytesLike,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    mintBatchWithUri(
-      to: string[],
-      ids: BigNumberish[],
-      amounts: BigNumberish[],
-      uris: string[],
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    mintWithUri(
-      to: string,
-      id: BigNumberish,
-      amount: BigNumberish,
-      tokenUri: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -528,22 +462,6 @@ export interface ArtizenERC1155 extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    mintBatchWithUri(
-      to: string[],
-      ids: BigNumberish[],
-      amounts: BigNumberish[],
-      uris: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    mintWithUri(
-      to: string,
-      id: BigNumberish,
-      amount: BigNumberish,
-      tokenUri: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     safeBatchTransferFrom(
       from: string,
       to: string,
@@ -608,22 +526,6 @@ export interface ArtizenERC1155 extends BaseContract {
       id: BigNumberish,
       amount: BigNumberish,
       data: BytesLike,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mintBatchWithUri(
-      to: string[],
-      ids: BigNumberish[],
-      amounts: BigNumberish[],
-      uris: string[],
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    mintWithUri(
-      to: string,
-      id: BigNumberish,
-      amount: BigNumberish,
-      tokenUri: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
