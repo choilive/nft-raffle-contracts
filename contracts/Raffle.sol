@@ -4,8 +4,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 
-contract Raffle is Ownable, AccessControl, ReentrancyGuard {
+contract Raffle is Ownable, AccessControl, ReentrancyGuard, IERC1155Receiver {
   // TODO - implement access control!
   address public DAOWallet;
   address public nftAuthorWallet;

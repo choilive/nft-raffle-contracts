@@ -113,7 +113,7 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("Create raffle function", function () {
-    it("creates raffle with correct details", async () => {
+    it.only("creates raffle with correct details", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -124,9 +124,10 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10)
       );
-      await RaffleInstance.connect(owner).createRaffle(newRaffle);
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      let raffle = RaffleInstance.getRaffle(1);
     });
-    it.only("only curator can create raffle", async () => {
+    it("only curator can create raffle", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
