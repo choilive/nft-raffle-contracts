@@ -78,13 +78,23 @@ describe("Raffle Contract Tests", function () {
       await RaffleInstance.connect(owner).setDAOWalletAddress(daoWalletAddress);
       expect(await RaffleInstance.DAOWallet()).to.equal(daoWalletAddress);
     });
-    it("only owner can set up dao wallet address", async () => {});
+    it("only owner can set up dao wallet address", async () => {
+      await expect(
+        RaffleInstance.connect(donor1).setDAOWalletAddress(daoWalletAddress)
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
     it("sets up nft author address properly", async () => {
       await RaffleInstance.connect(owner).setNftAuthorWalletAddress(
         nftAuthorAddress
       );
       expect(await RaffleInstance.nftAuthorWallet()).to.equal(nftAuthorAddress);
     });
-    it("only owner can set up nft wallet address", async () => {});
+    it("only owner can set up nft wallet address", async () => {
+      await expect(
+        RaffleInstance.connect(donor1).setNftAuthorWalletAddress(
+          nftAuthorAddress
+        )
+      ).to.be.revertedWith("Ownable: caller is not the owner");
+    });
   });
 });
