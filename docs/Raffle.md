@@ -436,7 +436,7 @@ function raffleCount() external view returns (uint256)
 ### raffles
 
 ```solidity
-function raffles(uint256) external view returns (address nftContract, address nftOwner, uint256 tokenID, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
+function raffles(uint256) external view returns (address nftContract, address nftOwner, uint256 tokenID, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount, address topDonor, uint256 topDonatedAmount)
 ```
 
 
@@ -459,6 +459,8 @@ function raffles(uint256) external view returns (address nftContract, address nf
 | startTime | uint256 | undefined
 | endTime | uint256 | undefined
 | minimumDonationAmount | uint256 | undefined
+| topDonor | address | undefined
+| topDonatedAmount | uint256 | undefined
 
 ### renounceOwnership
 

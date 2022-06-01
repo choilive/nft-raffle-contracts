@@ -24,6 +24,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         uint256 startTime;
         uint256 endTime;
         uint256 minimumDonationAmount;
+        address topDonor;
+        uint256 topDonatedAmount;
     }
 
     struct Donation {
@@ -136,12 +138,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
             ""
         );
 
-        emit RaffleCreated(
-            _raffle.startTime,
-            _raffle.endTime,
-            _raffle.minimumDonationAmount
-        );
-
         return raffleCount;
     }
 
@@ -156,13 +152,17 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         returns (uint256)
     {
         uint256 raffleId = _donation.raffleID;
+
+        // Loading Raffle obj into memory for top donor calc
+        Raffle memory currentRaffle = raffles[raffleId];
+
         if (raffles[raffleId].endTime < block.timestamp)
             revert RaffleHasEnded();
         if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
             revert DonationTooLow();
         donationCount++;
-        donations[donationCount] = _donation; // TODO check this
-        _donation.timestamp = block.timestamp; // TODO check this
+        _donation.timestamp = block.timestamp;
+        donations[donationCount] = _donation;
 
         totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation
             .amount;
@@ -173,16 +173,27 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
         donorsArrayPerCycle[raffleId].push(msg.sender);
 
-        uint256 totalDonationPerAddress = getTotalDonationPerAddressPerCycle(
-            raffleId,
-            msg.sender
-        );
+        uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
+            raffleId
+        ][msg.sender];
+        uint256 topDonation = currentRaffle.topDonatedAmount;
+        // Calculate top donor and amount and update in Raffle obj
 
-        // TODO how to keep track of the highest donation?
-        uint256 higestDonationInCycle = getHighestDonationPerCycle(raffleId);
-        if (totalDonationPerAddress >= higestDonationInCycle) {
-            //if the donation amount is higher than the current highest donation,set msg.sender to top donor
+        if (currentRaffle.topDonor == msg.sender) {
+            // dont change top donor, just change amount
+            currentRaffle.topDonatedAmount += _donation.amount;
+
+            // Update raffle in storage
+            raffles[raffleId] = currentRaffle;
+        } else if (donorsTotalDonationsInRaffle > topDonation) {
+            // New top donor, update both fiels in Raffle obj
+            currentRaffle.topDonatedAmount = donorsTotalDonationsInRaffle;
+            highestDonation[raffleId] = topDonation;
+            currentRaffle.topDonor = msg.sender;
             topDonor[raffleId] = msg.sender;
+
+            // Update raffle in storage
+            raffles[raffleId] = currentRaffle;
         }
 
         //transfer funds to contract
@@ -268,25 +279,20 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
 
         uint256 randomIndex = uint256(
-            keccak256(abi.encodePacked(block.timestamp, msg.sender))
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.number,
+                    block.difficulty,
+                    raffleID
+                )
+            )
         ) % amountOfDonors;
 
         address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
         return winner;
     }
-
-    //   function _calcTopDonor(uint256 raffleID) internal view returns (address) {
-    //     // TODO - check this logic
-    //     uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
-    //     address[] memory donorsArray = donorsArrayPerCycle[raffleID];
-
-    //     // get total donations per cycle for everyone
-    //     for (uint256 i = 0; i < amountOfDonors; i++) {
-    //       getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]);
-    //     }
-    //     // TODO find the highest value and the address to it
-    //   }
 
     // --------------------------------------------------------------
     // VIEW FUNCTIONS
