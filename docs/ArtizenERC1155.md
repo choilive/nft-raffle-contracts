@@ -117,6 +117,34 @@ function mint(address to, uint256 id, uint256 amount, bytes data) external nonpa
 | amount | uint256 | undefined
 | data | bytes | undefined
 
+### owner
+
+```solidity
+function owner() external view returns (address)
+```
+
+
+
+*Returns the address of the current owner.*
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
+
+### renounceOwnership
+
+```solidity
+function renounceOwnership() external nonpayable
+```
+
+
+
+*Leaves the contract without owner. It will not be possible to call `onlyOwner` functions anymore. Can only be called by the current owner. NOTE: Renouncing ownership will leave the contract without an owner, thereby removing any functionality that is only available to the owner.*
+
+
 ### safeBatchTransferFrom
 
 ```solidity
@@ -174,6 +202,22 @@ function setApprovalForAll(address operator, bool approved) external nonpayable
 | operator | address | undefined
 | approved | bool | undefined
 
+### setURI
+
+```solidity
+function setURI(string uri) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| uri | string | undefined
+
 ### supportsInterface
 
 ```solidity
@@ -195,6 +239,22 @@ function supportsInterface(bytes4 interfaceId) external view returns (bool)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bool | undefined
+
+### transferOwnership
+
+```solidity
+function transferOwnership(address newOwner) external nonpayable
+```
+
+
+
+*Transfers ownership of the contract to a new account (`newOwner`). Can only be called by the current owner.*
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| newOwner | address | undefined
 
 ### uri
 
@@ -239,6 +299,23 @@ event ApprovalForAll(address indexed account, address indexed operator, bool app
 | account `indexed` | address | undefined |
 | operator `indexed` | address | undefined |
 | approved  | bool | undefined |
+
+### OwnershipTransferred
+
+```solidity
+event OwnershipTransferred(address indexed previousOwner, address indexed newOwner)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| previousOwner `indexed` | address | undefined |
+| newOwner `indexed` | address | undefined |
 
 ### TransferBatch
 

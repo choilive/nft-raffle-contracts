@@ -197,4 +197,13 @@ describe("ArtizenERC1155 contract tests", function () {
             );
         });
     });
+    describe("setURI function", function () {
+        it("can set URI", async () => {
+            expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("");
+
+            await ERC1155Instance.connect(owner).setURI("newUri/{id}");
+
+            expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("newUri/{id}");
+        });
+    });
 });

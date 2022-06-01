@@ -2,10 +2,15 @@
 pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ArtizenERC1155 is ERC1155 {
+contract ArtizenERC1155 is ERC1155, Ownable {
+
+    string private _uri;
 
     constructor() ERC1155("") {}
+
+    /*------ State Changing Functions ------*/
 
     function mint(
         address to,
@@ -49,5 +54,21 @@ contract ArtizenERC1155 is ERC1155 {
             "ERC1155: transfer caller is not owner nor approved"
         );
         _safeBatchTransferFrom(from, to, ids, amounts, data);
+    }
+
+    function setURI(string memory uri) public onlyOwner {
+        _setURI(uri);
+    }
+
+    /*------ View Functions ------*/
+
+    function uri(uint256) public view override returns (string memory) {
+        return _uri;
+    }
+
+    /*------ Internal Functions ------*/
+
+    function _setURI(string memory newuri) internal override {
+        _uri = newuri;
     }
 }
