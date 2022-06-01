@@ -10,8 +10,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     address public DAOWallet;
     address public nftAuthorWallet;
     uint256 public raffleCount;
+    uint256 public donationCount;
     IERC20 public USDC;
-    uint256 public totalDonations;
+
+    bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
@@ -22,6 +24,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         uint256 startTime;
         uint256 endTime;
         uint256 minimumDonationAmount;
+        address topDonor;
+        uint256 topDonatedAmount;
     }
 
     struct Donation {
@@ -30,11 +34,22 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         uint256 timestamp;
     }
     mapping(uint256 => Raffle) public raffles;
+    mapping(uint256 => Donation) public donations;
+    // raffleID => amount
     mapping(uint256 => uint256) private totalDonationsPerCycle;
+    // raffleID => address => amount
     mapping(uint256 => mapping(address => uint256))
         public totalDonationPerAddressPerCycle;
-    mapping(uint256 => mapping(address => Donation[])) public donations;
+    // raffleID => address => donation details
+    // mapping(uint256 => mapping(address => Donation[])) public donations;
+    // raffleID => addresses array
     mapping(uint256 => address[]) public donorsArrayPerCycle;
+    //raffleID => address
+    mapping(uint256 => address) topDonor;
+    // raffleID => amount
+    mapping(uint256 => uint256) highestDonation;
+    // address => raffleID => donationIDs
+    mapping(address => mapping(uint256 => uint256[])) donationCountPerAddressPerCycle;
 
     // // --------------------------------------------------------------
     // // EVENTS
@@ -94,8 +109,15 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
     }
 
-    function createRaffle(Raffle memory _raffle) public returns (uint256) {
-        // TODO - only curator can create raffle!!
+    function setCuratorRole(address curator) public onlyOwner {
+        _grantRole(CURATOR_ROLE, curator);
+    }
+
+    function createRaffle(Raffle memory _raffle)
+        public
+        onlyRole(CURATOR_ROLE)
+        returns (uint256)
+    {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
 
@@ -123,15 +145,24 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         @notice creates a donation on an raffle
         @param _donation object contains parameters for donation created
     */
-    function donate(Donation memory _donation) public payable nonReentrant {
+    function donate(Donation memory _donation)
+        public
+        payable
+        nonReentrant
+        returns (uint256)
+    {
         uint256 raffleId = _donation.raffleID;
+
+        // Loading Raffle obj into memory for top donor calc
+        Raffle memory currentRaffle = raffles[raffleId];
+
         if (raffles[raffleId].endTime < block.timestamp)
             revert RaffleHasEnded();
         if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
             revert DonationTooLow();
-
-        // donations[raffleId][msg.sender] = _donation; // TODO check this
-        _donation.timestamp = block.timestamp; // TODO check this
+        donationCount++;
+        _donation.timestamp = block.timestamp;
+        donations[donationCount] = _donation;
 
         totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation
             .amount;
@@ -142,20 +173,38 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
         donorsArrayPerCycle[raffleId].push(msg.sender);
 
-        // TODO if the donation amount is higher than the current highest donation,set msg.sender to top donor
+        uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
+            raffleId
+        ][msg.sender];
+        uint256 topDonation = currentRaffle.topDonatedAmount;
+        // Calculate top donor and amount and update in Raffle obj
+
+        if (currentRaffle.topDonor == msg.sender) {
+            // dont change top donor, just change amount
+            currentRaffle.topDonatedAmount += _donation.amount;
+
+            // Update raffle in storage
+            raffles[raffleId] = currentRaffle;
+        } else if (donorsTotalDonationsInRaffle > topDonation) {
+            // New top donor, update both fiels in Raffle obj
+            currentRaffle.topDonatedAmount = donorsTotalDonationsInRaffle;
+            highestDonation[raffleId] = topDonation;
+            currentRaffle.topDonor = msg.sender;
+            topDonor[raffleId] = msg.sender;
+
+            // Update raffle in storage
+            raffles[raffleId] = currentRaffle;
+        }
 
         //transfer funds to contract
         USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
 
         emit DonationPlaced(msg.sender, raffleId, _donation.amount);
+
+        return donationCount;
     }
 
     function sendNFTRewards(uint256 raffleID) public onlyOwner {
-        // Recepients:
-        // 1. top donor in raffle
-        //2. random donor in raffle
-        // 3. DAO wallet
-        // 4. artist who created the artwork
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
 
@@ -164,9 +213,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
         // get topDonor
 
-        // TODO is it more efficent to create an array of winners and loop through it or call trasfer 4times?
+        address topDonor = getTopDonor(raffleID);
+
         address nftContractAddress = raffles[raffleID].nftContract;
         uint256 tokenID = raffles[raffleID].tokenID;
+
+        // transfer to random donor
+        IERC1155(nftContractAddress).safeTransferFrom(
+            address(this),
+            topDonor,
+            tokenID,
+            1,
+            ""
+        );
 
         // transfer to random donor
         IERC1155(nftContractAddress).safeTransferFrom(
@@ -196,6 +255,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         );
     }
 
+    // Reward logic
+
+    function getDonationCountPerAddressPerCycle(address donor, uint256 raffleID)
+        public
+        returns (uint256)
+    {
+        uint256[] storage singleDonaitons = donationCountPerAddressPerCycle[
+            donor
+        ][raffleID];
+        uint256 singleDonationsCount = singleDonaitons.length;
+        return singleDonationsCount;
+    }
+
     // --------------------------------------------------------------
     // INTERNAL STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
@@ -207,24 +279,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
 
         uint256 randomIndex = uint256(
-            keccak256(abi.encodePacked(block.timestamp, msg.sender))
+            keccak256(
+                abi.encodePacked(
+                    block.timestamp,
+                    block.number,
+                    block.difficulty,
+                    raffleID
+                )
+            )
         ) % amountOfDonors;
 
         address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
         return winner;
-    }
-
-    function _calcTopDonor(uint256 raffleID) internal view returns (address) {
-        // TODO - check this logic
-        uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
-        address[] memory donorsArray = donorsArrayPerCycle[raffleID];
-
-        // get total donations per cycle for everyone
-        for (uint256 i = 0; i < amountOfDonors; i++) {
-            getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]);
-        }
-        // TODO find the highest value and the address to it
     }
 
     // --------------------------------------------------------------
@@ -252,5 +319,17 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         address account
     ) public view returns (uint256) {
         return totalDonationPerAddressPerCycle[raffleID][account];
+    }
+
+    function getHighestDonationPerCycle(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
+        return highestDonation[raffleID];
+    }
+
+    function getTopDonor(uint256 raffleID) public view returns (address) {
+        return topDonor[raffleID];
     }
 }

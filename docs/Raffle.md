@@ -10,6 +10,23 @@
 
 ## Methods
 
+### CURATOR_ROLE
+
+```solidity
+function CURATOR_ROLE() external view returns (bytes32)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bytes32 | undefined
+
 ### DAOWallet
 
 ```solidity
@@ -86,7 +103,7 @@ function createRaffle(Raffle.Raffle _raffle) external nonpayable returns (uint25
 ### donate
 
 ```solidity
-function donate(Raffle.Donation _donation) external payable
+function donate(Raffle.Donation _donation) external payable returns (uint256)
 ```
 
 creates a donation on an raffle
@@ -99,10 +116,33 @@ creates a donation on an raffle
 |---|---|---|
 | _donation | Raffle.Donation | object contains parameters for donation created
 
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
+### donationCount
+
+```solidity
+function donationCount() external view returns (uint256)
+```
+
+
+
+
+
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### donations
 
 ```solidity
-function donations(uint256, address, uint256) external view returns (uint256 raffleID, uint256 amount, uint256 timestamp)
+function donations(uint256) external view returns (uint256 raffleID, uint256 amount, uint256 timestamp)
 ```
 
 
@@ -114,8 +154,6 @@ function donations(uint256, address, uint256) external view returns (uint256 raf
 | Name | Type | Description |
 |---|---|---|
 | _0 | uint256 | undefined
-| _1 | address | undefined
-| _2 | uint256 | undefined
 
 #### Returns
 
@@ -148,6 +186,29 @@ function donorsArrayPerCycle(uint256, uint256) external view returns (address)
 |---|---|---|
 | _0 | address | undefined
 
+### getDonationCountPerAddressPerCycle
+
+```solidity
+function getDonationCountPerAddressPerCycle(address donor, uint256 raffleID) external nonpayable returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| donor | address | undefined
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getDonorsPerCycle
 
 ```solidity
@@ -170,6 +231,28 @@ function getDonorsPerCycle(uint256 raffleID) external view returns (address[])
 |---|---|---|
 | _0 | address[] | undefined
 
+### getHighestDonationPerCycle
+
+```solidity
+function getHighestDonationPerCycle(uint256 raffleID) external view returns (uint256)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | uint256 | undefined
+
 ### getRoleAdmin
 
 ```solidity
@@ -191,6 +274,28 @@ function getRoleAdmin(bytes32 role) external view returns (bytes32)
 | Name | Type | Description |
 |---|---|---|
 | _0 | bytes32 | undefined
+
+### getTopDonor
+
+```solidity
+function getTopDonor(uint256 raffleID) external view returns (address)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| raffleID | uint256 | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
 
 ### getTotalDonationPerAddressPerCycle
 
@@ -331,7 +436,7 @@ function raffleCount() external view returns (uint256)
 ### raffles
 
 ```solidity
-function raffles(uint256) external view returns (address nftContract, address nftOwner, uint256 tokenID, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount)
+function raffles(uint256) external view returns (address nftContract, address nftOwner, uint256 tokenID, uint256 startTime, uint256 endTime, uint256 minimumDonationAmount, address topDonor, uint256 topDonatedAmount)
 ```
 
 
@@ -354,6 +459,8 @@ function raffles(uint256) external view returns (address nftContract, address nf
 | startTime | uint256 | undefined
 | endTime | uint256 | undefined
 | minimumDonationAmount | uint256 | undefined
+| topDonor | address | undefined
+| topDonatedAmount | uint256 | undefined
 
 ### renounceOwnership
 
@@ -415,6 +522,22 @@ function sendNFTRewards(uint256 raffleID) external nonpayable
 | Name | Type | Description |
 |---|---|---|
 | raffleID | uint256 | undefined
+
+### setCuratorRole
+
+```solidity
+function setCuratorRole(address curator) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| curator | address | undefined
 
 ### setDAOWalletAddress
 
@@ -486,23 +609,6 @@ function totalDonationPerAddressPerCycle(uint256, address) external view returns
 |---|---|---|
 | _0 | uint256 | undefined
 | _1 | address | undefined
-
-#### Returns
-
-| Name | Type | Description |
-|---|---|---|
-| _0 | uint256 | undefined
-
-### totalDonations
-
-```solidity
-function totalDonations() external view returns (uint256)
-```
-
-
-
-
-
 
 #### Returns
 
