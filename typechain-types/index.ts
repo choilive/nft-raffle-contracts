@@ -4,17 +4,27 @@
 export type { AccessControl } from "./AccessControl";
 export type { IAccessControl } from "./IAccessControl";
 export type { Ownable } from "./Ownable";
+export type { ERC1155 } from "./ERC1155";
+export type { IERC1155MetadataURI } from "./IERC1155MetadataURI";
 export type { IERC1155 } from "./IERC1155";
+export type { IERC1155Receiver } from "./IERC1155Receiver";
 export type { IERC20 } from "./IERC20";
 export type { ERC165 } from "./ERC165";
+export type { ERC165Storage } from "./ERC165Storage";
 export type { IERC165 } from "./IERC165";
+export type { ArtizenERC1155 } from "./ArtizenERC1155";
 export type { Raffle } from "./Raffle";
 
 export { AccessControl__factory } from "./factories/AccessControl__factory";
 export { IAccessControl__factory } from "./factories/IAccessControl__factory";
 export { Ownable__factory } from "./factories/Ownable__factory";
+export { ERC1155__factory } from "./factories/ERC1155__factory";
+export { IERC1155MetadataURI__factory } from "./factories/IERC1155MetadataURI__factory";
 export { IERC1155__factory } from "./factories/IERC1155__factory";
+export { IERC1155Receiver__factory } from "./factories/IERC1155Receiver__factory";
 export { IERC20__factory } from "./factories/IERC20__factory";
 export { ERC165__factory } from "./factories/ERC165__factory";
+export { ERC165Storage__factory } from "./factories/ERC165Storage__factory";
 export { IERC165__factory } from "./factories/IERC165__factory";
+export { ArtizenERC1155__factory } from "./factories/ArtizenERC1155__factory";
 export { Raffle__factory } from "./factories/Raffle__factory";
