@@ -15,7 +15,7 @@ let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
 
-const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/IERC20.sol/IERC20.json");
+const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
 
 const USDC = new ethers.Contract(
   constants.POLYGON.USDC,
@@ -46,26 +46,25 @@ describe("Raffle Contract Tests", function () {
     NFTContract = await ethers.getContractFactory("RewardNFT");
     NFTInstance = await NFTContract.connect(owner).deploy();
 
-    // await hre.network.provider.request({
-    //   method: "hardhat_impersonateAccount",
-    //   params: [constants.POLYGON.USDC_WHALE],
-    // });
+    await hre.network.provider.request({
+      method: "hardhat_impersonateAccount",
+      params: [constants.POLYGON.USDC_WHALE],
+    });
 
-    // usdcWhale = await ethers.getSigner(constants.POLYGON.USDC_WHALE);
-    // usdcWhaleAddress = await usdcWhale.getAddress();
-    // console.log("here?");
-    // console.log(await USDC.balanceOf(usdcWhale.address).toString());
-    // // setting up donors with USDC
-    // await USDC.connect(usdcWhale).transfer(donor1.address, 500);
-    // await USDC.connect(usdcWhale).transfer(donor2.address, 500);
-    // await USDC.connect(usdcWhale).transfer(donor3.address, 500);
+    usdcWhale = await ethers.getSigner(constants.POLYGON.USDC_WHALE);
+    usdcWhaleAddress = await usdcWhale.getAddress();
 
-    // await USDC.connect(donor2).approve(daoWallet.address, 500);
-    // await USDC.connect(donor3).approve(daoWallet.address, 500);
-    // await USDC.connect(donor1).approve(daoWallet.address, 500);
-    // await USDC.connect(daoWallet).approve(daoWallet.address, type(uint256).max);
+    // setting up donors with USDC
+    await USDC.connect(usdcWhale).transfer(donor1.address, 500);
+    await USDC.connect(usdcWhale).transfer(donor2.address, 500);
+    await USDC.connect(usdcWhale).transfer(donor3.address, 500);
 
-    // // mint NFT to artist
+    await USDC.connect(donor2).approve(daoWallet.address, 500);
+    await USDC.connect(donor3).approve(daoWallet.address, 500);
+    await USDC.connect(donor1).approve(daoWallet.address, 500);
+    await USDC.connect(daoWallet).approve(daoWallet.address, 500);
+
+    // mint NFT to artist
     // await NFTInstance.connect(owner).mint(owner.address, 1, 4, "");
     // await NFTInstance.connect(owner).setApprovalForAll(
     //   RaffleInstance.address,
