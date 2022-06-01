@@ -657,8 +657,8 @@
       ]
     },
     "/Users/mylestraut/Desktop/Linum_Labs/nft-raffle/contracts/ArtizenERC1155.sol": {
-      "lastModificationDate": 1654077750155,
-      "contentHash": "acfead98a2b9dc3bcda3936edcd57080",
+      "lastModificationDate": 1654079064287,
+      "contentHash": "e92cdbc8fb673775aefee6ce09bca297",
       "sourceName": "contracts/ArtizenERC1155.sol",
       "solcConfig": {
         "version": "0.8.11",
