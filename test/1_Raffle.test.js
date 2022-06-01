@@ -113,8 +113,7 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("Create raffle function", function () {
-    it.only("creates raffle with correct details", async () => {
-      console.log(startTime, endTime);
+    it("creates raffle with correct details", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -127,7 +126,23 @@ describe("Raffle Contract Tests", function () {
       );
       await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
-    it("only curator can create raffle", async () => {});
+    it.only("only curator can create raffle", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        BigNumber.from(1),
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await expect(
+        RaffleInstance.connect(owner).createRaffle(newRaffle)
+      ).to.be.revertedWith(
+        "AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x850d585eb7f024ccee5e68e55f2c26cc72e1e6ee456acf62135757a5eb9d4a10"
+      );
+    });
     it("reverts if incorrect times given", async () => {});
     it("contract receives NFTs on raffle creation", async () => {});
     it("emits Raffle created event properly", async () => {});
