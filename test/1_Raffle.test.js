@@ -119,7 +119,14 @@ describe("Raffle Contract Tests", function () {
     it("emits events properly", async () => {});
     it("calculates winners correctly,NFT reflect in winners balances", async () => {});
   });
+  describe("getDonationCountPerAddressPerCycle function", function () {
+    it("returns the number of how many times and address has donated in a raffle", async () => {});
+  });
   describe("View functions", function () {
-    it("", async () => {});
+    it("returns raffle object", async () => {});
+    it("returns total donations per cycle", async () => {});
+    it("returns total donations per address per cycle", async () => {});
+    it("returns highest donation per cycle", async () => {});
+    it("returns top donor", async () => {});
   });
 });
