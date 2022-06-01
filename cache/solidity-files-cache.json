@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/Users/cryptogirl/LinumLabs/nft-raffle/contracts/RewardNFT.sol": {
-      "lastModificationDate": 1654107199792,
-      "contentHash": "aff5549e926032c9e239839ffca91f30",
+      "lastModificationDate": 1654112494395,
+      "contentHash": "e3c8192dc532d86c52479b6d67da9ec6",
       "sourceName": "contracts/RewardNFT.sol",
       "solcConfig": {
         "version": "0.8.11",
@@ -29,6 +29,7 @@
         }
       },
       "imports": [
+        "@openzeppelin/contracts/access/Ownable.sol",
         "@openzeppelin/contracts/token/ERC1155/ERC1155.sol"
       ],
       "versionPragmas": [
@@ -39,8 +40,8 @@
       ]
     },
     "/Users/cryptogirl/LinumLabs/nft-raffle/contracts/Raffle.sol": {
-      "lastModificationDate": 1654107772766,
-      "contentHash": "2d90dd87d742cf7de919bf527ce1febf",
+      "lastModificationDate": 1654108238797,
+      "contentHash": "60f84ff799511b12b238361d81daa82a",
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.11",

@@ -1,8 +1,14 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const hre = require("hardhat");
-const { constants } = require("./utils/TestConstants");
 const { BigNumber } = require("ethers");
+const { constants } = require("./utils/TestConstants");
+const {
+  createRaffleObject,
+  createDonationObject,
+  fastForward,
+  currentTime,
+} = require("./utils/TestUtils");
 
 let owner, ownerAddress;
 let daoWallet, daoWalletAddress;
@@ -16,6 +22,7 @@ let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
 
+let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
 
 const USDC = new ethers.Contract(
@@ -66,14 +73,18 @@ describe("Raffle Contract Tests", function () {
     await USDC.connect(daoWallet).approve(daoWallet.address, 500);
 
     // mint NFT to artist
-    // await NFTInstance.connect(owner).mint(owner.address, 1, 4, "");
-    // await NFTInstance.connect(owner).setApprovalForAll(
-    //   RaffleInstance.address,
-    //   true
-    // );
+    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
+    await NFTInstance.connect(owner).setApprovalForAll(
+      RaffleInstance.address,
+      true
+    );
 
     // Add curator role
     await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+
+    // set times
+    startTime = await currentTime();
+    endTime = await fastForward(constants.TEST.oneMonth);
   });
 
   describe("Setter functions", function () {
@@ -101,7 +112,17 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("Create raffle function", function () {
-    it("creates raffle with correct details", async () => {});
+    it("creates raffle with correct details", async () => {
+      let newRaffle = await createRaffleObject(
+        owner.address,
+        NFTInstance.address,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+    });
     it("only curator can create raffle", async () => {});
     it("reverts if incorrect times given", async () => {});
     it("contract receives NFTs on raffle creation", async () => {});
