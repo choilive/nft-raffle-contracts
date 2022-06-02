@@ -168,7 +168,23 @@ describe("Raffle Contract Tests", function () {
         RaffleInstance.connect(curator).createRaffle(newRaffle)
       ).to.be.revertedWith("IncorrectTimesGiven()");
     });
-    it("contract receives NFTs on raffle creation", async () => {});
+    it("contract receives NFTs on raffle creation", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      let contractNFTBalance = NFTInstance.balanceOf(RaffleInstance.address, 1);
+
+      expect(await contractNFTBalance).to.equal(1);
+    });
     it("emits Raffle created event properly", async () => {});
   });
   describe("Donate function", function () {
