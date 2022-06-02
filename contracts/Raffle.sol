@@ -266,6 +266,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     return singleDonationsCount;
   }
 
+  // --------------------------------------------------------------
+  // EXTERNAL FUNCTIONS
+  // --------------------------------------------------------------
+
   function onERC1155Received(
     address operator,
     address from,
@@ -274,7 +278,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     bytes memory data
   ) external pure returns (bytes4) {
     // 0xf23a6e61 = bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
-    return 0xf23a6e61;
+    return 0xf23a6e61; // TODO check this logic!
   }
 
   // --------------------------------------------------------------

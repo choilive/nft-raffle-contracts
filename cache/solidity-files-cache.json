@@ -40,8 +40,8 @@
       ]
     },
     "/Users/cryptogirl/LinumLabs/nft-raffle/contracts/Raffle.sol": {
-      "lastModificationDate": 1654174568370,
-      "contentHash": "b1393e0166ecf1520c1b94da19b7a921",
+      "lastModificationDate": 1654174756390,
+      "contentHash": "777265f08c7b5fbf9bc606b7ecd26374",
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.11",

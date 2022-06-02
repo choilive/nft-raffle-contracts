@@ -117,7 +117,7 @@ describe("Raffle Contract Tests", function () {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
-        BigNumber.from(1),
+        1,
         startTime,
         endTime,
         BigNumber.from(10),
@@ -125,7 +125,16 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10)
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      let raffle = RaffleInstance.getRaffle(1);
+      let raffle = await RaffleInstance.getRaffle(1);
+      console.log(raffle);
+      expect(await raffle.nftContract).to.equal(NFTInstance.address);
+      expect(await raffle.nftOwner).to.equal(owner.address);
+      expect(await raffle.tokenID).to.equal(1);
+      expect(await raffle.startTime).to.equal(startTime);
+      expect(await raffle.endTime).to.equal(endTime);
+      expect(await raffle.minimumDonationAmount).to.equal(10);
+      expect(await raffle.topDonor).to.equal(owner.address);
+      expect(await raffle.topDonatedAmount).to.equal(10);
     });
     it("only curator can create raffle", async () => {
       let newRaffle = await createRaffleObject(
