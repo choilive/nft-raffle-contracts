@@ -64,14 +64,47 @@ describe("Raffle Contract Tests", function () {
     usdcWhaleAddress = await usdcWhale.getAddress();
 
     // setting up donors with USDC
-    await USDC.connect(usdcWhale).transfer(donor1.address, 500);
-    await USDC.connect(usdcWhale).transfer(donor2.address, 500);
-    await USDC.connect(usdcWhale).transfer(donor3.address, 500);
+    await USDC.connect(usdcWhale).transfer(
+      donor1.address,
+      ethers.utils.parseUnits("500", 6)
+    );
 
-    await USDC.connect(donor2).approve(daoWallet.address, 500);
-    await USDC.connect(donor3).approve(daoWallet.address, 500);
-    await USDC.connect(donor1).approve(daoWallet.address, 500);
-    await USDC.connect(daoWallet).approve(daoWallet.address, 500);
+    await USDC.connect(usdcWhale).transfer(
+      donor2.address,
+      ethers.utils.parseUnits("500", 6)
+    );
+
+    await USDC.connect(usdcWhale).transfer(
+      donor3.address,
+      ethers.utils.parseUnits("500", 6)
+    );
+
+    await USDC.connect(donor2).approve(
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+    await USDC.connect(donor3).approve(
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+    await USDC.connect(donor1).approve(
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+    await USDC.connect(donor1).approve(
+      RaffleInstance.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await USDC.connect(donor2).approve(
+      RaffleInstance.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await USDC.connect(donor3).approve(
+      RaffleInstance.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
 
     // mint NFT to artist
     await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
@@ -226,9 +259,28 @@ describe("Raffle Contract Tests", function () {
       // TODO get block timstamp correctly
       let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
       RaffleInstance.connect(donor1).donate(newDonation);
+      let donorBalance = await USDC.balanceOf(donor1Address);
+      console.log(donorBalance.toString());
     });
-    it("reverts if incorrect times given", async () => {});
-    it.only("reverts if donation is too low", async () => {
+    it("reverts if raffle hasn't ended", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      // TODO get block timstamp correctly
+      let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
+      await expect(
+        RaffleInstance.connect(donor1).donate(newDonation)
+      ).to.be.revertedWith("DonationTooLow()");
+    });
+    it("reverts if donation is too low", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -247,7 +299,25 @@ describe("Raffle Contract Tests", function () {
       ).to.be.revertedWith("DonationTooLow()");
     });
     it("transfers donation into DAO Wallet,balance reflects on donor and dao wallet too", async () => {});
-    it("emits Donation created event properly", async () => {});
+    it("emits Donation created event properly", async () => {
+      // TODO run this one
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      // TODO get block timstamp correctly
+      let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
+      expect(await RaffleInstance.connect(donor1).donate(newDonation))
+        .to.emit(RaffleInstance, "DonationPlaced")
+        .withArgs(owner.address, 100, 0);
+    });
   });
   describe("SendNFTsToWinners function", function () {
     it("reverts if donation is still active", async () => {});
