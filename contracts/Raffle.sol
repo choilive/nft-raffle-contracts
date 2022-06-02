@@ -30,6 +30,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   }
 
   struct Donation {
+    address donor;
     uint256 raffleID;
     uint256 amount;
     uint256 timestamp;
@@ -61,7 +62,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     uint256 endTime,
     uint256 minimumDonationAmount
   );
-  event DonationPlaced(address from, uint256 raffleId, uint256 amount);
+  event DonationPlaced(
+    address from,
+    uint256 raffleId,
+    uint256 amount,
+    uint256 timestamp
+  );
   event DAOWalletAddressSet(address walletAddress);
   event nftAuthorWalletAddressSet(address nftAuthorWallet);
   event NFTsentToWinner(uint256 raffleID, address winner);
@@ -200,7 +206,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     //transfer funds to contract
     USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
 
-    emit DonationPlaced(msg.sender, raffleId, _donation.amount);
+    emit DonationPlaced(
+      msg.sender,
+      raffleId,
+      _donation.amount,
+      _donation.timestamp
+    );
 
     return donationCount;
   }
@@ -314,6 +325,14 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
 
   function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
     return raffles[raffleID];
+  }
+
+  function getDonation(uint256 donationID)
+    public
+    view
+    returns (Donation memory)
+  {
+    return donations[donationID];
   }
 
   function getTotalDonationsPerCycle(uint256 raffleID)

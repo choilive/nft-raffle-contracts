@@ -83,6 +83,14 @@ describe("Raffle Contract Tests", function () {
     // Add curator role
     await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
 
+    // set DAO wallet
+    await RaffleInstance.connect(owner).setDAOWalletAddress(daoWalletAddress);
+
+    // set NFT Author address
+    await RaffleInstance.connect(owner).setNftAuthorWalletAddress(
+      nftAuthorAddress
+    );
+
     // set times
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
@@ -202,10 +210,43 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("Donate function", function () {
-    it("creates donation with correct details", async () => {});
+    it("creates donation with correct details", async () => {
+      // TODO finish this one
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      // TODO get block timstamp correctly
+      let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
+      RaffleInstance.connect(donor1).donate(newDonation);
+    });
     it("reverts if incorrect times given", async () => {});
-    it("reverts if donation is too low", async () => {});
-    it("transfers donation into DAO Wallet", async () => {});
+    it.only("reverts if donation is too low", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      // TODO get block timstamp correctly
+      let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
+      await expect(
+        RaffleInstance.connect(donor1).donate(newDonation)
+      ).to.be.revertedWith("DonationTooLow()");
+    });
+    it("transfers donation into DAO Wallet,balance reflects on donor and dao wallet too", async () => {});
     it("emits Donation created event properly", async () => {});
   });
   describe("SendNFTsToWinners function", function () {

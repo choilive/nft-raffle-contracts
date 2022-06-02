@@ -36,10 +36,12 @@ const createRaffleObject = async (
   return _raffle;
 };
 
-const createDonationObject = async (raffleID, amount) => {
+const createDonationObject = async (donor, raffleID, amount, timestamp) => {
   const _donation = {
+    donor: donor,
     raffleID: raffleID,
     amount: amount,
+    timestamp: timestamp,
   };
 
   return _donation;
