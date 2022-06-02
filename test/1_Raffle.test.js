@@ -441,9 +441,33 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("View functions", function () {
-    it("returns raffle object", async () => {});
-    it("returns total donations per cycle", async () => {});
-    it.only("returns total donations per address per cycle", async () => {
+    it.only("returns total donations per cycle", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      let newDonation = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(newDonation);
+      await RaffleInstance.connect(donor1).donate(newDonation);
+
+      expect(await RaffleInstance.getTotalDonationsPerCycle(1)).to.equal(
+        ethers.utils.parseUnits("400", 6)
+      );
+    });
+    it("returns total donations per address per cycle", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
