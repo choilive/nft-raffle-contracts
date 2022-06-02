@@ -342,7 +342,7 @@ describe("Raffle Contract Tests", function () {
     });
   });
   describe("SendNFTsToWinners function", function () {
-    it.only("calculates winners correctly,NFT reflect in winners balances", async () => {
+    it("calculates winners correctly,NFT reflect in winners balances", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -380,7 +380,31 @@ describe("Raffle Contract Tests", function () {
       expect(await NFTInstance.balanceOf(donor2Address, 1)).to.equal(1);
     });
     it("emits events properly", async () => {});
-    it("reverts if donation is still active", async () => {});
+    it.only("reverts if donation is still active", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      let newDonation = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(newDonation);
+
+      await expect(
+        RaffleInstance.connect(owner).sendNFTRewards(1)
+      ).to.be.revertedWith("RaffleHasNotEnded()");
+    });
   });
   describe("getDonationCountPerAddressPerCycle function", function () {
     it("returns the number of how many times and address has donated in a raffle", async () => {});
