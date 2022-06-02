@@ -20,6 +20,7 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export interface ArtizenERC1155Interface extends utils.Interface {
   contractName: "ArtizenERC1155";
   functions: {
+    "addAddressToWhitelist(address)": FunctionFragment;
     "balanceOf(address,uint256)": FunctionFragment;
     "balanceOfBatch(address[],uint256[])": FunctionFragment;
     "batchMint(address,uint256[],uint256[],bytes)": FunctionFragment;
@@ -34,8 +35,13 @@ export interface ArtizenERC1155Interface extends utils.Interface {
     "supportsInterface(bytes4)": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "uri(uint256)": FunctionFragment;
+    "whitelistedAddresses(address)": FunctionFragment;
   };
 
+  encodeFunctionData(
+    functionFragment: "addAddressToWhitelist",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
     values: [string, BigNumberish]
@@ -83,7 +89,15 @@ export interface ArtizenERC1155Interface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(functionFragment: "uri", values: [BigNumberish]): string;
+  encodeFunctionData(
+    functionFragment: "whitelistedAddresses",
+    values: [string]
+  ): string;
 
+  decodeFunctionResult(
+    functionFragment: "addAddressToWhitelist",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "balanceOfBatch",
@@ -122,6 +136,10 @@ export interface ArtizenERC1155Interface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "uri", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "whitelistedAddresses",
+    data: BytesLike
+  ): Result;
 
   events: {
     "ApprovalForAll(address,address,bool)": EventFragment;
@@ -214,6 +232,11 @@ export interface ArtizenERC1155 extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
+    addAddressToWhitelist(
+      whitelisted: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     balanceOf(
       account: string,
       id: BigNumberish,
@@ -294,7 +317,17 @@ export interface ArtizenERC1155 extends BaseContract {
     ): Promise<ContractTransaction>;
 
     uri(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
+    whitelistedAddresses(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
   };
+
+  addAddressToWhitelist(
+    whitelisted: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   balanceOf(
     account: string,
@@ -377,7 +410,17 @@ export interface ArtizenERC1155 extends BaseContract {
 
   uri(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  whitelistedAddresses(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<boolean>;
+
   callStatic: {
+    addAddressToWhitelist(
+      whitelisted: string,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     balanceOf(
       account: string,
       id: BigNumberish,
@@ -453,6 +496,11 @@ export interface ArtizenERC1155 extends BaseContract {
     ): Promise<void>;
 
     uri(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    whitelistedAddresses(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
   };
 
   filters: {
@@ -514,6 +562,11 @@ export interface ArtizenERC1155 extends BaseContract {
   };
 
   estimateGas: {
+    addAddressToWhitelist(
+      whitelisted: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     balanceOf(
       account: string,
       id: BigNumberish,
@@ -594,9 +647,19 @@ export interface ArtizenERC1155 extends BaseContract {
     ): Promise<BigNumber>;
 
     uri(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistedAddresses(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    addAddressToWhitelist(
+      whitelisted: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     balanceOf(
       account: string,
       id: BigNumberish,
@@ -678,6 +741,11 @@ export interface ArtizenERC1155 extends BaseContract {
 
     uri(
       arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    whitelistedAddresses(
+      arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

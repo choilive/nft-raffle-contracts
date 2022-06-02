@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ArtizenERC1155 is ERC1155, Ownable {
 
+    mapping(address => bool) public whitelistedAddresses;
+
     string private _uri;
 
     constructor() ERC1155("") {}
@@ -17,6 +19,7 @@ contract ArtizenERC1155 is ERC1155, Ownable {
         uint256 id,
         uint256 amount,
         bytes memory data) public {
+            require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
             _mint(to, id, amount, data);
     }
 
@@ -25,6 +28,7 @@ contract ArtizenERC1155 is ERC1155, Ownable {
         uint256[] memory ids,
         uint256[] memory amounts,
         bytes memory data) public {
+            require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
             _mintBatch(to, ids, amounts, data);
     }
 
@@ -58,6 +62,10 @@ contract ArtizenERC1155 is ERC1155, Ownable {
 
     function setURI(string memory uri) public onlyOwner {
         _setURI(uri);
+    }
+
+    function addAddressToWhitelist(address whitelisted) public onlyOwner {
+        whitelistedAddresses[whitelisted] = true;
     }
 
     /*------ View Functions ------*/

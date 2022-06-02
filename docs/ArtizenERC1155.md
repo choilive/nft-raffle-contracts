@@ -10,6 +10,22 @@
 
 ## Methods
 
+### addAddressToWhitelist
+
+```solidity
+function addAddressToWhitelist(address whitelisted) external nonpayable
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| whitelisted | address | undefined
+
 ### balanceOf
 
 ```solidity
@@ -277,6 +293,28 @@ function uri(uint256) external view returns (string)
 | Name | Type | Description |
 |---|---|---|
 | _0 | string | undefined
+
+### whitelistedAddresses
+
+```solidity
+function whitelistedAddresses(address) external view returns (bool)
+```
+
+
+
+
+
+#### Parameters
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | address | undefined
+
+#### Returns
+
+| Name | Type | Description |
+|---|---|---|
+| _0 | bool | undefined
 
 
 
