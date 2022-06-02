@@ -153,7 +153,7 @@ describe("Raffle Contract Tests", function () {
         "AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x850d585eb7f024ccee5e68e55f2c26cc72e1e6ee456acf62135757a5eb9d4a10"
       );
     });
-    it.only("reverts if incorrect times given", async () => {
+    it("reverts if incorrect times given", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -185,7 +185,21 @@ describe("Raffle Contract Tests", function () {
 
       expect(await contractNFTBalance).to.equal(1);
     });
-    it("emits Raffle created event properly", async () => {});
+    it("emits Raffle created event properly", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      expect(await RaffleInstance.connect(curator).createRaffle(newRaffle))
+        .to.emit(RaffleInstance, "RaffleCreated")
+        .withArgs(owner.address, 1, startTime, endTime, 10);
+    });
   });
   describe("Donate function", function () {
     it("creates donation with correct details", async () => {});

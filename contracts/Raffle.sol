@@ -55,6 +55,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   // // --------------------------------------------------------------
 
   event RaffleCreated(
+    address nftOwner,
+    uint256 tokenID,
     uint256 startTime,
     uint256 endTime,
     uint256 minimumDonationAmount
@@ -124,6 +126,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     raffles[raffleCount] = _raffle;
 
     emit RaffleCreated(
+      _raffle.nftOwner,
+      _raffle.tokenID,
       _raffle.startTime,
       _raffle.endTime,
       _raffle.minimumDonationAmount
