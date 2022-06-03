@@ -195,7 +195,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     } else if (donorsTotalDonationsInRaffle > topDonation) {
       // New top donor, update both fiels in Raffle obj
       currentRaffle.topDonatedAmount = donorsTotalDonationsInRaffle;
-      highestDonation[raffleId] = topDonation;
+      highestDonation[raffleId] = donorsTotalDonationsInRaffle;
       currentRaffle.topDonor = msg.sender;
       topDonor[raffleId] = msg.sender;
 

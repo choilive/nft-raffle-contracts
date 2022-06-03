@@ -496,7 +496,7 @@ describe("Raffle Contract Tests", function () {
         )
       ).to.equal(ethers.utils.parseUnits("400", 6));
     });
-    it("returns highest donation per cycle", async () => {
+    it.only("returns highest donation per cycle", async () => {
       // TODO - doesn't return higest amount correctly
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -525,14 +525,11 @@ describe("Raffle Contract Tests", function () {
       await RaffleInstance.connect(donor1).donate(newDonation);
       await RaffleInstance.connect(donor2).donate(newDonationTwo);
 
-      let total = await RaffleInstance.getTotalDonationsPerCycle(1);
-      console.log(total.toString());
-
       expect(await RaffleInstance.getHighestDonationPerCycle(1)).to.equal(
         ethers.utils.parseUnits("300", 6)
       );
     });
-    it.only("returns top donor", async () => {
+    it("returns top donor", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
