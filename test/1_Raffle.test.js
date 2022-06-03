@@ -379,8 +379,39 @@ describe("Raffle Contract Tests", function () {
       expect(await NFTInstance.balanceOf(nftAuthorAddress, 1)).to.equal(1);
       expect(await NFTInstance.balanceOf(donor2Address, 1)).to.equal(1);
     });
-    it("emits events properly", async () => {
-      // TODO
+    it.only("emits events properly", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      let newDonation = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      let newDonationTwo = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("150", 6),
+        0
+      );
+      await RaffleInstance.connect(donor1).donate(newDonation);
+      await RaffleInstance.connect(donor2).donate(newDonationTwo);
+
+      await fastForward(endTime);
+
+      expect(await RaffleInstance.connect(owner).sendNFTRewards(1))
+        .to.emit(RaffleInstance, "NFTsentToWinner")
+        .withArgs(1, donor1Address);
     });
     it("reverts if donation is still active", async () => {
       let newRaffle = await createRaffleObject(
@@ -496,8 +527,7 @@ describe("Raffle Contract Tests", function () {
         )
       ).to.equal(ethers.utils.parseUnits("400", 6));
     });
-    it.only("returns highest donation per cycle", async () => {
-      // TODO - doesn't return higest amount correctly
+    it("returns highest donation per cycle", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
