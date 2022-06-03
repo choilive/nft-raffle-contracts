@@ -9,7 +9,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -25,6 +25,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -40,14 +43,14 @@
       ]
     },
     "/Users/cryptogirl/LinumLabs/nft-raffle/contracts/Raffle.sol": {
-      "lastModificationDate": 1654262489996,
-      "contentHash": "f9aec47cf7c5b332a479b86a0743b5f3",
+      "lastModificationDate": 1654270871846,
+      "contentHash": "b510b1d5206e5b873d207b19953fb523",
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -63,6 +66,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -89,7 +95,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -105,6 +111,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -126,7 +135,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -142,6 +151,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -166,7 +178,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -182,6 +194,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -201,7 +216,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -217,6 +232,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -236,7 +254,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -252,6 +270,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -271,7 +292,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -287,6 +308,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -306,7 +330,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -322,6 +346,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -341,7 +368,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -357,6 +384,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -378,7 +408,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -394,6 +424,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -413,7 +446,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -429,6 +462,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -450,7 +486,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -466,6 +502,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -487,7 +526,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -503,6 +542,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -529,7 +571,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -545,6 +587,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -566,7 +611,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -582,6 +627,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -601,7 +649,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -617,6 +665,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -638,7 +689,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -654,6 +705,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -675,7 +729,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -691,6 +745,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -716,7 +773,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -732,6 +789,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -751,7 +811,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -767,6 +827,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -790,7 +853,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -806,6 +869,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -825,7 +891,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -841,6 +907,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },
@@ -862,7 +931,7 @@
         "version": "0.8.11",
         "settings": {
           "optimizer": {
-            "enabled": true,
+            "enabled": false,
             "runs": 1000
           },
           "outputSelection": {
@@ -878,6 +947,9 @@
                 "ast"
               ]
             }
+          },
+          "metadata": {
+            "useLiteralContent": false
           }
         }
       },

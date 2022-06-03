@@ -48,8 +48,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
   mapping(uint256 => address) topDonor;
   // raffleID => amount
   mapping(uint256 => uint256) highestDonation;
-  // address => raffleID => donationIDs
-  mapping(address => mapping(uint256 => uint256[])) donationCountPerAddressPerCycle;
+  //  raffleID => address => donationIDs
+  mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
 
   // // --------------------------------------------------------------
   // // EVENTS
@@ -258,17 +258,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
       ""
     );
     emit NFTsentToWinner(raffleID, nftAuthorWallet);
-  }
-
-  function getDonationCountPerAddressPerCycle(address donor, uint256 raffleID)
-    public
-    returns (uint256)
-  {
-    uint256[] storage singleDonaitons = donationCountPerAddressPerCycle[donor][
-      raffleID
-    ];
-    uint256 singleDonationsCount = singleDonaitons.length;
-    return singleDonationsCount;
   }
 
   // --------------------------------------------------------------

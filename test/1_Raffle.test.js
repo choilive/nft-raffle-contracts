@@ -252,8 +252,7 @@ describe("Raffle Contract Tests", function () {
   });
 
   describe("Donate function", function () {
-    it.only("creates donation with correct details", async () => {
-      // TODO finish this one
+    it("creates donation with correct details", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -310,14 +309,13 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10)
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      // TODO get block timstamp correctly
       let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
       await expect(
         RaffleInstance.connect(donor1).donate(newDonation)
       ).to.be.revertedWith("DonationTooLow()");
     });
 
-    it.only("transfers donation into DAO Wallet,balance reflects", async () => {
+    it("transfers donation into DAO Wallet,balance reflects", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -462,38 +460,7 @@ describe("Raffle Contract Tests", function () {
       ).to.be.revertedWith("RaffleHasNotEnded()");
     });
   });
-  describe("getDonationCountPerAddressPerCycle function", function () {
-    it("returns the number of how many times and address has donated in a raffle", async () => {
-      // TODO fix this function
-      let newRaffle = await createRaffleObject(
-        NFTInstance.address,
-        ownerAddress,
-        1,
-        startTime,
-        endTime,
-        ethers.utils.parseUnits("100", 6),
-        owner.address,
-        ethers.utils.parseUnits("100", 6)
-      );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      let newDonation = await createDonationObject(
-        donor1Address,
-        1,
-        ethers.utils.parseUnits("200", 6),
-        0
-      );
 
-      await RaffleInstance.connect(donor1).donate(newDonation);
-      await RaffleInstance.connect(donor1).donate(newDonation);
-
-      expect(
-        await RaffleInstance.getDonationCountPerAddressPerCycle(
-          donor1Address,
-          1
-        )
-      ).to.equal(2);
-    });
-  });
   describe("View functions", function () {
     it("returns total donations per cycle", async () => {
       let newRaffle = await createRaffleObject(
