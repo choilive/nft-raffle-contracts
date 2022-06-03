@@ -322,7 +322,6 @@ describe("Raffle Contract Tests", function () {
       expect(await DaoWalletBal).to.equal(ethers.utils.parseUnits("200", 6));
     });
     it("emits Donation created event properly", async () => {
-      // TODO check this one!
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -334,11 +333,15 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10)
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      // TODO get block timstamp correctly
+
       let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
       expect(await RaffleInstance.connect(donor1).donate(newDonation))
         .to.emit(RaffleInstance, "DonationPlaced")
-        .withArgs(donor1Address, 1, 100, 0);
+        .withArgs(donor1Address, 1, 100, 1652858638);
+
+      // checking timestamp for donation is the same as event emitting
+      let donation = await RaffleInstance.getDonation(1);
+      console.log(donation.timestamp.toString());
     });
   });
   describe("SendNFTsToWinners function", function () {
@@ -379,7 +382,7 @@ describe("Raffle Contract Tests", function () {
       expect(await NFTInstance.balanceOf(nftAuthorAddress, 1)).to.equal(1);
       expect(await NFTInstance.balanceOf(donor2Address, 1)).to.equal(1);
     });
-    it.only("emits events properly", async () => {
+    it("emits events properly", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
