@@ -134,17 +134,20 @@ describe("Raffle Contract Tests", function () {
       await RaffleInstance.connect(owner).setDAOWalletAddress(daoWalletAddress);
       expect(await RaffleInstance.DAOWallet()).to.equal(daoWalletAddress);
     });
+
     it("only owner can set up dao wallet address", async () => {
       await expect(
         RaffleInstance.connect(donor1).setDAOWalletAddress(daoWalletAddress)
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
+
     it("sets up nft author address properly", async () => {
       await RaffleInstance.connect(owner).setNftAuthorWalletAddress(
         nftAuthorAddress
       );
       expect(await RaffleInstance.nftAuthorWallet()).to.equal(nftAuthorAddress);
     });
+
     it("only owner can set up nft wallet address", async () => {
       await expect(
         RaffleInstance.connect(donor1).setNftAuthorWalletAddress(
@@ -153,6 +156,7 @@ describe("Raffle Contract Tests", function () {
       ).to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
+
   describe("Create raffle function", function () {
     it("creates raffle with correct details", async () => {
       let newRaffle = await createRaffleObject(
@@ -177,6 +181,7 @@ describe("Raffle Contract Tests", function () {
       expect(await raffle.topDonor).to.equal(owner.address);
       expect(await raffle.topDonatedAmount).to.equal(10);
     });
+
     it("only curator can create raffle", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -194,6 +199,7 @@ describe("Raffle Contract Tests", function () {
         "AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x850d585eb7f024ccee5e68e55f2c26cc72e1e6ee456acf62135757a5eb9d4a10"
       );
     });
+
     it("reverts if incorrect times given", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -209,6 +215,7 @@ describe("Raffle Contract Tests", function () {
         RaffleInstance.connect(curator).createRaffle(newRaffle)
       ).to.be.revertedWith("IncorrectTimesGiven()");
     });
+
     it("contract receives NFTs on raffle creation", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -226,6 +233,7 @@ describe("Raffle Contract Tests", function () {
 
       expect(await contractNFTBalance).to.equal(4);
     });
+
     it("emits Raffle created event properly", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -242,6 +250,7 @@ describe("Raffle Contract Tests", function () {
         .withArgs(owner.address, 1, startTime, endTime, 10);
     });
   });
+
   describe("Donate function", function () {
     it("creates donation with correct details", async () => {
       // TODO finish this one
@@ -261,25 +270,28 @@ describe("Raffle Contract Tests", function () {
       RaffleInstance.connect(donor1).donate(newDonation);
       let donorBalance = await USDC.balanceOf(donor1Address);
     });
-    it("reverts if raffle hasn't ended", async () => {
+
+    it.only("reverts if raffle has ended", async () => {
       // TODO
-      // let newRaffle = await createRaffleObject(
-      //   NFTInstance.address,
-      //   ownerAddress,
-      //   1,
-      //   startTime,
-      //   endTime,
-      //   BigNumber.from(10),
-      //   owner.address,
-      //   BigNumber.from(10)
-      // );
-      // await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      // // TODO get block timstamp correctly
-      // let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
-      // await expect(
-      //   RaffleInstance.connect(donor1).donate(newDonation)
-      // ).to.be.revertedWith("DonationTooLow()");
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        BigNumber.from(10),
+        owner.address,
+        BigNumber.from(10)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      await fastForward(endTime);
+      let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
+      await expect(
+        RaffleInstance.connect(donor1).donate(newDonation)
+      ).to.be.revertedWith("RaffleHasEnded()");
     });
+
     it("reverts if donation is too low", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -298,7 +310,8 @@ describe("Raffle Contract Tests", function () {
         RaffleInstance.connect(donor1).donate(newDonation)
       ).to.be.revertedWith("DonationTooLow()");
     });
-    it("transfers donation into DAO Wallet,balance reflects", async () => {
+
+    it.only("transfers donation into DAO Wallet,balance reflects", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -321,7 +334,7 @@ describe("Raffle Contract Tests", function () {
       console.log(DaoWalletBal.toString());
       expect(await DaoWalletBal).to.equal(ethers.utils.parseUnits("200", 6));
     });
-    it("emits Donation created event properly", async () => {
+    it("emits Donation submitted event properly", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -337,15 +350,12 @@ describe("Raffle Contract Tests", function () {
       let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
       expect(await RaffleInstance.connect(donor1).donate(newDonation))
         .to.emit(RaffleInstance, "DonationPlaced")
-        .withArgs(donor1Address, 1, 100, 1652858638);
-
-      // checking timestamp for donation is the same as event emitting
-      let donation = await RaffleInstance.getDonation(1);
-      console.log(donation.timestamp.toString());
+        .withArgs(donor1Address, 1, 100);
     });
   });
   describe("SendNFTsToWinners function", function () {
     it("calculates winners correctly,NFT reflect in winners balances", async () => {
+      // NOTE : this test result for the random donor changes every time you run the test because the random donor is different each time
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -380,6 +390,8 @@ describe("Raffle Contract Tests", function () {
       expect(await NFTInstance.balanceOf(donor1Address, 1)).to.equal(1);
       expect(await NFTInstance.balanceOf(daoWalletAddress, 1)).to.equal(1);
       expect(await NFTInstance.balanceOf(nftAuthorAddress, 1)).to.equal(1);
+
+      // expected random donor, but it can also be donor1
       expect(await NFTInstance.balanceOf(donor2Address, 1)).to.equal(1);
     });
     it("emits events properly", async () => {
