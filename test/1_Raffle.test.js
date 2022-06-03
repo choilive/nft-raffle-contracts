@@ -252,7 +252,7 @@ describe("Raffle Contract Tests", function () {
   });
 
   describe("Donate function", function () {
-    it("creates donation with correct details", async () => {
+    it.only("creates donation with correct details", async () => {
       // TODO finish this one
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -260,28 +260,34 @@ describe("Raffle Contract Tests", function () {
         1,
         startTime,
         endTime,
-        BigNumber.from(10),
+        ethers.utils.parseUnits("100", 6),
         owner.address,
-        BigNumber.from(10)
+        ethers.utils.parseUnits("100", 6)
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
-      // TODO get block timstamp correctly
-      let newDonation = await createDonationObject(donor1Address, 1, 100, 0);
+      let newDonation = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
       RaffleInstance.connect(donor1).donate(newDonation);
-      let donorBalance = await USDC.balanceOf(donor1Address);
+      let donation = await RaffleInstance.getDonation(1);
+      expect(await donation.donor).to.equal(donor1Address);
+      expect(await donation.raffleID).to.equal(1);
+      expect(await donation.amount).to.equal(ethers.utils.parseUnits("200", 6));
     });
 
-    it.only("reverts if raffle has ended", async () => {
-      // TODO
+    it("reverts if raffle has ended", async () => {
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
         1,
         startTime,
         endTime,
-        BigNumber.from(10),
+        ethers.utils.parseUnits("100", 6),
         owner.address,
-        BigNumber.from(10)
+        ethers.utils.parseUnits("100", 6)
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
@@ -329,6 +335,8 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("200", 6),
         0
       );
+      let daoBal = await USDC.balanceOf(daoWalletAddress);
+      console.log(daoBal.toString());
       await RaffleInstance.connect(donor1).donate(newDonation);
       let DaoWalletBal = await USDC.balanceOf(daoWalletAddress);
       console.log(DaoWalletBal.toString());
