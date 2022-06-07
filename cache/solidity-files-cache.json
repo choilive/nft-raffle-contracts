@@ -1,9 +1,11 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/contracts/Raffle.sol": {
       "lastModificationDate": 1654617050957,
       "contentHash": "940a4f7a4b3f3a233224793a1dfdc657",
+
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.11",
@@ -44,8 +46,10 @@
         "Raffle"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/access/Ownable.sol": {
       "lastModificationDate": 1653570660323,
+
       "contentHash": "8398972af73b4e9e5ff3b31cad86234f",
       "sourceName": "@openzeppelin/contracts/access/Ownable.sol",
       "solcConfig": {
@@ -81,8 +85,10 @@
         "Ownable"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/access/AccessControl.sol": {
       "lastModificationDate": 1653570660325,
+
       "contentHash": "76cae8e1eb9c27e818b0b08e1527f731",
       "sourceName": "@openzeppelin/contracts/access/AccessControl.sol",
       "solcConfig": {
@@ -121,8 +127,10 @@
         "AccessControl"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/security/ReentrancyGuard.sol": {
       "lastModificationDate": 1653570660326,
+
       "contentHash": "92f9448b23a90ea3bb932ee55cc3ccce",
       "sourceName": "@openzeppelin/contracts/security/ReentrancyGuard.sol",
       "solcConfig": {
@@ -156,8 +164,10 @@
         "ReentrancyGuard"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol": {
       "lastModificationDate": 1653570660269,
+
       "contentHash": "a44d1a099633876550ad2476b21bafbe",
       "sourceName": "@openzeppelin/contracts/token/ERC20/IERC20.sol",
       "solcConfig": {
@@ -191,10 +201,12 @@
         "IERC20"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155.sol": {
       "lastModificationDate": 1653570660302,
       "contentHash": "59e1bc5713fdebc7f821dc52f4d3e0ef",
       "sourceName": "@openzeppelin/contracts/token/ERC1155/IERC1155.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -228,10 +240,12 @@
         "IERC1155"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol": {
       "lastModificationDate": 1653570660301,
       "contentHash": "9f8822b72fe2702979e40160cb6d9636",
       "sourceName": "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -265,10 +279,12 @@
         "IERC1155Receiver"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/utils/Context.sol": {
       "lastModificationDate": 1653570660351,
       "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
       "sourceName": "@openzeppelin/contracts/utils/Context.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -300,10 +316,12 @@
         "Context"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/access/IAccessControl.sol": {
       "lastModificationDate": 1653570660324,
       "contentHash": "57c84298234411cea19c7c284d86be8b",
       "sourceName": "@openzeppelin/contracts/access/IAccessControl.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -335,10 +353,12 @@
         "IAccessControl"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/utils/Strings.sol": {
       "lastModificationDate": 1653570660352,
       "contentHash": "9c54c6c065d9e590fdcdd72c451425b9",
       "sourceName": "@openzeppelin/contracts/utils/Strings.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -370,10 +390,12 @@
         "Strings"
       ]
     },
+
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/utils/introspection/ERC165.sol": {
       "lastModificationDate": 1653570660340,
       "contentHash": "0e7db055ce108f9da7bb6686a00287c0",
       "sourceName": "@openzeppelin/contracts/utils/introspection/ERC165.sol",
+
       "solcConfig": {
         "version": "0.8.11",
         "settings": {
@@ -404,7 +426,10 @@
         "^0.8.0"
       ],
       "artifacts": [
+
         "ERC165"
+
+
       ]
     },
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/node_modules/@openzeppelin/contracts/utils/introspection/IERC165.sol": {

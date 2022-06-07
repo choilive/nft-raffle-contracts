@@ -41,22 +41,7 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC1155Receiver__factory>;
     getContractFactory(
-      name: "ERC20",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC20__factory>;
-    getContractFactory(
-      name: "ERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.ERC20Permit__factory>;
-    getContractFactory(
-      name: "IERC20Permit",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20Permit__factory>;
-    getContractFactory(
-      name: "IERC20Metadata",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.IERC20Metadata__factory>;
-    getContractFactory(
+
       name: "IERC20",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
@@ -65,9 +50,17 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ERC165__factory>;
     getContractFactory(
+      name: "ERC165Storage",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ERC165Storage__factory>;
+    getContractFactory(
       name: "IERC165",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC165__factory>;
+    getContractFactory(
+      name: "ArtizenERC1155",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ArtizenERC1155__factory>;
     getContractFactory(
       name: "Raffle",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -117,26 +110,7 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IERC1155Receiver>;
     getContractAt(
-      name: "ERC20",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC20>;
-    getContractAt(
-      name: "ERC20Permit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.ERC20Permit>;
-    getContractAt(
-      name: "IERC20Permit",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20Permit>;
-    getContractAt(
-      name: "IERC20Metadata",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.IERC20Metadata>;
-    getContractAt(
+
       name: "IERC20",
       address: string,
       signer?: ethers.Signer
@@ -147,10 +121,20 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ERC165>;
     getContractAt(
+      name: "ERC165Storage",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ERC165Storage>;
+    getContractAt(
       name: "IERC165",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC165>;
+    getContractAt(
+      name: "ArtizenERC1155",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ArtizenERC1155>;
     getContractAt(
       name: "Raffle",
       address: string,
