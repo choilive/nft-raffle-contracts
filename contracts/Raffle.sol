@@ -104,7 +104,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
     */
   function setNftAuthorWalletAddress(address _nftAuthorWallet)
     public
-    onlyOwner
+    onlyRole(CURATOR_ROLE)
   {
     if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
     nftAuthorWallet = _nftAuthorWallet;
@@ -218,7 +218,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard {
         @notice distributes NFTs to winners at the end of a raffle cycle
         @param raffleID id of raffle
     */
-  function sendNFTRewards(uint256 raffleID) public onlyOwner {
+  function sendNFTRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
     if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
 
     // calculate randomDonor
