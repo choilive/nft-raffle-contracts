@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/Raffle.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../prettify.css" />
+    <link rel="stylesheet" href="../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../index.html">all files</a> / <a href="index.html">contracts/</a> Raffle.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.39% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>61/62</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">87.5% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>14/16</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">93.75% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>15/16</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">98.44% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>63/64</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line high'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">63×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-yes">22×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">21×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">18×</span>
+<span class="cline-any cline-yes">17×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">16×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">15×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">pragma solidity 0.8.11;
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
+&nbsp;
+contract Raffle is Ownable, AccessControl, ReentrancyGuard {
+  // TODO - implement access control!
+  address public DAOWallet;
+  address public nftAuthorWallet;
+  uint256 public raffleCount;
+  uint256 public donationCount;
+  IERC20 public USDC;
+&nbsp;
+  bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
+  // -------------------------------------------------------------
+  // STORAGE
+  // --------------------------------------------------------------
+  struct Raffle {
+    address nftContract; // address of NFT contract
+    address nftOwner;
+    uint256 tokenID;
+    uint256 startTime;
+    uint256 endTime;
+    uint256 minimumDonationAmount;
+    address topDonor;
+    uint256 topDonatedAmount;
+  }
+&nbsp;
+  struct Donation {
+    address donor;
+    uint256 raffleID;
+    uint256 amount;
+    uint256 timestamp;
+  }
+  mapping(uint256 =&gt; Raffle) public raffles;
+  mapping(uint256 =&gt; Donation) public donations;
+  // raffleID =&gt; amount
+  mapping(uint256 =&gt; uint256) private totalDonationsPerCycle;
+  // raffleID =&gt; address =&gt; amount
+  mapping(uint256 =&gt; mapping(address =&gt; uint256))
+    public totalDonationPerAddressPerCycle;
+  // raffleID =&gt; addresses array
+  mapping(uint256 =&gt; address[]) public donorsArrayPerCycle;
+  //raffleID =&gt; address
+  mapping(uint256 =&gt; address) topDonor;
+  // raffleID =&gt; amount
+  mapping(uint256 =&gt; uint256) highestDonation;
+  //  raffleID =&gt; address =&gt; donationIDs
+  mapping(uint256 =&gt; mapping(address =&gt; uint256[])) donationCountPerAddressPerCycle;
+&nbsp;
+  // // --------------------------------------------------------------
+  // // EVENTS
+  // // --------------------------------------------------------------
+&nbsp;
+  event RaffleCreated(
+    address nftOwner,
+    uint256 tokenID,
+    uint256 startTime,
+    uint256 endTime,
+    uint256 minimumDonationAmount
+  );
+  event DonationPlaced(address from, uint256 raffleId, uint256 amount);
+  event DAOWalletAddressSet(address walletAddress);
+  event nftAuthorWalletAddressSet(address nftAuthorWallet);
+  event NFTsentToWinner(uint256 raffleID, address winner);
+&nbsp;
+  // --------------------------------------------------------------
+  // CUSTOM ERRORS
+  // --------------------------------------------------------------
+  error IncorrectTimesGiven();
+  error ZeroAddressNotAllowed();
+  error RaffleHasEnded();
+  error DonationTooLow();
+  error RaffleHasNotEnded();
+&nbsp;
+  // --------------------------------------------------------------
+  // CONSTRUCTOR
+  // --------------------------------------------------------------
+&nbsp;
+  constructor(address _usdc) {
+    USDC = IERC20(_usdc);
+  }
+&nbsp;
+  // --------------------------------------------------------------
+  // STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
+&nbsp;
+  /**
+        @notice sets DAO wallet address for transfering funds
+        @param _DAOWallet address of DAO wallet
+    */
+  function setDAOWalletAddress(address _DAOWallet) public onlyOwner {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
+    DAOWallet = _DAOWallet;
+    emit DAOWalletAddressSet(_DAOWallet);
+  }
+&nbsp;
+  /**
+        @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
+        @param _nftAuthorWallet address of NFT author wallet
+    */
+  function setNftAuthorWalletAddress(address _nftAuthorWallet)
+    public
+    onlyOwner
+  {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
+    nftAuthorWallet = _nftAuthorWallet;
+    emit nftAuthorWalletAddressSet(_nftAuthorWallet);
+  }
+&nbsp;
+  function setCuratorRole(address curator) public onlyOwner {
+    _grantRole(CURATOR_ROLE, curator);
+  }
+&nbsp;
+  function createRaffle(Raffle memory _raffle)
+    public
+    onlyRole(CURATOR_ROLE)
+    returns (uint256)
+  {
+    address nftContractAddress = _raffle.nftContract;
+    if (_raffle.startTime &gt; _raffle.endTime) revert IncorrectTimesGiven();
+&nbsp;
+    raffleCount++;
+    raffles[raffleCount] = _raffle;
+&nbsp;
+    emit RaffleCreated(
+      _raffle.nftOwner,
+      _raffle.tokenID,
+      _raffle.startTime,
+      _raffle.endTime,
+      _raffle.minimumDonationAmount
+    );
+&nbsp;
+    IERC1155(nftContractAddress).safeTransferFrom(
+      _raffle.nftOwner,
+      address(this),
+      _raffle.tokenID,
+      4,
+      ""
+    );
+&nbsp;
+    return raffleCount;
+  }
+&nbsp;
+  /**
+        @notice creates a donation on an raffle
+        @param _donation object contains parameters for donation created
+    */
+  function donate(Donation memory _donation)
+    public
+    payable
+    nonReentrant
+    returns (uint256)
+  {
+    uint256 raffleId = _donation.raffleID;
+&nbsp;
+    // Loading Raffle obj into memory for top donor calc
+    Raffle memory currentRaffle = raffles[raffleId];
+&nbsp;
+    if (raffles[raffleId].endTime &lt; block.timestamp) revert RaffleHasEnded();
+    if (_donation.amount &lt;= raffles[raffleId].minimumDonationAmount)
+      revert DonationTooLow();
+    donationCount++;
+    _donation.timestamp = block.timestamp;
+    donations[donationCount] = _donation;
+&nbsp;
+    // add amount to total donations per address per cycle
+    totalDonationPerAddressPerCycle[raffleId][msg.sender] += _donation.amount;
+&nbsp;
+    // add amount to total donations per cycle
+    totalDonationsPerCycle[raffleId] += _donation.amount;
+&nbsp;
+    donorsArrayPerCycle[raffleId].push(msg.sender);
+&nbsp;
+    uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
+      raffleId
+    ][msg.sender];
+    uint256 topDonation = currentRaffle.topDonatedAmount;
+    // Calculate top donor and amount and update in Raffle obj
+&nbsp;
+    if (currentRaffle.topDonor == msg.sender) {
+      // dont change top donor, just change amount
+      currentRaffle.topDonatedAmount += _donation.amount;
+&nbsp;
+      // Update raffle in storage
+      raffles[raffleId] = currentRaffle;
+    } else if (donorsTotalDonationsInRaffle &gt; topDonation) {
+      // New top donor, update both fiels in Raffle obj
+      currentRaffle.topDonatedAmount = donorsTotalDonationsInRaffle;
+      highestDonation[raffleId] = donorsTotalDonationsInRaffle;
+      currentRaffle.topDonor = msg.sender;
+      topDonor[raffleId] = msg.sender;
+&nbsp;
+      // Update raffle in storage
+      raffles[raffleId] = currentRaffle;
+    }
+&nbsp;
+    //transfer funds to contract
+    USDC.transferFrom(msg.sender, DAOWallet, _donation.amount);
+&nbsp;
+    emit DonationPlaced(msg.sender, raffleId, _donation.amount);
+&nbsp;
+    return donationCount;
+  }
+&nbsp;
+  function sendNFTRewards(uint256 raffleID) public onlyOwner {
+    if (raffles[raffleID].endTime &gt; block.timestamp) revert RaffleHasNotEnded();
+&nbsp;
+    // calculate randomDonor
+    address randomDonor = _calcRandomDonor(raffleID);
+&nbsp;
+    // get topDonor
+&nbsp;
+    address topDonor = getTopDonor(raffleID);
+&nbsp;
+    address nftContractAddress = raffles[raffleID].nftContract;
+    uint256 tokenID = raffles[raffleID].tokenID;
+&nbsp;
+    // transfer to random donor
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      topDonor,
+      tokenID,
+      1,
+      ""
+    );
+&nbsp;
+    emit NFTsentToWinner(raffleID, topDonor);
+&nbsp;
+    // transfer to random donor
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      randomDonor,
+      tokenID,
+      1,
+      ""
+    );
+&nbsp;
+    emit NFTsentToWinner(raffleID, randomDonor);
+    // transfer to DAO Wallet
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      DAOWallet,
+      tokenID,
+      1,
+      ""
+    );
+    emit NFTsentToWinner(raffleID, DAOWallet);
+    // transfer to NFT author
+    IERC1155(nftContractAddress).safeTransferFrom(
+      address(this),
+      nftAuthorWallet,
+      tokenID,
+      1,
+      ""
+    );
+    emit NFTsentToWinner(raffleID, nftAuthorWallet);
+  }
+&nbsp;
+  // --------------------------------------------------------------
+  // EXTERNAL FUNCTIONS
+  // --------------------------------------------------------------
+&nbsp;
+  function onERC1155Received(
+    address operator,
+    address from,
+    uint256 id,
+    uint256 value,
+    bytes memory data
+  ) external pure returns (bytes4) {
+    // 0xf23a6e61 = bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
+    return 0xf23a6e61; // TODO check this logic!
+  }
+&nbsp;
+  // --------------------------------------------------------------
+  // INTERNAL STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
+&nbsp;
+  function _calcRandomDonor(uint256 raffleID) internal view returns (address) {
+    uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
+&nbsp;
+    uint256 randomIndex = uint256(
+      keccak256(
+        abi.encodePacked(
+          block.timestamp,
+          block.number,
+          block.difficulty,
+          raffleID
+        )
+      )
+    ) % amountOfDonors;
+&nbsp;
+    address winner = donorsArrayPerCycle[raffleID][randomIndex];
+&nbsp;
+    return winner;
+  }
+&nbsp;
+  // --------------------------------------------------------------
+  // VIEW FUNCTIONS
+  // --------------------------------------------------------------
+&nbsp;
+  function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
+    return raffles[raffleID];
+  }
+&nbsp;
+  function getDonation(uint256 donationID)
+    public
+    view
+    returns (Donation memory)
+  {
+    return donations[donationID];
+  }
+&nbsp;
+  function getTotalDonationsPerCycle(uint256 raffleID)
+    public
+    view
+    returns (uint256)
+  {
+    return totalDonationsPerCycle[raffleID];
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  function getDonorsPerCycle(uint256 raffleID)</span>
+    public
+    view
+    returns (address[] memory)
+  {
+<span class="cstat-no" title="statement not covered" >    return donorsArrayPerCycle[raffleID];</span>
+  }
+&nbsp;
+  function getTotalDonationPerAddressPerCycle(uint256 raffleID, address account)
+    public
+    view
+    returns (uint256)
+  {
+    return totalDonationPerAddressPerCycle[raffleID][account];
+  }
+&nbsp;
+  function getHighestDonationPerCycle(uint256 raffleID)
+    public
+    view
+    returns (uint256)
+  {
+    return highestDonation[raffleID];
+  }
+&nbsp;
+  function getTopDonor(uint256 raffleID) public view returns (address) {
+    return topDonor[raffleID];
+  }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Fri Jun 03 2022 17:48:27 GMT+0200 (Central European Summer Time)
+</div>
+</div>
+<script src="../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../sorter.js"></script>
+</body>
+</html>
