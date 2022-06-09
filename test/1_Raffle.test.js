@@ -18,6 +18,7 @@ let donor2, donor2Address;
 let donor3, donor3Address;
 let donor4, donor4Address;
 let curator, curatorAddress;
+let forwarder, forwarderAddress;
 let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
@@ -34,7 +35,7 @@ const USDC = new ethers.Contract(
 
 describe("Raffle Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, curator] =
+    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
@@ -44,11 +45,13 @@ describe("Raffle Contract Tests", function () {
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
     curatorAddress = await curator.getAddress();
+    forwarderAddress = await curator.getAddress();
 
     // Deploy Raffle
     RaffleContract = await ethers.getContractFactory("Raffle");
     RaffleInstance = await RaffleContract.connect(owner).deploy(
-      constants.POLYGON.USDC
+      constants.POLYGON.USDC,
+      forwarderAddress
     );
 
     // Deploy NFT
