@@ -65,6 +65,7 @@
     "fund:eth": "hardhat run scripts/fundEth.ts",
     "reset": "hardhat run scripts/reset.ts",
     "test": "hardhat test",
+    "test:raffle": "hardhat test test/1_Raffle.test.js",
     "coverage": "hardhat coverage --network hardhat",
     "compile": "prettier --write 'contracts/**/*.sol' && hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts",

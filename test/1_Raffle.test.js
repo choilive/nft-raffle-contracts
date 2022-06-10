@@ -123,7 +123,7 @@ describe("Raffle Contract Tests", function () {
     await RaffleInstance.connect(owner).setDAOWalletAddress(daoWalletAddress);
 
     // set NFT Author address
-    await RaffleInstance.connect(owner).setNftAuthorWalletAddress(
+    await RaffleInstance.connect(curator).setNftAuthorWalletAddress(
       nftAuthorAddress
     );
 
