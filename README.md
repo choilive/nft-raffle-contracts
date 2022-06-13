@@ -1,7 +1,8 @@
 # Raffle contract
 
-- Ropsten Testnet Address: 0x5d7cbE3dbeAda30E653CB11FC7f5861D5beDda1e
+- Mumbai Testnet Address: 0x4838cF3eF6D79d625ffE3eDE73b843D99CF980Fd
 
 # ArtizenERC1155 contract
 
-- Ropsten Testnet Address: 0xC260B3F13Ea2EA7e022536dbbAfD4045dcF7D390
+- Mumbai Testnet Address:
+  0xed2f8B134bc7Fb90a15478166BC66EC2352C3Dcf
