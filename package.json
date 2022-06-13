@@ -14,6 +14,7 @@
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@opengsn/contracts": "^2.2.6",
+    "@opengsn/gsn": "^2.1.0",
     "@openzeppelin/contracts": "^4.4.2",
     "@primitivefi/hardhat-dodoc": "^0.1.3",
     "@typechain/ethers-v5": "^9.0.0",
