@@ -63,6 +63,10 @@ module.exports = {
       accounts: [`${process.env.POLYGON_DEPLOYER_PRIV_KEY}`],
       chainId: 137,
     },
+    ropsten: {
+      url: `https://eth-ropsten.alchemyapi.io/v2/${process.env.ALCHEMY_API}`,
+      accounts: [`${process.env.ROPSTEN_DEPLOYER_PRIV_KEY}`],
+    },
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_API_KEY,

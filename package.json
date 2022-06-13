@@ -11,7 +11,7 @@
     "test": "test"
   },
   "dependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.0.4",
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "@opengsn/contracts": "^2.2.6",
     "@opengsn/gsn": "^2.1.0",
@@ -70,6 +70,8 @@
     "coverage": "hardhat coverage --network hardhat",
     "compile": "prettier --write 'contracts/**/*.sol' && hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts",
+    "deploy:mumbai": "hardhat clean && hardhat run --network mumbai scripts/deploy.ts",
+    "deploy:ropsten": "hardhat clean && hardhat run --network ropsten scripts/deploy.ts",
     "accounts": "hardhat accounts",
     "balance": "hardhat balance",
     "generate": "hardhat generate",
