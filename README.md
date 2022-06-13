@@ -5,4 +5,4 @@
 # ArtizenERC1155 contract
 
 - Mumbai Testnet Address:
-  0xed2f8B134bc7Fb90a15478166BC66EC2352C3Dcf
+  0x64b141AA093cb409d5Dc1ccdcb7e4003d2A3B03e

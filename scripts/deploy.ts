@@ -43,14 +43,14 @@ async function main() {
   //   // set logic here
   // }
 
-  const raffleContract = await deploy(
-    "Raffle",
-    [
-      "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-      "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
-    ],
-    {}
-  );
+  // const raffleContract = await deploy(
+  //   "Raffle",
+  //   [
+  //     "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
+  //     "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
+  //   ],
+  //   {}
+  // );
 
   const nftContract = await deploy("ArtizenERC1155", [], {});
 
