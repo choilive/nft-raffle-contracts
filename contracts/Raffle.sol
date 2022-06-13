@@ -15,6 +15,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     IERC20 public USDC;
 
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     string public override versionRecipient = "2.2.6";
     // -------------------------------------------------------------
@@ -85,6 +86,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     constructor(address _usdc, address _forwarder) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
+
+        // CURATOR_ROLE needs to be called by ADMIN_ROLE
+        _setRoleAdmin(CURATOR_ROLE, ADMIN_ROLE);
+        // Sets deployer as ADMIN_ROLE
+        _grantRole(ADMIN_ROLE, _msgSender());
     }
 
     // --------------------------------------------------------------
@@ -95,7 +101,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice sets DAO wallet address for transfering funds
         @param _DAOWallet address of DAO wallet
     */
-    function setDAOWalletAddress(address _DAOWallet) public onlyOwner {
+    function setDAOWalletAddress(address _DAOWallet) public onlyRole(ADMIN_ROLE) {
         if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
         DAOWallet = _DAOWallet;
         emit DAOWalletAddressSet(_DAOWallet);
@@ -118,8 +124,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice sets curator address for curator role
         @param  curator address of curator wallet
     */
-    function setCuratorRole(address curator) public onlyOwner {
+    function setCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
         _grantRole(CURATOR_ROLE, curator);
+    }
+
+    function revokeCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
+        revokeRole(CURATOR_ROLE, curator);
     }
 
     /**
