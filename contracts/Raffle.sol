@@ -211,6 +211,36 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     if (raffles[raffleID].endTime < block.timestamp)
       revert RaffleAlreadyEnded(); // check this logic
     raffles[raffleID].cancelled = true;
+
+    // refund donors  // TODO check this logic
+    address[] donorsArray = getDonorsPerCycle(raffleID);
+    for (uint256 i = 0; i < donorsArray.length; i++) {
+      uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
+        raffleID,
+        donorsArray[i]
+      );
+      for (uint256 j = 0; j < donorsArray.length; i++) {
+        REWARD_TOKEN.transferFrom(
+          address(this),
+          donorsArray[i],
+          refundPerAddress
+        );
+      }
+
+      // send NFTs back to owner
+
+      uint256 refundTokenID = raffles[raffleID].tokenID;
+      address tokenOwner = raffles[raffleID].nftOwner;
+      address nftContractAddress = raffles[raffleID].nftContract;
+
+      IERC1155(nftContractAddress).safeTransferFrom(
+        address(this),
+        tokenOwner,
+        refundTokenID,
+        4,
+        ""
+      );
+    }
   }
 
   /**
