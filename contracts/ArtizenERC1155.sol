@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ArtizenERC1155 is ERC1155, Ownable {
-
     mapping(address => bool) public whitelistedAddresses;
 
     string private _uri;
@@ -18,18 +17,20 @@ contract ArtizenERC1155 is ERC1155, Ownable {
         address to,
         uint256 id,
         uint256 amount,
-        bytes memory data) public {
-            require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
-            _mint(to, id, amount, data);
+        bytes memory data
+    ) public {
+        require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
+        _mint(to, id, amount, data);
     }
 
     function batchMint(
         address to,
         uint256[] memory ids,
         uint256[] memory amounts,
-        bytes memory data) public {
-            require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
-            _mintBatch(to, ids, amounts, data);
+        bytes memory data
+    ) public {
+        require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
+        _mintBatch(to, ids, amounts, data);
     }
 
     function safeTransferFrom(

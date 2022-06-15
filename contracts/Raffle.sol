@@ -14,6 +14,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     uint256 public donationCount;
     IERC20 public USDC;
 
+    IERC20 public REWARD_TOKEN;
+    uint256 rewardTokenBalanceInContract;
+
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
@@ -69,7 +72,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     event DAOWalletAddressSet(address walletAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
-
+    event RewardTokenBalanceToppedUp(uint256 amount);
+    event tokensWithdrawnFromContract(address account, uint256 amount);
     // --------------------------------------------------------------
     // CUSTOM ERRORS
     // --------------------------------------------------------------
@@ -78,14 +82,20 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     error RaffleHasEnded();
     error DonationTooLow();
     error RaffleHasNotEnded();
+    error InsufficientAmount();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
     // --------------------------------------------------------------
 
-    constructor(address _usdc, address _forwarder) {
+    constructor(
+        address _usdc,
+        address _forwarder,
+        address _rewardTokenAddress
+    ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
+        REWARD_TOKEN = IERC20(_rewardTokenAddress);
 
         // CURATOR_ROLE needs to be called by ADMIN_ROLE
         _setRoleAdmin(CURATOR_ROLE, ADMIN_ROLE);
@@ -101,7 +111,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice sets DAO wallet address for transfering funds
         @param _DAOWallet address of DAO wallet
     */
-    function setDAOWalletAddress(address _DAOWallet) public onlyRole(ADMIN_ROLE) {
+    function setDAOWalletAddress(address _DAOWallet)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
         if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
         DAOWallet = _DAOWallet;
         emit DAOWalletAddressSet(_DAOWallet);
@@ -130,6 +143,28 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
     function revokeCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
         revokeRole(CURATOR_ROLE, curator);
+    }
+
+    function topUpRewardTokenBalance(uint256 amount)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
+        // TODO check if the tokens are in the dao wallet
+        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+        rewardTokenBalanceInContract += amount;
+
+        emit RewardTokenBalanceToppedUp(amount);
+    }
+
+    function withdraw(address account, uint256 amount)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
+        if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
+        REWARD_TOKEN.transferFrom(address(this), account, amount);
+        rewardTokenBalanceInContract -= amount;
+
+        emit tokensWithdrawnFromContract(account, amount);
     }
 
     /**
