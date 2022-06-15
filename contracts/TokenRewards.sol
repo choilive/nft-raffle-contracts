@@ -10,6 +10,7 @@ contract TokenRewards is Ownable {
     address rewardTokenAddress;
     address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
     address raffleContractAddress;
+
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------

@@ -816,8 +816,8 @@
       ]
     },
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/contracts/Raffle.sol": {
-      "lastModificationDate": 1655324588312,
-      "contentHash": "4543151afa813b376e77b8adfec2ed37",
+      "lastModificationDate": 1655325781419,
+      "contentHash": "a844c44b97250494d65481f12c18c417",
       "sourceName": "contracts/Raffle.sol",
       "solcConfig": {
         "version": "0.8.11",
@@ -1041,8 +1041,8 @@
       ]
     },
     "/Users/cryptogirl/LinumLabs/ARTIZEN_ALL/nft-raffle/contracts/TokenRewards.sol": {
-      "lastModificationDate": 1655324833532,
-      "contentHash": "39264ccb6bd3aeb0922a3253cf4ad37a",
+      "lastModificationDate": 1655325753634,
+      "contentHash": "d447d606ab016c668ff82f4b92809d74",
       "sourceName": "contracts/TokenRewards.sol",
       "solcConfig": {
         "version": "0.8.11",

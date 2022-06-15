@@ -14,6 +14,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     uint256 public donationCount;
     IERC20 public USDC;
 
+    IERC20 public REWARD_TOKEN;
+    uint256 rewardTokenBalanceInContract;
+
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
@@ -83,9 +86,14 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     // CONSTRUCTOR
     // --------------------------------------------------------------
 
-    constructor(address _usdc, address _forwarder) {
+    constructor(
+        address _usdc,
+        address _forwarder,
+        address _rewardTokenAddress
+    ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
+        REWARD_TOKEN = IERC20(_rewardTokenAddress);
 
         // CURATOR_ROLE needs to be called by ADMIN_ROLE
         _setRoleAdmin(CURATOR_ROLE, ADMIN_ROLE);
@@ -133,6 +141,15 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
     function revokeCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
         revokeRole(CURATOR_ROLE, curator);
+    }
+
+    function topUpRewardTokenBalance(uint256 amount)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
+        // TODO check if the tokens are in the dao wallet
+        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+        rewardTokenBalanceInContract += amount;
     }
 
     /**
