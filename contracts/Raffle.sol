@@ -72,7 +72,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     event DAOWalletAddressSet(address walletAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
-
+    event RewardTokenBalanceToppedUp(uint256 amount);
+    event tokensWithdrawnFromContract(address account, uint256 amount);
     // --------------------------------------------------------------
     // CUSTOM ERRORS
     // --------------------------------------------------------------
@@ -81,6 +82,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     error RaffleHasEnded();
     error DonationTooLow();
     error RaffleHasNotEnded();
+    error InsufficientAmount();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -150,6 +152,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         // TODO check if the tokens are in the dao wallet
         REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
         rewardTokenBalanceInContract += amount;
+
+        emit RewardTokenBalanceToppedUp(amount);
+    }
+
+    function withdraw(address account, uint256 amount)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
+        if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
+        REWARD_TOKEN.transferFrom(address(this), account, amount);
+        rewardTokenBalanceInContract -= amount;
+
+        emit tokensWithdrawnFromContract(account, amount);
     }
 
     /**
