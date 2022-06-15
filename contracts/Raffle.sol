@@ -226,6 +226,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
           refundPerAddress
         );
       }
+      // update rewardTokenBalanceInContract
+
+      uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
+      rewardTokenBalanceInContract = balanceAfterRefund;
 
       // send NFTs back to owner
 
