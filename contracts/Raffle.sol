@@ -101,7 +101,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice sets DAO wallet address for transfering funds
         @param _DAOWallet address of DAO wallet
     */
-    function setDAOWalletAddress(address _DAOWallet) public onlyRole(ADMIN_ROLE) {
+    function setDAOWalletAddress(address _DAOWallet)
+        public
+        onlyRole(ADMIN_ROLE)
+    {
         if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
         DAOWallet = _DAOWallet;
         emit DAOWalletAddressSet(_DAOWallet);
