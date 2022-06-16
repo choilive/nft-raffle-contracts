@@ -193,7 +193,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     */
     function donate(Donation memory _donation)
         public
-        payable
         nonReentrant
         returns (uint256)
     {
