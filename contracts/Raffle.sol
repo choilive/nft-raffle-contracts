@@ -209,19 +209,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
   function cancelRaffle(uint256 raffleID) public onlyRole(ADMIN_ROLE) {
     if (raffles[raffleID].endTime < block.timestamp)
-      revert RaffleAlreadyEnded(); // check this logic
+      revert RaffleHasEnded(); // check this logic
     raffles[raffleID].cancelled = true;
 
     // refund donors  // TODO check this logic
-    address[] donorsArray = getDonorsPerCycle(raffleID);
+    address[] memory donorsArray = getDonorsPerCycle(raffleID);
     for (uint256 i = 0; i < donorsArray.length; i++) {
       uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
         raffleID,
         donorsArray[i]
       );
-      for (uint256 j = 0; j < donorsArray.length; i++) {
-        REWARD_TOKEN.transferFrom(
-          address(this),
+      for (uint256 j = 0; j < donorsArray.length; j++) {
+        USDC.transferFrom(
+          DAOWallet,
           donorsArray[i],
           refundPerAddress
         );

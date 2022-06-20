@@ -22,6 +22,7 @@ let forwarder, forwarderAddress;
 let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
+let ArtTokenContract, ArtTokenInstance;
 
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
@@ -47,11 +48,20 @@ describe("Raffle Contract Tests", function () {
     curatorAddress = await curator.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
+    // deploy ArtToken as RewardsToken
+    ArtTokenContract = await ethers.getContractFactory("ArtToken");
+    ArtTokenInstance = ArtTokenContract.connect(owner).deploy(
+      "Rewards Token",
+      "ART",
+      10
+    );
+
     // Deploy Raffle
     RaffleContract = await ethers.getContractFactory("Raffle");
     RaffleInstance = await RaffleContract.connect(owner).deploy(
       constants.POLYGON.USDC,
-      forwarderAddress
+      forwarderAddress,
+      (await ArtTokenInstance).address
     );
 
     // Deploy NFT
@@ -130,6 +140,8 @@ describe("Raffle Contract Tests", function () {
     // set times
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
+
+    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
   });
 
   describe("Setter functions", function () {
@@ -267,6 +279,98 @@ describe("Raffle Contract Tests", function () {
         .withArgs(owner.address, 1, startTime, endTime, 10);
     });
   });
+
+  describe("cancelRaffle tests", function () {
+    it("reverts if raffle has ended", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      await fastForward(constants.TEST.twoMonths);
+
+      await expect(RaffleInstance.connect(owner).cancelRaffle(1)).to.be.revertedWith("RaffleHasEnded()");
+    });
+    it("updates raffle.cancelled bool to true", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      let raffle = await RaffleInstance.connect(owner).getRaffle(1);
+
+      expect(raffle.cancelled).to.equal(false);
+
+      await RaffleInstance.connect(owner).cancelRaffle(1);
+
+      raffle = await RaffleInstance.connect(owner).getRaffle(1);
+
+      expect(raffle.cancelled).to.equal(true);
+    });
+    it.only("creates donorsArray correctly", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+      await RaffleInstance.connect(donor1).donate(donation1);
+
+      let donation2 = await createDonationObject(
+        donor2Address,
+        1,
+        ethers.utils.parseUnits("300", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor2).donate(donation2);
+
+      // let donation3 = await createDonationObject(
+      //   donor1Address,
+      //   1,
+      //   ethers.utils.parseUnits("250", 6),
+      //   0
+      // );
+      // await RaffleInstance.connect(donor1).donate(donation3);
+
+
+      console.log(await RaffleInstance.connect(owner).getDonorsPerCycle(1));
+      console.log(donor1Address + "\n" + donor2Address);
+      console.log(await RaffleInstance.connect(owner).getTotalDonationPerAddressPerCycle(1, donor1Address));
+      console.log(await RaffleInstance.connect(owner).getTotalDonationPerAddressPerCycle(1, donor2Address));
+      console.log("\n");
+      console.log(await USDC.balanceOf(daoWalletAddress));
+      console.log(await USDC.balanceOf(RaffleInstance.address));
+
+      // await RaffleInstance.connect(owner).cancelRaffle(1);
+    });
+  })
 
   describe("Donate function", function () {
     it("transfers donation into DAO Wallet, balance reflects", async () => {
