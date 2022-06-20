@@ -22,4 +22,6 @@ interface IRaffle {
         returns (uint256);
 
     function getTopDonor(uint256 raffleID) external view returns (address);
+
+    function getTokensInTheBufferEndOfCycle() external view returns (uint256);
 }
