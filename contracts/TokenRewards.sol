@@ -114,16 +114,21 @@ contract TokenRewards is Ownable {
         }
     }
 
-    function _calculateMatchUnitsPerUser(uint256 raffleID, address donor)
+    function _calculateMatchUnitsPerDonor(uint256 raffleID, address donor)
         internal
         returns (uint256)
     {
-        // TODO
+        // TODO const user1MatchUnits = (user1.totalUserDonation ** (1/2)) * (totalMatchUnits ** (1/2))
 
         uint256 totalDonationsPerDonor = IRaffle(raffleContractAddress)
             .getTotalDonationPerAddressPerCycle(raffleID, donor);
 
         uint256 totalMatchUnitsPerCycle = _calculateTotalMatchUnits(raffleID);
+
+        uint256 matchUnitsPerDonor = ((totalDonationsPerDonor**1 / 2)) *
+            (((totalMatchUnitsPerCycle) * 1) / 2);
+
+        return matchUnitsPerDonor;
     }
 
     function _calculateUserRewards(uint256 raffleID, address donor)
@@ -131,8 +136,9 @@ contract TokenRewards is Ownable {
         returns (uint256)
     {
         // TODO
-        uint256 tokensInTheBufferEndOfCycle; // need to discuss this!!
-        uint256 donorMatchUnits = _calculateMatchUnitsPerUser(raffleID, donor);
+        uint256 tokensInTheBufferEndOfCycle = IRaffle(raffleContractAddress)
+            .getTokensInTheBufferEndOfCycle(); // need to discuss this!!
+        uint256 donorMatchUnits = _calculateMatchUnitsPerDonor(raffleID, donor);
         uint256 totalMatchUnits = _calculateTotalMatchUnits(raffleID);
     }
 
