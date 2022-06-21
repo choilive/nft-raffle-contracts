@@ -226,7 +226,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
                 donorsArray[i]
             );
             for (uint256 j = 0; j < donorsArray.length; i++) {
-                REWARD_TOKEN.transferFrom(
+                USDC.transferFrom(
                     address(this),
                     donorsArray[i],
                     refundPerAddress
