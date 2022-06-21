@@ -228,6 +228,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
                 raffleID,
                 donorsArray[i]
             );
+
             USDC.transferFrom(
                     DAOWallet,
                     donorsArray[i],
