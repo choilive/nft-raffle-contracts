@@ -51,6 +51,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         public totalDonationPerAddressPerCycle;
     // raffleID => addresses array
     mapping(uint256 => address[]) public donorsArrayPerCycle;
+    // Mapping to ensure donor does not get added to donorsArrayPerCycle twice and get two refunds
+    mapping(address => bool) public donorExistsInArray;
     //raffleID => address
     mapping(uint256 => address) topDonor;
     // raffleID => amount
@@ -174,6 +176,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     {
         if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
         rewardTokenBalanceInContract -= amount;
+        REWARD_TOKEN.approve(address(this), amount);
         REWARD_TOKEN.transferFrom(address(this), account, amount);
 
         emit tokensWithdrawnFromContract(account, amount);
@@ -225,32 +228,34 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
                 raffleID,
                 donorsArray[i]
             );
-            for (uint256 j = 0; j < donorsArray.length; i++) {
-                USDC.transferFrom(
-                    address(this),
+
+            USDC.transferFrom(
+                    DAOWallet,
                     donorsArray[i],
                     refundPerAddress
                 );
-            }
+        }
+            // for (uint256 j = 0; j < donorsArray.length; i++) {
+            //     
+            // }
             // update rewardTokenBalanceInContract
 
-            uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
-            rewardTokenBalanceInContract = balanceAfterRefund;
+        // uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
+        // rewardTokenBalanceInContract = balanceAfterRefund;
 
-            // send NFTs back to owner
+        // send NFTs back to owner
 
-            uint256 refundTokenID = raffles[raffleID].tokenID;
-            address tokenOwner = raffles[raffleID].nftOwner;
-            address nftContractAddress = raffles[raffleID].nftContract;
+        uint256 refundTokenID = raffles[raffleID].tokenID;
+        address tokenOwner = raffles[raffleID].nftOwner;
+        address nftContractAddress = raffles[raffleID].nftContract;
 
-            IERC1155(nftContractAddress).safeTransferFrom(
-                address(this),
-                tokenOwner,
-                refundTokenID,
-                4,
-                ""
-            );
-        }
+        IERC1155(nftContractAddress).safeTransferFrom(
+            address(this),
+            tokenOwner,
+            refundTokenID,
+            4,
+            ""
+        );    
     }
 
     /**
@@ -283,8 +288,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         // add amount to total donations per cycle
         totalDonationsPerCycle[raffleId] += _donation.amount;
 
-        donorsArrayPerCycle[raffleId].push(_msgSender());
-
+        if(donorExistsInArray[_msgSender()] == false){
+            donorsArrayPerCycle[raffleId].push(_msgSender());
+            donorExistsInArray[_msgSender()] = true;
+        }
+        
+        
         uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
             raffleId
         ][_msgSender()];
