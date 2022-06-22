@@ -11,6 +11,8 @@ contract TokenRewards is Ownable {
     address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
     address raffleContractAddress;
 
+    uint256[] donationsToThePowerOfArray;
+
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
@@ -101,39 +103,64 @@ contract TokenRewards is Ownable {
         internal
         returns (uint256)
     {
-        // TODO
+        // TODO const totalMatchUnits = ((user1.totalUserDonation ** (1/2)) + (user2.totalUserDonation ** (1/2))) ** 2;
+
         // need every donors total donation from cycle
         address[] memory donorsArray = IRaffle(raffleContractAddress)
             .getDonorsPerCycle(raffleID);
 
         for (uint256 i = 0; i < donorsArray.length; i++) {
-            IRaffle(raffleContractAddress).getTotalDonationPerAddressPerCycle(
-                raffleID,
-                donorsArray[i]
-            );
+            uint256 donationPerAddressToThePowerOf = (IRaffle(
+                raffleContractAddress
+            ).getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]) **
+                1 /
+                2);
+            // push donationPerAddressInto an array
+
+            donationsToThePowerOfArray.push(donationPerAddressToThePowerOf);
+
+            for (uint256 j = 0; j < donationsToThePowerOfArray.length; j++) {
+                // adding all elements of an array together
+                uint256 sumDonations = 0;
+                sumDonations += donationsToThePowerOfArray[i];
+                uint256 totalMatchUnits = sumDonations**2;
+
+                return totalMatchUnits;
+            }
         }
     }
 
-    function _calculateMatchUnitsPerUser(uint256 raffleID, address donor)
+    function _calculateMatchUnitsPerDonor(uint256 raffleID, address donor)
         internal
         returns (uint256)
     {
-        // TODO
+        // TODO const user1MatchUnits = (user1.totalUserDonation ** (1/2)) * (totalMatchUnits ** (1/2))
 
         uint256 totalDonationsPerDonor = IRaffle(raffleContractAddress)
             .getTotalDonationPerAddressPerCycle(raffleID, donor);
 
         uint256 totalMatchUnitsPerCycle = _calculateTotalMatchUnits(raffleID);
+
+        uint256 matchUnitsPerDonor = ((totalDonationsPerDonor**1 / 2)) *
+            (((totalMatchUnitsPerCycle)**1 / 2));
+
+        return matchUnitsPerDonor;
     }
 
     function _calculateUserRewards(uint256 raffleID, address donor)
         internal
         returns (uint256)
     {
-        // TODO
-        uint256 tokensInTheBufferEndOfCycle; // need to discuss this!!
-        uint256 donorMatchUnits = _calculateMatchUnitsPerUser(raffleID, donor);
+        // TODO const user1Rewards = tokensInTheBufferEndOfCycle * (user1MatchUnits / totalMatchUnits)
+        uint256 tokensInTheBufferEndOfCycle = IRaffle(raffleContractAddress)
+            .getTokensInTheBufferEndOfCycle();
+        uint256 donorMatchUnits = _calculateMatchUnitsPerDonor(raffleID, donor);
         uint256 totalMatchUnits = _calculateTotalMatchUnits(raffleID);
+
+        uint256 rewardsToBePaid = tokensInTheBufferEndOfCycle *
+            (donorMatchUnits / totalMatchUnits);
+
+        return rewardsToBePaid;
     }
 
     // --------------------------------------------------------------

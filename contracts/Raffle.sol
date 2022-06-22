@@ -32,6 +32,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         uint256 minimumDonationAmount;
         address topDonor;
         uint256 topDonatedAmount;
+        bool cancelled;
     }
 
     struct Donation {
@@ -49,6 +50,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         public totalDonationPerAddressPerCycle;
     // raffleID => addresses array
     mapping(uint256 => address[]) public donorsArrayPerCycle;
+    // Mapping to ensure donor does not get added to donorsArrayPerCycle twice and get two refunds
+    mapping(address => bool) public donorExistsInArray;
     //raffleID => address
     mapping(uint256 => address) topDonor;
     // raffleID => amount
@@ -82,6 +85,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     error DonationTooLow();
     error RaffleHasNotEnded();
     error InsufficientAmount();
+    error RaffleCancelled();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -131,24 +135,54 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
     }
 
+    /**
+        @notice sets curator address for curator role
+        @param  curator address of curator wallet
+    */
+    function setCuratorRole(address curator)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        _grantRole(CURATOR_ROLE, curator);
+    }
+
+    function revokeCuratorRole(address curator)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        revokeRole(CURATOR_ROLE, curator);
+    }
+
+    /**
+        @notice transfers reward tokens to the contract
+        @param  amount amount of tokens to be transferred
+    */
+
     function topUpRewardTokenBalance(uint256 amount)
         public
         onlyRole(CURATOR_ROLE)
     {
         // TODO check if the tokens are in the dao wallet
-        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
         rewardTokenBalanceInContract += amount;
+        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
 
         emit RewardTokenBalanceToppedUp(amount);
     }
 
+    /**
+        @notice function for withdrawing reward token from contract
+         @param  account address to withdraw tokens to
+        @param  amount amount of tokens to be withdrawn
+       
+    */
     function withdraw(address account, uint256 amount)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
-        REWARD_TOKEN.transferFrom(address(this), account, amount);
         rewardTokenBalanceInContract -= amount;
+        REWARD_TOKEN.approve(address(this), amount);
+        REWARD_TOKEN.transferFrom(address(this), account, amount);
 
         emit tokensWithdrawnFromContract(account, amount);
     }
@@ -187,6 +221,47 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         return raffleCount;
     }
 
+    function cancelRaffle(uint256 raffleID)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (raffles[raffleID].endTime < block.timestamp)
+            revert RaffleHasEnded(); // check this logic
+        raffles[raffleID].cancelled = true;
+
+        // refund donors  // TODO check this logic
+        address[] memory donorsArray = getDonorsPerCycle(raffleID);
+        for (uint256 i = 0; i < donorsArray.length; i++) {
+            uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
+                raffleID,
+                donorsArray[i]
+            );
+
+            USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
+        }
+        // for (uint256 j = 0; j < donorsArray.length; i++) {
+        //
+        // }
+        // update rewardTokenBalanceInContract
+
+        // uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
+        // rewardTokenBalanceInContract = balanceAfterRefund;
+
+        // send NFTs back to owner
+
+        uint256 refundTokenID = raffles[raffleID].tokenID;
+        address tokenOwner = raffles[raffleID].nftOwner;
+        address nftContractAddress = raffles[raffleID].nftContract;
+
+        IERC1155(nftContractAddress).safeTransferFrom(
+            address(this),
+            tokenOwner,
+            refundTokenID,
+            4,
+            ""
+        );
+    }
+
     /**
         @notice creates a donation on an raffle
         @param _donation object contains parameters for donation created
@@ -216,7 +291,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         // add amount to total donations per cycle
         totalDonationsPerCycle[raffleId] += _donation.amount;
 
-        donorsArrayPerCycle[raffleId].push(_msgSender());
+        if (donorExistsInArray[_msgSender()] == false) {
+            donorsArrayPerCycle[raffleId].push(_msgSender());
+            donorExistsInArray[_msgSender()] = true;
+        }
 
         uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
             raffleId
@@ -256,6 +334,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     function sendNFTRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
+        if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -423,5 +502,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
     function getTopDonor(uint256 raffleID) public view returns (address) {
         return topDonor[raffleID];
+    }
+
+    function getTokensInTheBufferEndOfCycle() public view returns (uint256) {
+        return rewardTokenBalanceInContract;
     }
 }
