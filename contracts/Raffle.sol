@@ -54,6 +54,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   // raffleID => addresses array
   mapping(uint256 => address[]) public donorsArrayPerCycle;
   // Mapping to ensure donor does not get added to donorsArrayPerCycle twice and get two refunds
+  // TODO do we need a nested loop here from raffleID?
   mapping(address => bool) public donorExistsInArray;
   //raffleID => address
   mapping(uint256 => address) topDonor;
@@ -89,6 +90,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   error RaffleHasNotEnded();
   error InsufficientAmount();
   error RaffleCancelled();
+  error CannotClaimRewards();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -377,6 +379,14 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
       ""
     );
     emit NFTsentToWinner(raffleID, nftAuthorWallet);
+  }
+
+  function claimRewards(uint256 raffleID, address donor) public {
+    if (!donorExistsInArray[donor]) revert CannotClaimRewards();
+    ITokenRewards(tokenRewardsModuleAddress).sendRewardsToUser(raffleID, donor);
+
+    uint256 newBalance = USDC.balanceOf(address(this));
+    rewardTokenBalanceInContract = newBalance;
   }
 
   // --------------------------------------------------------------
