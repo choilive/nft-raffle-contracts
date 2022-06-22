@@ -139,11 +139,17 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice sets curator address for curator role
         @param  curator address of curator wallet
     */
-    function setCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
+    function setCuratorRole(address curator)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         _grantRole(CURATOR_ROLE, curator);
     }
 
-    function revokeCuratorRole(address curator) public onlyRole(ADMIN_ROLE) {
+    function revokeCuratorRole(address curator)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         revokeRole(CURATOR_ROLE, curator);
     }
 
@@ -215,7 +221,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         return raffleCount;
     }
 
-    function cancelRaffle(uint256 raffleID) public onlyRole(ADMIN_ROLE) {
+    function cancelRaffle(uint256 raffleID)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         if (raffles[raffleID].endTime < block.timestamp)
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
@@ -228,16 +237,12 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
                 donorsArray[i]
             );
 
-            USDC.transferFrom(
-                    DAOWallet,
-                    donorsArray[i],
-                    refundPerAddress
-                );
+            USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
         }
-            // for (uint256 j = 0; j < donorsArray.length; i++) {
-            //     
-            // }
-            // update rewardTokenBalanceInContract
+        // for (uint256 j = 0; j < donorsArray.length; i++) {
+        //
+        // }
+        // update rewardTokenBalanceInContract
 
         // uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
         // rewardTokenBalanceInContract = balanceAfterRefund;
@@ -254,7 +259,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
             refundTokenID,
             4,
             ""
-        );    
+        );
     }
 
     /**
@@ -286,12 +291,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         // add amount to total donations per cycle
         totalDonationsPerCycle[raffleId] += _donation.amount;
 
-        if(donorExistsInArray[_msgSender()] == false){
+        if (donorExistsInArray[_msgSender()] == false) {
             donorsArrayPerCycle[raffleId].push(_msgSender());
             donorExistsInArray[_msgSender()] = true;
         }
-        
-        
+
         uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
             raffleId
         ][_msgSender()];
