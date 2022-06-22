@@ -5,173 +5,159 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Raffle.sol";
 
 contract TokenRewards is Ownable {
-    // TODO where do we get the tokensInTheBufferEndOfCycle number?
-    IERC20 public rewardToken;
-    address rewardTokenAddress;
-    address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
-    address raffleContractAddress;
+  IERC20 public rewardToken;
+  address rewardTokenAddress;
+  address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
+  address raffleContractAddress;
 
-    uint256[] donationsToThePowerOfArray;
+  uint256[] donationsToThePowerOfArray;
 
-    // -------------------------------------------------------------
-    // STORAGE
-    // --------------------------------------------------------------
+  // -------------------------------------------------------------
+  // STORAGE
+  // --------------------------------------------------------------
 
-    mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
-    mapping(address => uint256) totalRewardsClaimedPerAddress;
+  mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
+  mapping(address => uint256) totalRewardsClaimedPerAddress;
 
-    // // --------------------------------------------------------------
-    // // EVENTS
-    // // --------------------------------------------------------------
+  // // --------------------------------------------------------------
+  // // EVENTS
+  // // --------------------------------------------------------------
 
-    event RewardTokenAddressSet(address tokenAddress);
-    event RewardWalletAddressSet(address walletAddress);
-    event RaffleContractAddressSet(address contractAddress);
-    event RewardsClaimedPerCycle(
-        address donor,
-        uint256 raffleID,
-        uint256 amount
+  event RewardTokenAddressSet(address tokenAddress);
+  event RewardWalletAddressSet(address walletAddress);
+  event RaffleContractAddressSet(address contractAddress);
+  event RewardsClaimedPerCycle(address donor, uint256 raffleID, uint256 amount);
+
+  // --------------------------------------------------------------
+  // CUSTOM ERRORS
+  // --------------------------------------------------------------
+
+  error CannotClaimRewards();
+  error ZeroAddressNotAllowed();
+  error RewardsClaimedForCycle();
+  error CannotCallThisFunction();
+
+  // --------------------------------------------------------------
+  // CONSTRUCTOR
+  // --------------------------------------------------------------
+
+  constructor() {}
+
+  // --------------------------------------------------------------
+  // STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
+
+  function setRewardTokenAddress(address _rewardTokenAddress) public onlyOwner {
+    if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
+    rewardTokenAddress = _rewardTokenAddress;
+    emit RewardTokenAddressSet(_rewardTokenAddress);
+  }
+
+  function setRewardWalletAddress(address _rewardWalletAddress)
+    public
+    onlyOwner
+  {
+    if (_rewardWalletAddress == address(0)) revert ZeroAddressNotAllowed();
+    rewardWalletAddress = _rewardWalletAddress;
+    emit RewardWalletAddressSet(_rewardWalletAddress);
+  }
+
+  function setRaffleContractAddress(address _raffleContractAddress)
+    public
+    onlyOwner
+  {
+    if (_raffleContractAddress == address(0)) revert ZeroAddressNotAllowed();
+    raffleContractAddress = _raffleContractAddress;
+    emit RaffleContractAddressSet(_raffleContractAddress);
+  }
+
+  // Send out rewards logic
+  function sendRewardsToUser(uint256 raffleID, address donor) external {
+    if (msg.sender != raffleContractAddress) revert CannotCallThisFunction();
+    if (!rewardsClaimedPerCycle[raffleID][donor])
+      revert RewardsClaimedForCycle();
+
+    // calculate amount
+    uint256 rewardsToPay = _calculateUserRewards(raffleID, donor);
+    // transfer amount to donor
+    IERC20(rewardTokenAddress).transferFrom(
+      rewardWalletAddress,
+      donor,
+      rewardsToPay
     );
+  }
 
-    // --------------------------------------------------------------
-    // CUSTOM ERRORS
-    // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  //  INTERNAL STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
 
-    error CannotClaimRewards();
-    error ZeroAddressNotAllowed();
-    error RewardsClaimedForCycle();
+  function _calculateTotalMatchUnits(uint256 raffleID)
+    internal
+    returns (uint256)
+  {
+    // get every donors total donation from cycle
+    address[] memory donorsArray = IRaffle(raffleContractAddress)
+      .getDonorsPerCycle(raffleID);
 
-    // --------------------------------------------------------------
-    // CONSTRUCTOR
-    // --------------------------------------------------------------
+    for (uint256 i = 0; i < donorsArray.length; i++) {
+      uint256 donationPerAddressToThePowerOf = (IRaffle(raffleContractAddress)
+        .getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]) **
+        1 /
+        2);
 
-    constructor() {}
+      // push donationPerAddressInto an array
+      donationsToThePowerOfArray.push(donationPerAddressToThePowerOf);
 
-    // --------------------------------------------------------------
-    // STATE-MODIFYING FUNCTIONS
-    // --------------------------------------------------------------
+      for (uint256 j = 0; j < donationsToThePowerOfArray.length; j++) {
+        // adding all elements of an array together
+        uint256 sumDonations = 0;
+        sumDonations += donationsToThePowerOfArray[i];
+        uint256 totalMatchUnits = sumDonations**2;
 
-    function setRewardTokenAddress(address _rewardTokenAddress)
-        public
-        onlyOwner
-    {
-        if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
-        rewardTokenAddress = _rewardTokenAddress;
-        emit RewardTokenAddressSet(_rewardTokenAddress);
+        return totalMatchUnits;
+      }
     }
+  }
 
-    function setRewardWalletAddress(address _rewardWalletAddress)
-        public
-        onlyOwner
-    {
-        if (_rewardWalletAddress == address(0)) revert ZeroAddressNotAllowed();
-        rewardWalletAddress = _rewardWalletAddress;
-        emit RewardWalletAddressSet(_rewardWalletAddress);
-    }
+  function _calculateMatchUnitsPerDonor(uint256 raffleID, address donor)
+    internal
+    returns (uint256)
+  {
+    uint256 totalDonationsPerDonor = IRaffle(raffleContractAddress)
+      .getTotalDonationPerAddressPerCycle(raffleID, donor);
 
-    function setRaffleContractAddress(address _raffleContractAddress)
-        public
-        onlyOwner
-    {
-        if (_raffleContractAddress == address(0))
-            revert ZeroAddressNotAllowed();
-        raffleContractAddress = _raffleContractAddress;
-        emit RaffleContractAddressSet(_raffleContractAddress);
-    }
+    uint256 totalMatchUnitsPerCycle = _calculateTotalMatchUnits(raffleID);
 
-    // Send out rewards logic
-    function sendRewardsToUser(uint256 raffleID, address donor) external {
-        // TODO should this be called with a claimRewards function from the raffle contract?
-        if (!rewardsClaimedPerCycle[raffleID][donor])
-            revert RewardsClaimedForCycle();
+    uint256 matchUnitsPerDonor = ((totalDonationsPerDonor**1 / 2)) *
+      (((totalMatchUnitsPerCycle)**1 / 2));
 
-        // calculate amount
-        uint256 rewardsToPay = _calculateUserRewards(raffleID, donor);
-        // transfer amount to donor
-        IERC20(rewardTokenAddress).transferFrom(
-            rewardWalletAddress,
-            donor,
-            rewardsToPay
-        );
-    }
+    return matchUnitsPerDonor;
+  }
 
-    // --------------------------------------------------------------
-    //  INTERNAL STATE-MODIFYING FUNCTIONS
-    // --------------------------------------------------------------
+  function _calculateUserRewards(uint256 raffleID, address donor)
+    internal
+    returns (uint256)
+  {
+    uint256 tokensInTheBufferEndOfCycle = IRaffle(raffleContractAddress)
+      .getTokensInTheBufferEndOfCycle();
+    uint256 donorMatchUnits = _calculateMatchUnitsPerDonor(raffleID, donor);
+    uint256 totalMatchUnits = _calculateTotalMatchUnits(raffleID);
 
-    function _calculateTotalMatchUnits(uint256 raffleID)
-        internal
-        returns (uint256)
-    {
-        // TODO const totalMatchUnits = ((user1.totalUserDonation ** (1/2)) + (user2.totalUserDonation ** (1/2))) ** 2;
+    uint256 rewardsToBePaid = tokensInTheBufferEndOfCycle *
+      (donorMatchUnits / totalMatchUnits);
 
-        // need every donors total donation from cycle
-        address[] memory donorsArray = IRaffle(raffleContractAddress)
-            .getDonorsPerCycle(raffleID);
+    return rewardsToBePaid;
+  }
 
-        for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 donationPerAddressToThePowerOf = (IRaffle(
-                raffleContractAddress
-            ).getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]) **
-                1 /
-                2);
-            // push donationPerAddressInto an array
+  // --------------------------------------------------------------
+  //  FUNCTIONS
+  // --------------------------------------------------------------
 
-            donationsToThePowerOfArray.push(donationPerAddressToThePowerOf);
-
-            for (uint256 j = 0; j < donationsToThePowerOfArray.length; j++) {
-                // adding all elements of an array together
-                uint256 sumDonations = 0;
-                sumDonations += donationsToThePowerOfArray[i];
-                uint256 totalMatchUnits = sumDonations**2;
-
-                return totalMatchUnits;
-            }
-        }
-    }
-
-    function _calculateMatchUnitsPerDonor(uint256 raffleID, address donor)
-        internal
-        returns (uint256)
-    {
-        // TODO const user1MatchUnits = (user1.totalUserDonation ** (1/2)) * (totalMatchUnits ** (1/2))
-
-        uint256 totalDonationsPerDonor = IRaffle(raffleContractAddress)
-            .getTotalDonationPerAddressPerCycle(raffleID, donor);
-
-        uint256 totalMatchUnitsPerCycle = _calculateTotalMatchUnits(raffleID);
-
-        uint256 matchUnitsPerDonor = ((totalDonationsPerDonor**1 / 2)) *
-            (((totalMatchUnitsPerCycle)**1 / 2));
-
-        return matchUnitsPerDonor;
-    }
-
-    function _calculateUserRewards(uint256 raffleID, address donor)
-        internal
-        returns (uint256)
-    {
-        // TODO const user1Rewards = tokensInTheBufferEndOfCycle * (user1MatchUnits / totalMatchUnits)
-        uint256 tokensInTheBufferEndOfCycle = IRaffle(raffleContractAddress)
-            .getTokensInTheBufferEndOfCycle();
-        uint256 donorMatchUnits = _calculateMatchUnitsPerDonor(raffleID, donor);
-        uint256 totalMatchUnits = _calculateTotalMatchUnits(raffleID);
-
-        uint256 rewardsToBePaid = tokensInTheBufferEndOfCycle *
-            (donorMatchUnits / totalMatchUnits);
-
-        return rewardsToBePaid;
-    }
-
-    // --------------------------------------------------------------
-    //  FUNCTIONS
-    // --------------------------------------------------------------
-
-    function getTotalRewardsClaimedPerUser(address donor)
-        public
-        view
-        returns (uint256)
-    {
-        return totalRewardsClaimedPerAddress[donor];
-    }
+  function getTotalRewardsClaimedPerUser(address donor)
+    public
+    view
+    returns (uint256)
+  {
+    return totalRewardsClaimedPerAddress[donor];
+  }
 }
