@@ -157,12 +157,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice transfers reward tokens to the contract
         @param  amount amount of tokens to be transferred
     */
-
     function topUpRewardTokenBalance(uint256 amount)
         public
         onlyRole(CURATOR_ROLE)
     {
-        // TODO check if the tokens are in the dao wallet
         rewardTokenBalanceInContract += amount;
         REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
 
@@ -221,6 +219,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         return raffleCount;
     }
 
+    /**
+        @notice cancels an existing raffle, refunds donors and sends NFT back to artist
+        @param raffleID id of raffle
+    */
     function cancelRaffle(uint256 raffleID)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
@@ -229,7 +231,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
-        // refund donors  // TODO check this logic
+        // refund donors
         address[] memory donorsArray = getDonorsPerCycle(raffleID);
         for (uint256 i = 0; i < donorsArray.length; i++) {
             uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
@@ -239,13 +241,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
             USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
         }
-        // for (uint256 j = 0; j < donorsArray.length; i++) {
-        //
-        // }
-        // update rewardTokenBalanceInContract
-
-        // uint256 balanceAfterRefund = REWARD_TOKEN.balanceOf(address(this));
-        // rewardTokenBalanceInContract = balanceAfterRefund;
 
         // send NFTs back to owner
 
@@ -399,7 +394,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         bytes memory data
     ) external pure returns (bytes4) {
         // 0xf23a6e61 = bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
-        return 0xf23a6e61; // TODO check this logic!
+        return 0xf23a6e61;
     }
 
     // --------------------------------------------------------------
