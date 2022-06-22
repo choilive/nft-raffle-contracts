@@ -1,6 +1,6 @@
 # Raffle contract
 
-- Mumbai Testnet Address: 0x4838cF3eF6D79d625ffE3eDE73b843D99CF980Fd
+- Mumbai Testnet Address: 0x5e483B4DDE81e9a9B07fe040B07E8Ed91d3F516e
 
 # ArtizenERC1155 contract
 

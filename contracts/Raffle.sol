@@ -18,7 +18,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     uint256 rewardTokenBalanceInContract;
 
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     string public override versionRecipient = "2.2.6";
     // -------------------------------------------------------------
@@ -101,10 +100,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         USDC = IERC20(_usdc);
         REWARD_TOKEN = IERC20(_rewardTokenAddress);
 
-        // CURATOR_ROLE needs to be called by ADMIN_ROLE
-        _setRoleAdmin(CURATOR_ROLE, ADMIN_ROLE);
-        // Sets deployer as ADMIN_ROLE
-        _grantRole(ADMIN_ROLE, _msgSender());
+        // Sets deployer as DEFAULT_ADMIN_ROLE
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(CURATOR_ROLE, msg.sender);
     }
 
     // --------------------------------------------------------------
@@ -117,7 +115,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     */
     function setDAOWalletAddress(address _DAOWallet)
         public
-        onlyRole(ADMIN_ROLE)
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
         DAOWallet = _DAOWallet;
@@ -153,9 +151,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         @notice transfers reward tokens to the contract
         @param  amount amount of tokens to be transferred
     */
+
     function topUpRewardTokenBalance(uint256 amount)
         public
-        onlyRole(ADMIN_ROLE)
+        onlyRole(CURATOR_ROLE)
     {
         // TODO check if the tokens are in the dao wallet
         rewardTokenBalanceInContract += amount;
@@ -172,7 +171,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     */
     function withdraw(address account, uint256 amount)
         public
-        onlyRole(ADMIN_ROLE)
+        onlyRole(DEFAULT_ADMIN_ROLE)
     {
         if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
         rewardTokenBalanceInContract -= amount;
@@ -264,7 +263,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     */
     function donate(Donation memory _donation)
         public
-        payable
         nonReentrant
         returns (uint256)
     {

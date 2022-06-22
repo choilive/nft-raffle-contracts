@@ -43,16 +43,20 @@ async function main() {
   //   // set logic here
   // }
 
-  // const raffleContract = await deploy(
-  //   "Raffle",
-  //   [
-  //     "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-  //     "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
-  //   ],
-  //   {}
-  // );
+  // const USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174" // MATIC MAINET
+  const USDC = "0x566368d78DBdEc50F04b588E152dE3cEC0d5889f"; // MUMBAI TESTNET
 
-  const nftContract = await deploy("ArtizenERC1155", [], {});
+  const raffleContract = await deploy(
+    "Raffle",
+    [
+      USDC,
+      "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
+      "0x0000000000000000000000000000000000000000",
+    ],
+    {}
+  );
+
+  //const nftContract = await deploy("ArtizenERC1155", [], {});
 
   // verification
   if (verifiableNetwork.includes(network)) await verify();
