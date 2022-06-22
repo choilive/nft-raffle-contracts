@@ -20,6 +20,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
   address tokenRewardsModuleAddress;
 
+  bool optionalTokenRewards;
+
   bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
   string public override versionRecipient = "2.2.6";
@@ -91,6 +93,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   error InsufficientAmount();
   error RaffleCancelled();
   error CannotClaimRewards();
+  error NoRewardsForRaffle();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -100,7 +103,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     address _usdc,
     address _forwarder,
     address _rewardTokenAddress,
-    address _tokenRewardsModuleAddress
   ) {
     _setTrustedForwarder(_forwarder);
     USDC = IERC20(_usdc);
@@ -109,9 +111,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     // Sets deployer as DEFAULT_ADMIN_ROLE
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     _grantRole(CURATOR_ROLE, msg.sender);
-
-    // set token rewards module address
-    tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
+    
   }
 
   // --------------------------------------------------------------
@@ -157,6 +157,14 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     onlyRole(DEFAULT_ADMIN_ROLE)
   {
     revokeRole(CURATOR_ROLE, curator);
+  }
+
+  function turnOnTokenRewards(address _tokenRewardsModuleAddress)
+    public
+    onlyRole(DEFAULT_ADMIN_ROLE)
+  {
+    optionalTokenRewards = true;
+    tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
   }
 
   /**
@@ -381,7 +389,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     emit NFTsentToWinner(raffleID, nftAuthorWallet);
   }
 
-  function claimRewards(uint256 raffleID, address donor) public {
+  function claimTokenRewards(uint256 raffleID, address donor) public {
+    if (!optionalTokenRewards) revert NoRewardsForRaffle();
     if (!donorExistsInArray[donor]) revert CannotClaimRewards();
     ITokenRewards(tokenRewardsModuleAddress).sendRewardsToUser(raffleID, donor);
 
