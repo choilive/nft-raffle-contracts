@@ -14,7 +14,10 @@ contract TokenRewardsCalculationV2 is Ownable {
         address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
     ) external returns (uint256) {
-        uint256 totalMatchUnits = _calculateTotalMatchUnits();
+        uint256 totalMatchUnits = _calculateTotalMatchUnits(
+            donorsArray,
+            totalDonationPerAddresses
+        );
         uint256 userMatchUnits = _calculateUserMatchUnits(
             totalUserDonation,
             totalMatchUnits,
