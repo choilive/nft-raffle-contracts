@@ -26,7 +26,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
     string public override versionRecipient = "2.2.6";
 
-    uint256[] donationsToThePowerOfArray;
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
@@ -81,6 +80,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
     event DAOWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
+    event TokenRewardsModuleAddressSet(address tokenRewardsModuleAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
@@ -151,19 +151,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     }
 
     /**
-        @notice sets the address of the reward token contract
-        @param _rewardTokenAddress address of contract
-    */
-    function setRewardTokenAddress(address _rewardTokenAddress)
-        public
-        onlyOwner
-    {
-        if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
-        REWARD_TOKEN = IERC20(_rewardTokenAddress);
-        emit RewardTokenAddressSet(_rewardTokenAddress);
-    }
-
-    /**
         @notice sets curator address for curator role
         @param  curator address of curator wallet
     */
@@ -181,12 +168,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         revokeRole(CURATOR_ROLE, curator);
     }
 
-    function turnOnTokenRewards(address _tokenRewardsModuleAddress)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        optionalTokenRewards = true;
+    function turnOnTokenRewards(
+        address _tokenRewardsModuleAddress,
+        address _rewardTokenAddress
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (
+            _rewardTokenAddress == address(0) ||
+            _tokenRewardsModuleAddress == address(0)
+        ) revert ZeroAddressNotAllowed();
+        REWARD_TOKEN = IERC20(_rewardTokenAddress);
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
+        optionalTokenRewards = true;
+        emit RewardTokenAddressSet(_rewardTokenAddress);
+        emit TokenRewardsModuleAddressSet(_tokenRewardsModuleAddress);
     }
 
     /**
