@@ -65,6 +65,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   //  raffleID => address => donationIDs
   mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
 
+  mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
+  mapping(address => uint256) totalRewardsClaimedPerAddress;
+
   // // --------------------------------------------------------------
   // // EVENTS
   // // --------------------------------------------------------------
@@ -514,5 +517,13 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
   function getTokensInTheBufferEndOfCycle() public view returns (uint256) {
     return rewardTokenBalanceInContract;
+  }
+
+    function getTotalRewardsClaimedPerUser(address donor)
+    public
+    view
+    returns (uint256)
+  {
+    return totalRewardsClaimedPerAddress[donor];
   }
 }
