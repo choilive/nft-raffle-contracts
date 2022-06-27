@@ -5,11 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Raffle.sol";
 
 contract TokenRewards is Ownable {
-    IERC20 public rewardToken;
-    address rewardTokenAddress;
-    address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
-    address raffleContractAddress;
-
     uint256[] donationsToThePowerOfArray;
 
     // -------------------------------------------------------------

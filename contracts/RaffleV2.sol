@@ -25,6 +25,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
     string public override versionRecipient = "2.2.6";
+
+    uint256[] donationsToThePowerOfArray;
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
@@ -78,6 +80,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
     event DAOWalletAddressSet(address walletAddress);
+    event RewardTokenAddressSet(address tokenAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
@@ -106,7 +109,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
-        REWARD_TOKEN = IERC20(_rewardTokenAddress);
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -141,6 +143,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
         nftAuthorWallet = _nftAuthorWallet;
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
+    }
+
+    /**
+        @notice sets the address of the reward token contract
+        @param _rewardTokenAddress address of contract
+    */
+    function setRewardTokenAddress(address _rewardTokenAddress)
+        public
+        onlyOwner
+    {
+        if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
+        REWARD_TOKEN = IERC20(_rewardTokenAddress);
+        emit RewardTokenAddressSet(_rewardTokenAddress);
     }
 
     /**
