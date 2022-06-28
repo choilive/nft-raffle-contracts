@@ -203,8 +203,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
-        rewardTokenBalanceInContract -= amount;
+        if (REWARD_TOKEN.balanceOf(address(this)) <= amount)
+            revert InsufficientAmount();
         REWARD_TOKEN.approve(address(this), amount);
         REWARD_TOKEN.transferFrom(address(this), account, amount);
 
