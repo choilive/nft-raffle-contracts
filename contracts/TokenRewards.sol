@@ -15,8 +15,6 @@ contract TokenRewards is Ownable {
 
     uint256 private immutable SCALE = 1000;
 
-    // uint256[] public donationsToThePowerOfArray;
-
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
@@ -117,10 +115,7 @@ contract TokenRewards is Ownable {
     // --------------------------------------------------------------
     //  INTERNAL STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
-    // function testPow(uint256 _number) public pure returns(uint256 answer) {
-    //     answer = FixedPointMathLib.sqrt(_number);
-    //     return answer;
-    // }
+
     /**
         @notice internal function for total match units calculation
         @param raffleID ID of the raffle cycle
@@ -142,19 +137,8 @@ contract TokenRewards is Ownable {
             ).getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]));
             
             sumDonations += donationPerAddressToThePowerOf;
-
-
-
-            // push donationPerAddressInto an array
-            // donationsToThePowerOfArray.push(donationPerAddressToThePowerOf);
         }
 
-        // for (uint256 j = 0; j < donationsToThePowerOfArray.length; j++) {
-        //     // adding all elements of an array together
-        //     uint256 sumDonations = 0;
-        //     sumDonations += donationsToThePowerOfArray[j];
-        //     totalMatchUnits = sumDonations**2;
-        // }
         totalMatchUnits = sumDonations**2;
 
         return totalMatchUnits;
