@@ -102,7 +102,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   constructor(
     address _usdc,
     address _forwarder,
-    address _rewardTokenAddress,
+    address _rewardTokenAddress
   ) {
     _setTrustedForwarder(_forwarder);
     USDC = IERC20(_usdc);
@@ -176,6 +176,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     onlyRole(CURATOR_ROLE)
   {
     rewardTokenBalanceInContract += amount;
+    REWARD_TOKEN.approve(address(this), type(uint256).max);
     REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
 
     emit RewardTokenBalanceToppedUp(amount);
