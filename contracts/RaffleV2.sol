@@ -39,6 +39,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     uint256 minimumDonationAmount;
     address topDonor;
     uint256 topDonatedAmount;
+    uint256 tokenAllocation;
     bool cancelled;
   }
 
@@ -186,20 +187,6 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
   }
 
   /**
-        @notice transfers reward tokens to the contract
-        @param  amount amount of tokens to be transferred
-    */
-  function topUpRewardTokenBalance(uint256 amount)
-    public
-    onlyRole(CURATOR_ROLE)
-  {
-    rewardTokenBalanceInContract += amount;
-    REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
-
-    emit RewardTokenBalanceToppedUp(amount);
-  }
-
-  /**
         @notice function for withdrawing reward token from contract
          @param  account address to withdraw tokens to
         @param  amount amount of tokens to be withdrawn
@@ -231,6 +218,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
 
     raffleCount++;
     raffles[raffleCount] = _raffle;
+
+    // if the rewards are turned on transfer tokens to contract
+    if (optionalTokenRewards == true) {
+      _topUpRewardTokenBalance(raffles[raffleCount], _raffle.tokenAllocation);
+    }
 
     emit RaffleCreated(
       _raffle.nftOwner,
@@ -482,6 +474,20 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
     return winner;
+  }
+
+  /**
+        @notice transfers reward tokens to the contract
+        @param  amount amount of tokens to be transferred
+    */
+  function _topUpRewardTokenBalance(uint256 raffleID, uint256 amount)
+    internal
+    onlyRole(CURATOR_ROLE)
+  {
+    raffles[raffleID].tokenAllocation += amount;
+    REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+
+    emit RewardTokenBalanceToppedUp(amount);
   }
 
   // *** BICONOMY *** //
