@@ -26,6 +26,8 @@ contract TokenRewardsCalculationV2 is Ownable {
         );
         uint256 userRewards = tokensInTheBufferEndOfCycle *
             (userMatchUnits / totalMatchUnits);
+
+            return userRewards;
     }
 
     function _calculateUserMatchUnits(
