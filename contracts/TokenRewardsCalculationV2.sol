@@ -2,7 +2,7 @@ pragma solidity 0.8.11;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IRaffle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./Raffle.sol";
+import "./RaffleV2.sol";
 import "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 contract TokenRewardsCalculationV2 is Ownable {

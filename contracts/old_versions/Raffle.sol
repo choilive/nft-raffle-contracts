@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
-import "./interfaces/ITokenRewards.sol";
+import "../interfaces/ITokenRewards.sol";
 
 contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     address public DAOWallet;

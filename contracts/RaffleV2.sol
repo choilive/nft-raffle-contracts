@@ -8,16 +8,18 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "./interfaces/ITokenRewardsCalculation.sol";
 
-contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
-    address public DAOWallet;
-    address public nftAuthorWallet;
+contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
+    
     uint256 public raffleCount;
     uint256 public donationCount;
+    
     IERC20 public USDC;
-
     IERC20 public REWARD_TOKEN;
 
-    address tokenRewardsModuleAddress;
+    address public tokenRewardsModuleAddress;
+    address public rewardTokenAddress;
+    address public DAOWallet;
+    address public nftAuthorWallet;
 
     bool optionalTokenRewards;
 
@@ -123,10 +125,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
+        rewardTokenAddress = _rewardTokenAddress;
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(CURATOR_ROLE, msg.sender);
+        // _grantRole(CURATOR_ROLE, msg.sender);
     }
 
     // --------------------------------------------------------------
@@ -504,7 +507,7 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     function _topUpRewardTokenBalance(uint256 raffleID, uint256 amount)
         internal
     {
-        raffles[raffleID].tokenAllocation += amount;
+        raffles[raffleID].tokenAllocation = amount;
         REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
 
         emit RewardTokenBalanceToppedUp(amount);
