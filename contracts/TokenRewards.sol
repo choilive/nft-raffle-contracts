@@ -4,13 +4,16 @@ import "./interfaces/IRaffle.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./Raffle.sol";
 
+import "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
+
 contract TokenRewards is Ownable {
     IERC20 public rewardToken;
-    address rewardTokenAddress;
-    address rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
-    address raffleContractAddress;
+    // TODO Maybe make these addresses private because they contain funds?
+    address public rewardTokenAddress;
+    address public rewardWalletAddress; // wallet to pay rewards from (can also be treasury address)
+    address public raffleContractAddress;
 
-    uint256[] donationsToThePowerOfArray;
+    uint256 private immutable SCALE = 1000;
 
     // -------------------------------------------------------------
     // STORAGE
@@ -96,7 +99,7 @@ contract TokenRewards is Ownable {
     function sendRewardsToUser(uint256 raffleID, address donor) external {
         if (msg.sender != raffleContractAddress)
             revert CannotCallThisFunction();
-        if (!rewardsClaimedPerCycle[raffleID][donor])
+        if (rewardsClaimedPerCycle[raffleID][donor])
             revert RewardsClaimedForCycle();
 
         // calculate amount
@@ -112,37 +115,33 @@ contract TokenRewards is Ownable {
     // --------------------------------------------------------------
     //  INTERNAL STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
+
     /**
         @notice internal function for total match units calculation
         @param raffleID ID of the raffle cycle
     */
     function _calculateTotalMatchUnits(uint256 raffleID)
-        internal
+        internal view
         returns (uint256)
     {
         // get every donors total donation from cycle
         address[] memory donorsArray = IRaffle(raffleContractAddress)
             .getDonorsPerCycle(raffleID);
+        
+        uint256 totalMatchUnits = 0;
+        uint256 sumDonations = 0;
 
         for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 donationPerAddressToThePowerOf = (IRaffle(
+            uint256 donationPerAddressToThePowerOf = FixedPointMathLib.sqrt(IRaffle(
                 raffleContractAddress
-            ).getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]) **
-                1 /
-                2);
-
-            // push donationPerAddressInto an array
-            donationsToThePowerOfArray.push(donationPerAddressToThePowerOf);
-
-            for (uint256 j = 0; j < donationsToThePowerOfArray.length; j++) {
-                // adding all elements of an array together
-                uint256 sumDonations = 0;
-                sumDonations += donationsToThePowerOfArray[i];
-                uint256 totalMatchUnits = sumDonations**2;
-
-                return totalMatchUnits;
-            }
+            ).getTotalDonationPerAddressPerCycle(raffleID, donorsArray[i]));
+            
+            sumDonations += donationPerAddressToThePowerOf;
         }
+
+        totalMatchUnits = sumDonations**2;
+
+        return totalMatchUnits;
     }
 
     /**
@@ -151,7 +150,7 @@ contract TokenRewards is Ownable {
          @param donor address of donor
     */
     function _calculateMatchUnitsPerDonor(uint256 raffleID, address donor)
-        internal
+        internal view
         returns (uint256)
     {
         uint256 totalDonationsPerDonor = IRaffle(raffleContractAddress)
@@ -159,8 +158,10 @@ contract TokenRewards is Ownable {
 
         uint256 totalMatchUnitsPerCycle = _calculateTotalMatchUnits(raffleID);
 
-        uint256 matchUnitsPerDonor = ((totalDonationsPerDonor**1 / 2)) *
-            (((totalMatchUnitsPerCycle)**1 / 2));
+        uint256 sqrtTotalDonationsPerDonor = FixedPointMathLib.sqrt(totalDonationsPerDonor);
+        uint256 sqrtTotalMatchUnits = FixedPointMathLib.sqrt(totalMatchUnitsPerCycle);
+
+        uint256 matchUnitsPerDonor = sqrtTotalDonationsPerDonor * sqrtTotalMatchUnits;
 
         return matchUnitsPerDonor;
     }
@@ -171,7 +172,7 @@ contract TokenRewards is Ownable {
          @param donor address of donor
     */
     function _calculateUserRewards(uint256 raffleID, address donor)
-        internal
+        internal view
         returns (uint256)
     {
         uint256 tokensInTheBufferEndOfCycle = IRaffle(raffleContractAddress)
@@ -179,14 +180,15 @@ contract TokenRewards is Ownable {
         uint256 donorMatchUnits = _calculateMatchUnitsPerDonor(raffleID, donor);
         uint256 totalMatchUnits = _calculateTotalMatchUnits(raffleID);
 
-        uint256 rewardsToBePaid = tokensInTheBufferEndOfCycle *
-            (donorMatchUnits / totalMatchUnits);
+        uint256 donorDivTotal = (donorMatchUnits * SCALE) / totalMatchUnits;
 
-        return rewardsToBePaid;
+        uint256 rewardsToBePaid = tokensInTheBufferEndOfCycle * donorDivTotal;
+
+        return rewardsToBePaid / SCALE;
     }
 
     // --------------------------------------------------------------
-    //  FUNCTIONS
+    //  VIEW FUNCTIONS
     // --------------------------------------------------------------
 
     function getTotalRewardsClaimedPerUser(address donor)
@@ -195,5 +197,10 @@ contract TokenRewards is Ownable {
         returns (uint256)
     {
         return totalRewardsClaimedPerAddress[donor];
+    }
+
+    function viewDonorClaimableRewards(uint256 _raffleId, address _donor) public view returns(uint256) {
+        uint256 claimableRewards = _calculateUserRewards(_raffleId, _donor);
+        return claimableRewards;
     }
 }

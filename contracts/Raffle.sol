@@ -10,6 +10,7 @@ import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "./interfaces/ITokenRewards.sol";
 
 contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
+
     address public DAOWallet;
     address public nftAuthorWallet;
     uint256 public raffleCount;

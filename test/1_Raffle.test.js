@@ -151,7 +151,7 @@ describe("Raffle Contract Tests", function () {
     });
 
     it("only owner can set up dao wallet address", async () => {
-      const adminHash = await RaffleInstance.ADMIN_ROLE();
+      const adminHash = await RaffleInstance.DEFAULT_ADMIN_ROLE();
       await expect(
         RaffleInstance.connect(donor1).setDAOWalletAddress(daoWalletAddress)
       ).to.be.revertedWith(`AccessControl: account ${donor1Address.toLowerCase()} is missing role ${adminHash.toLowerCase()}`);
@@ -212,6 +212,7 @@ describe("Raffle Contract Tests", function () {
     });
 
     it("only curator can create raffle", async () => {
+      const curatorHash = await RaffleInstance.CURATOR_ROLE();
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -223,9 +224,9 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10)
       );
       await expect(
-        RaffleInstance.connect(owner).createRaffle(newRaffle)
+        RaffleInstance.connect(donor1).createRaffle(newRaffle)
       ).to.be.revertedWith(
-        "AccessControl: account 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 is missing role 0x850d585eb7f024ccee5e68e55f2c26cc72e1e6ee456acf62135757a5eb9d4a10"
+        `AccessControl: account ${donor1Address.toLowerCase()} is missing role ${curatorHash.toLowerCase()}`
       );
     });
 
