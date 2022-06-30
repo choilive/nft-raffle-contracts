@@ -445,7 +445,7 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         ).calculateUserRewards(
                 rewardTokenBalanceInRaffle,
                 totalUserDonation,
-                donorsArray,
+                // donorsArray,
                 allDonationsPerAddresses
             );
         rewardsClaimedPerCycle[raffleID][donor] = true;
@@ -453,6 +453,7 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         raffles[raffleID].tokenAllocation -= amountToPay;
 
         //transferring rewards to donor
+        REWARD_TOKEN.approve(address(this), amountToPay);
         REWARD_TOKEN.transferFrom(address(this), donor, amountToPay);
 
         emit RewardsTransferred(raffleID, donor, amountToPay);

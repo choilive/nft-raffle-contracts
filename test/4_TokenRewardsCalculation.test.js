@@ -157,4 +157,58 @@ describe("Raffle Contract Tests", function () {
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
     await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 3000);
   });
+
+  describe("Token Rewards Calculation", function () {
+    beforeEach(async () => {
+        const raffle = await createRaffleObject(
+            NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("25", 6),
+        owner.address,
+        ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
+        );
+        await RaffleInstance.connect(curator).createRaffle(raffle);
+
+        let donation1 = await createDonationObject(
+            donor1Address,
+            1,
+            ethers.utils.parseUnits("100", 6),
+            0
+          );
+        await RaffleInstance.connect(donor1).donate(donation1);
+
+        let donation2 = await createDonationObject(
+            donor1Address,
+            1,
+            ethers.utils.parseUnits("50", 6),
+            0
+          );
+          await RaffleInstance.connect(donor1).donate(donation2);
+
+          let donation3 = await createDonationObject(
+            donor2Address,
+            1,
+            ethers.utils.parseUnits("300", 6),
+            0
+          );
+        await RaffleInstance.connect(donor2).donate(donation3);
+
+        let donation4 = await createDonationObject(
+            donor2Address,
+            1,
+            ethers.utils.parseUnits("70", 6),
+            0
+          );
+          await RaffleInstance.connect(donor2).donate(donation4);
+    });
+    it("test", async () => {
+        // let totalDonationsarray = await RaffleInstance.totalDonationPerAddressArray;
+        // console.log(totalDonationsarray);
+        await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+    });
+  });
 });

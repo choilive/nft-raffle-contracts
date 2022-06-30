@@ -4,7 +4,7 @@ interface ITokenRewardsCalculation {
     function calculateUserRewards(
         uint256 tokensInTheBufferEndOfCycle,
         uint256 totalUserDonation,
-        address[] memory donorsArray,
+        // address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
     ) external returns (uint256);
 }
