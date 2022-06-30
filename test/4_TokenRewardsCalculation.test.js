@@ -205,10 +205,16 @@ describe("Raffle Contract Tests", function () {
           );
           await RaffleInstance.connect(donor2).donate(donation4);
     });
-    it("test", async () => {
-        // let totalDonationsarray = await RaffleInstance.totalDonationPerAddressArray;
-        // console.log(totalDonationsarray);
+    it("claim token rewards returns correct amount of reward tokens", async () => {
+        
         await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+
+        let bal = await ArtTokenInstance.balanceOf(donor1Address);
+        console.log(bal.toString());
+
+        await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+        let bal2 = await ArtTokenInstance.balanceOf(donor2Address);
+        console.log(bal2.toString());
     });
   });
 });
