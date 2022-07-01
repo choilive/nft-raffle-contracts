@@ -72,6 +72,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
 
+    mapping(uint256 => bool) addedToAllDonationsPerAddresses;
+
     // --------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------
@@ -434,7 +436,10 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
                 raffleID,
                 donorsArray[i]
             );
-            allDonationsPerAddresses.push(donationPerAddress);
+            if(addedToAllDonationsPerAddresses[donationPerAddress] == false){
+                addedToAllDonationsPerAddresses[donationPerAddress] = true;
+                allDonationsPerAddresses.push(donationPerAddress);
+            }
         }
         uint256 rewardTokenBalanceInRaffle = getTokensInTheBufferEndOfCycle(
             raffleID
@@ -450,11 +455,11 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
             );
         rewardsClaimedPerCycle[raffleID][donor] = true;
         totalRewardsClaimedPerAddress[donor] += amountToPay;
-        raffles[raffleID].tokenAllocation -= amountToPay;
+        // raffles[raffleID].tokenAllocation -= amountToPay;
 
         //transferring rewards to donor
-        REWARD_TOKEN.approve(address(this), amountToPay);
-        REWARD_TOKEN.transferFrom(address(this), donor, amountToPay);
+        // REWARD_TOKEN.approve(address(this), amountToPay);
+        REWARD_TOKEN.transferFrom(DAOWallet, donor, amountToPay);
 
         emit RewardsTransferred(raffleID, donor, amountToPay);
     }
@@ -595,5 +600,9 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         returns (uint256)
     {
         return raffles[raffleID].tokenAllocation;
+    }
+
+    function getAllDonationsPerAddressesArray() public view returns (uint[] memory){
+        return allDonationsPerAddresses;
     }
 }

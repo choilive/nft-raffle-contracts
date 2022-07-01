@@ -187,34 +187,56 @@ describe("Raffle Contract Tests", function () {
             ethers.utils.parseUnits("50", 6),
             0
           );
-          await RaffleInstance.connect(donor1).donate(donation2);
+        await RaffleInstance.connect(donor1).donate(donation2);
 
-          let donation3 = await createDonationObject(
-            donor2Address,
-            1,
-            ethers.utils.parseUnits("300", 6),
-            0
-          );
+        let donation3 = await createDonationObject(
+          donor2Address,
+          1,
+          ethers.utils.parseUnits("300", 6),
+          0
+        );
         await RaffleInstance.connect(donor2).donate(donation3);
 
         let donation4 = await createDonationObject(
-            donor2Address,
-            1,
-            ethers.utils.parseUnits("70", 6),
-            0
-          );
-          await RaffleInstance.connect(donor2).donate(donation4);
+          donor2Address,
+          1,
+          ethers.utils.parseUnits("70", 6),
+          0
+        );
+        await RaffleInstance.connect(donor2).donate(donation4);
     });
     it("claim token rewards returns correct amount of reward tokens", async () => {
         
+        
+        // let tokensInBuffer = await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1);
+        // console.log(tokensInBuffer.toString())
         await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+        await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+        // let donoationArray = await RaffleInstance.connect(owner).getAllDonationsPerAddressesArray();
+        // console.log(donoationArray);
+        // tokensInBuffer = await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1);
+        // console.log(tokensInBuffer.toString())
+
+        
+
+        // donoationArray = await RaffleInstance.connect(owner).getAllDonationsPerAddressesArray();
+        // console.log(donoationArray);
 
         let bal = await ArtTokenInstance.balanceOf(donor1Address);
         console.log(bal.toString());
 
-        await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+        
         let bal2 = await ArtTokenInstance.balanceOf(donor2Address);
         console.log(bal2.toString());
+
+        // let donation1 = await RaffleInstance.connect(donor1).getTotalDonationPerAddressPerCycle(1, donor1Address);
+        // let donation2 = await RaffleInstance.connect(donor2).getTotalDonationPerAddressPerCycle(1, donor2Address);
+
+        // console.log(donation1.toString());
+        // console.log(donation2.toString());
+
+        // let totalMatchUnits = await TokenRewardsInstance.connect(owner).calculateTotalMatchUnits([150,370]);
+        // console.log(totalMatchUnits.toString());
     });
   });
 });

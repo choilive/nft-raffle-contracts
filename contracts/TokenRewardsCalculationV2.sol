@@ -6,7 +6,7 @@ import "./RaffleV2.sol";
 import "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 contract TokenRewardsCalculationV2 is Ownable {
-    uint256[] donationsToThePowerOfArray;
+    // uint256[] donationsToThePowerOfArray;
 
     uint256 private immutable SCALE = 1000;
 
@@ -51,7 +51,7 @@ contract TokenRewardsCalculationV2 is Ownable {
     function _calculateTotalMatchUnits(
         // address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
-    ) internal returns (uint256) {
+    ) public pure returns (uint256) {
         // const totalMatchUnits = ((user1.totalUserDonation ** (1/2)) + (user2.totalUserDonation ** (1/2))) ** 2;
 
         // get every donors total donation from cycle to the power of 1/2
