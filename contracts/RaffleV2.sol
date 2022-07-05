@@ -82,9 +82,10 @@ contract RaffleV2 is
 
   /* This is to prevent duplication of donations when calculating rewards. */
   // checks if donation is already in allDonationsPerAddresses
-  // Amount donated => bool
-  mapping(uint256 => bool) addedToAllDonationsPerAddresses;
-  uint256[] allDonationsPerAddresses;
+  // RaffleID => Amount donated => bool
+  mapping(uint256 => mapping(uint256 => bool)) addedToAllDonationsPerAddresses;
+  // RaffleID => allDonationsPerAdrressArray
+  mapping(uint256 => uint256[]) allDonationsPerAddresses;
 
   // --------------------------------------------------------------
   // EVENTS
@@ -426,7 +427,7 @@ contract RaffleV2 is
     if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
     if (rewardsClaimedPerCycle[raffleID][donor] == true)
       revert CannotClaimRewards();
-    if (raffles[raffleID].endTime < block.timestamp) revert RaffleHasNotEnded();
+    if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
 
     uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
       raffleID,
@@ -442,18 +443,19 @@ contract RaffleV2 is
         donorsArray[i]
       );
       // Check if donation has been added to array. If not, ad it. Prevents duplication of donation
-      if (addedToAllDonationsPerAddresses[donationPerAddress] == false) {
-        addedToAllDonationsPerAddresses[donationPerAddress] = true;
-        allDonationsPerAddresses.push(donationPerAddress);
+      if (addedToAllDonationsPerAddresses[raffleID][donationPerAddress] == false) {
+        addedToAllDonationsPerAddresses[raffleID][donationPerAddress] = true;
+        allDonationsPerAddresses[raffleID].push(donationPerAddress);
       }
     }
     uint256 tokenBuffer = getTokenBuffer(raffleID);
+    uint256[] storage allDonationsPerAddress = _getAllDonationsPerAddressesArray(raffleID);
     // call rewards calculation contract
     uint256 amountToPay = ITokenRewardsCalculation(tokenRewardsModuleAddress)
       .calculateUserRewards(
         tokenBuffer,
         totalUserDonation,
-        allDonationsPerAddresses
+        allDonationsPerAddress
       );
     rewardsClaimedPerCycle[raffleID][donor] = true;
     totalRewardsClaimedPerAddress[donor] += amountToPay;
@@ -540,6 +542,10 @@ contract RaffleV2 is
     returns (bytes memory)
   {
     return BaseRelayRecipient._msgData();
+  }
+
+  function _getAllDonationsPerAddressesArray(uint256 raffleID) internal view returns(uint256[] storage){
+    return allDonationsPerAddresses[raffleID];
   }
 
   // --------------------------------------------------------------

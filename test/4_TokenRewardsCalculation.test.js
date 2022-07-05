@@ -85,58 +85,58 @@ describe("Token Rewards Contract Tests", function () {
     // setting up donors with USDC
     await USDC.connect(usdcWhale).transfer(
       donor1.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor2.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor3.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor4.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(donor2).approve(
       daoWallet.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
     await USDC.connect(donor3).approve(
       daoWallet.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
     await USDC.connect(donor1).approve(
       daoWallet.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
     await USDC.connect(donor4).approve(
       daoWallet.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
     await USDC.connect(donor1).approve(
       RaffleInstance.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(donor2).approve(
       RaffleInstance.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(donor3).approve(
       RaffleInstance.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     await USDC.connect(donor4).approve(
       RaffleInstance.address,
-      ethers.utils.parseUnits("1000", 6)
+      ethers.utils.parseUnits("1500", 6)
     );
 
     // mint NFT to artist
@@ -221,7 +221,9 @@ describe("Token Rewards Contract Tests", function () {
   });
 
   it("claimTokenRewards returns correct amount of tokens for two donations", async () => {
-      
+
+    await fastForward(constants.TEST.twoMonths);
+
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
     await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
 
@@ -252,6 +254,8 @@ describe("Token Rewards Contract Tests", function () {
       0
     );
     await RaffleInstance.connect(donor3).donate(donation6);
+
+    await fastForward(constants.TEST.oneMonth);
       
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
     await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
@@ -272,6 +276,9 @@ describe("Token Rewards Contract Tests", function () {
 
   });
   it("throws NoRewardsForRaffle if tokenRewards not turned on", async () => {
+
+    startTime = await currentTime();
+    endTime = startTime + constants.TEST.oneMonth;
 
     // mint NFT to artist
     await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
@@ -320,13 +327,19 @@ describe("Token Rewards Contract Tests", function () {
     .to.be.revertedWith("CannotClaimRewards()");
   });
   it("reverts if user has already claimed", async () => {
+    await fastForward(constants.TEST.twoMonths);
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
 
     await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
     .to.be.revertedWith("CannotClaimRewards()");
-
+  });
+  it("reverts if raffle hasnt ended", async () => {
+    await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
+    .to.be.revertedWith("RaffleHasNotEnded()");
   });
   it("claims correctly for multiple raffles", async () => {
+
+    await fastForward(constants.TEST.twoMonths);
 
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
     await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
@@ -348,6 +361,9 @@ describe("Token Rewards Contract Tests", function () {
     );
     
     // Create second raffle
+
+    startTime = await currentTime();
+    endTime = startTime + constants.TEST.oneMonth;
 
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
     await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 30000);
@@ -374,31 +390,33 @@ describe("Token Rewards Contract Tests", function () {
     await RaffleInstance.connect(curator).createRaffle(raffle2);
 
     let raffle2Donation1 = await createDonationObject(
-      donor3Address,
+      donor1Address,
       2,
       ethers.utils.parseUnits("150", 6),
       0
     );
-    await RaffleInstance.connect(donor3).donate(raffle2Donation1);
+    await RaffleInstance.connect(donor1).donate(raffle2Donation1);
 
     let raffle2Donation2 = await createDonationObject(
-      donor4Address,
+      donor2Address,
       2,
       ethers.utils.parseUnits("370", 6),
       0
     );
-    await RaffleInstance.connect(donor4).donate(raffle2Donation2);
+    await RaffleInstance.connect(donor2).donate(raffle2Donation2);
 
-    await RaffleInstance.connect(donor3).claimTokenRewards(2, donor3Address);
-    await RaffleInstance.connect(donor4).claimTokenRewards(2, donor4Address);
+    await fastForward(constants.TEST.twoMonths);
 
-    let raffle2Donor1Bal = await ArtTokenInstance.balanceOf(donor3Address);
+    await RaffleInstance.connect(donor1).claimTokenRewards(2, donor1Address);
+    await RaffleInstance.connect(donor2).claimTokenRewards(2, donor2Address);
+
+    let raffle2Donor1BalAfter = await ArtTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
 
-    let raffle2Donor2Bal = await ArtTokenInstance.balanceOf(donor4Address);
+    let raffle2Donor2BalAfter = await ArtTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
-    expect(raffle2Donor1Bal).to.equal(389);
-    expect(raffle2Donor2Bal).to.equal(610);
+    expect(raffle2Donor1BalAfter).to.equal(raffle1Donor1Bal.add(389));
+    expect(raffle2Donor2BalAfter).to.equal(raffle1Donor2Bal.add(610));
   });
 });
