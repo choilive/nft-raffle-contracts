@@ -221,12 +221,14 @@ describe("Raffle Contract Tests", function () {
       expect(await raffle.nftContract).to.equal(NFTInstance.address);
       expect(await raffle.nftOwner).to.equal(owner.address);
       expect(await raffle.tokenID).to.equal(1);
+      expect(await raffle.raffleID).to.equal(1);
       expect(await raffle.startTime).to.equal(startTime);
       expect(await raffle.endTime).to.equal(endTime);
       expect(await raffle.minimumDonationAmount).to.equal(10);
       expect(await raffle.topDonor).to.equal(owner.address);
       expect(await raffle.topDonatedAmount).to.equal(10);
       expect(await raffle.tokenAllocation).to.equal(1000);
+      expect(await raffle.buffer).to.equal(1000);
     });
 
     it("only curator can create raffle", async () => {
