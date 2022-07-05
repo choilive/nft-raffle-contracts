@@ -20,17 +20,23 @@ const createRaffleObject = async (
   endTime,
   minimumDonationAmount,
   topDonor,
-  topDonatedAmount
+  topDonatedAmount,
+  tokenAllocation,
+  buffer
 ) => {
   const _raffle = {
     nftContract: nftContract,
     nftOwner: nftOwner,
+    raffleID: 0,
     tokenID: tokenID,
     startTime: startTime,
     endTime: endTime,
     minimumDonationAmount: minimumDonationAmount,
     topDonor: topDonor,
     topDonatedAmount: topDonatedAmount,
+    tokenAllocation, tokenAllocation,
+    buffer: buffer,
+    cancelled: false,
   };
 
   return _raffle;

@@ -6,32 +6,42 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
+import "./interfaces/ITokenRewardsCalculation.sol";
 
-contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
-    address public DAOWallet;
-    address public nftAuthorWallet;
+contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
+    
     uint256 public raffleCount;
     uint256 public donationCount;
+    
     IERC20 public USDC;
-
     IERC20 public REWARD_TOKEN;
-    uint256 rewardTokenBalanceInContract;
+
+    address public tokenRewardsModuleAddress;
+    address public rewardTokenAddress;
+    address public DAOWallet;
+    address public nftAuthorWallet;
+
+    // bool optionalTokenRewards;
 
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
     string public override versionRecipient = "2.2.6";
+
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
     struct Raffle {
         address nftContract; // address of NFT contract
         address nftOwner;
+        uint256 raffleID;
         uint256 tokenID;
         uint256 startTime;
         uint256 endTime;
         uint256 minimumDonationAmount;
         address topDonor;
         uint256 topDonatedAmount;
+        uint256 tokenAllocation;
+        uint256 buffer;
         bool cancelled;
     }
 
@@ -42,8 +52,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         uint256 timestamp;
     }
     mapping(uint256 => Raffle) public raffles;
-    mapping(uint256 => Donation) public donations;
     // raffleID => amount
+    mapping(uint256 => Donation) public donations;
+    // RaffleID => token rewards activated
+    mapping(uint256 => bool) public tokenRewardsActivated;
+    
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
     mapping(uint256 => mapping(address => uint256))
@@ -51,17 +64,27 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     // raffleID => addresses array
     mapping(uint256 => address[]) public donorsArrayPerCycle;
     // Mapping to ensure donor does not get added to donorsArrayPerCycle twice and get two refunds
-    mapping(address => bool) public donorExistsInArray;
+    // raffleID => donor => donated
+    mapping(uint256 => mapping(address => bool)) public donorExistsInArray;
     //raffleID => address
     mapping(uint256 => address) topDonor;
     // raffleID => amount
     mapping(uint256 => uint256) highestDonation;
     //  raffleID => address => donationIDs
     mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
+    //raffleID => account => if they've claimed funds already
+    mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
+    mapping(address => uint256) totalRewardsClaimedPerAddress;
 
-    // // --------------------------------------------------------------
-    // // EVENTS
-    // // --------------------------------------------------------------
+    /* This is to prevent duplication of donations when calculating rewards. */
+    // checks if donation is already in allDonationsPerAddresses
+    // Amount donated => bool
+    mapping(uint256 => bool) addedToAllDonationsPerAddresses;
+    uint256[] allDonationsPerAddresses;
+
+    // --------------------------------------------------------------
+    // EVENTS
+    // --------------------------------------------------------------
 
     event RaffleCreated(
         address nftOwner,
@@ -72,10 +95,22 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
     event DAOWalletAddressSet(address walletAddress);
+    event RewardTokenAddressSet(address tokenAddress);
+    event TokenRewardsModuleAddressSet(address tokenRewardsModuleAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
     event tokensWithdrawnFromContract(address account, uint256 amount);
+    event RewardsClaimedPerCycle(
+        address donor,
+        uint256 raffleID,
+        uint256 amount
+    );
+    event RewardsTransferred(
+        uint256 raffleID,
+        address donor,
+        uint256 amountToPay
+    );
     // --------------------------------------------------------------
     // CUSTOM ERRORS
     // --------------------------------------------------------------
@@ -86,6 +121,10 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     error RaffleHasNotEnded();
     error InsufficientAmount();
     error RaffleCancelled();
+    error CannotClaimRewards();
+    error NoRewardsForRaffle();
+    error AmountsNotEqual();
+    error NoMoreTokensToClaim();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -98,11 +137,11 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
-        REWARD_TOKEN = IERC20(_rewardTokenAddress);
+        rewardTokenAddress = _rewardTokenAddress;
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(CURATOR_ROLE, msg.sender);
+        // _grantRole(CURATOR_ROLE, msg.sender);
     }
 
     // --------------------------------------------------------------
@@ -153,18 +192,21 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         revokeRole(CURATOR_ROLE, curator);
     }
 
-    /**
-        @notice transfers reward tokens to the contract
-        @param  amount amount of tokens to be transferred
-    */
-    function topUpRewardTokenBalance(uint256 amount)
-        public
-        onlyRole(CURATOR_ROLE)
-    {
-        rewardTokenBalanceInContract += amount;
-        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+    function turnOnTokenRewards(
+        address _tokenRewardsModuleAddress,
+        address _rewardTokenAddress,
+        uint256 _raffleID
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (
+            _rewardTokenAddress == address(0) ||
+            _tokenRewardsModuleAddress == address(0)
+        ) revert ZeroAddressNotAllowed();
+        REWARD_TOKEN = IERC20(_rewardTokenAddress);
+        tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
+        tokenRewardsActivated[_raffleID] = true;
 
-        emit RewardTokenBalanceToppedUp(amount);
+        emit RewardTokenAddressSet(_rewardTokenAddress);
+        emit TokenRewardsModuleAddressSet(_tokenRewardsModuleAddress);
     }
 
     /**
@@ -177,8 +219,8 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (rewardTokenBalanceInContract <= amount) revert InsufficientAmount();
-        rewardTokenBalanceInContract -= amount;
+        if (REWARD_TOKEN.balanceOf(address(this)) <= amount)
+            revert InsufficientAmount();
         REWARD_TOKEN.approve(address(this), amount);
         REWARD_TOKEN.transferFrom(address(this), account, amount);
 
@@ -196,9 +238,16 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
     {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
-
+        if(_raffle.tokenAllocation != _raffle.buffer) revert AmountsNotEqual();
         raffleCount++;
+        // Set the id of the raffle in the raffle struct
+        _raffle.raffleID = raffleCount;
         raffles[raffleCount] = _raffle;
+
+        // if the rewards are turned on transfer tokens to contract
+        if (tokenRewardsActivated[_raffle.raffleID] == true) {
+            _topUpRewardTokenBalance(raffleCount, _raffle.tokenAllocation);
+        }
 
         emit RaffleCreated(
             _raffle.nftOwner,
@@ -286,9 +335,9 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         // add amount to total donations per cycle
         totalDonationsPerCycle[raffleId] += _donation.amount;
 
-        if (donorExistsInArray[_msgSender()] == false) {
+        if (donorExistsInArray[raffleId][_msgSender()] == false) {
             donorsArrayPerCycle[raffleId].push(_msgSender());
-            donorExistsInArray[_msgSender()] = true;
+            donorExistsInArray[raffleId][_msgSender()] = true;
         }
 
         uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
@@ -382,6 +431,58 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         emit NFTsentToWinner(raffleID, nftAuthorWallet);
     }
 
+    function claimTokenRewards(uint256 raffleID, address donor) public {
+        if (tokenRewardsActivated[raffleID] == false) revert NoRewardsForRaffle();
+        if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
+        if (rewardsClaimedPerCycle[raffleID][donor] == true)
+            revert CannotClaimRewards();
+
+        
+
+        uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
+            raffleID,
+            donor
+        );
+
+        address[] memory donorsArray = getDonorsPerCycle(raffleID);
+
+        //get all donation from all addresses donated from the cycle and push it into an array
+        for (uint256 i = 0; i < donorsArray.length; i++) {
+            uint256 donationPerAddress = getTotalDonationPerAddressPerCycle(
+                raffleID,
+                donorsArray[i]
+            );
+            // Check if donation has been added to array. If not, ad it. Prevents duplication of donation
+            if(addedToAllDonationsPerAddresses[donationPerAddress] == false){
+                addedToAllDonationsPerAddresses[donationPerAddress] = true;
+                allDonationsPerAddresses.push(donationPerAddress);
+            }
+        }
+        uint256 tokenBuffer = getTokenBuffer(
+            raffleID
+        );
+        // call rewards calculation contract
+        uint256 amountToPay = ITokenRewardsCalculation(
+            tokenRewardsModuleAddress
+        ).calculateUserRewards(
+                tokenBuffer,
+                totalUserDonation,
+                allDonationsPerAddresses
+            );
+        rewardsClaimedPerCycle[raffleID][donor] = true;
+        totalRewardsClaimedPerAddress[donor] += amountToPay;
+
+        raffles[raffleID].tokenAllocation -= amountToPay;
+
+        if(raffles[raffleID].tokenAllocation == 0) revert NoMoreTokensToClaim();
+
+        //transferring rewards to donor
+        REWARD_TOKEN.approve(address(this), amountToPay);
+        REWARD_TOKEN.transferFrom(address(this), donor, amountToPay);
+
+        emit RewardsTransferred(raffleID, donor, amountToPay);
+    }
+
     // --------------------------------------------------------------
     // EXTERNAL FUNCTIONS
     // --------------------------------------------------------------
@@ -422,6 +523,19 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
         return winner;
+    }
+
+    /**
+        @notice transfers reward tokens to the contract
+        @param  amount amount of tokens to be transferred
+    */
+    function _topUpRewardTokenBalance(uint256 raffleID, uint256 amount)
+        internal
+    {
+        raffles[raffleID].tokenAllocation = amount;
+        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+
+        emit RewardTokenBalanceToppedUp(amount);
     }
 
     // *** BICONOMY *** //
@@ -499,7 +613,20 @@ contract Raffle is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient {
         return topDonor[raffleID];
     }
 
-    function getTokensInTheBufferEndOfCycle() public view returns (uint256) {
-        return rewardTokenBalanceInContract;
+    // why is this end of cycle? Does it change during the raffle?
+    function getTokenBuffer(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
+        return raffles[raffleID].buffer;
+    }
+
+    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
+        return raffles[raffleID].tokenAllocation;
     }
 }
