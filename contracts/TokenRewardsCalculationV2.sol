@@ -6,24 +6,19 @@ import "./RaffleV2.sol";
 import "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 contract TokenRewardsCalculationV2 is Ownable {
-    // uint256[] donationsToThePowerOfArray;
 
     uint256 private immutable SCALE = 1000;
 
     function calculateUserRewards(
         uint256 tokensInTheBufferEndOfCycle,
         uint256 totalUserDonation,
-        // address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
-    ) external returns (uint256) {
+    ) external pure returns (uint256) {
         uint256 totalMatchUnits = _calculateTotalMatchUnits(
-            // donorsArray,
             totalDonationPerAddresses
         );
         uint256 userMatchUnits = _calculateUserMatchUnits(
             totalUserDonation,
-            // totalMatchUnits,
-            // donorsArray,
             totalDonationPerAddresses
         );
 
@@ -35,12 +30,9 @@ contract TokenRewardsCalculationV2 is Ownable {
 
     function _calculateUserMatchUnits(
         uint256 totalUserDonation,
-        // uint256 totalMatchUnits,
-        // address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
-    ) internal returns (uint256) {
+    ) internal pure returns (uint256) {
         uint256 totalMatchUnits = _calculateTotalMatchUnits(
-            // donorsArray,
             totalDonationPerAddresses
         );
         uint256 userMatchUnits = FixedPointMathLib.sqrt(totalUserDonation) *
@@ -49,7 +41,6 @@ contract TokenRewardsCalculationV2 is Ownable {
     }
 
     function _calculateTotalMatchUnits(
-        // address[] memory donorsArray,
         uint256[] memory totalDonationPerAddresses
     ) public pure returns (uint256) {
         // const totalMatchUnits = ((user1.totalUserDonation ** (1/2)) + (user2.totalUserDonation ** (1/2))) ** 2;

@@ -35,9 +35,9 @@ const USDC = new ethers.Contract(
   ethers.provider
 );
 
-describe("Raffle Contract Tests", function () {
+describe("Token Rewards Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
+    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, donor4, curator, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
@@ -46,6 +46,7 @@ describe("Raffle Contract Tests", function () {
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
+    donor4Address = await donor4.getAddress();
     curatorAddress = await curator.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
@@ -97,6 +98,11 @@ describe("Raffle Contract Tests", function () {
       ethers.utils.parseUnits("500", 6)
     );
 
+    await USDC.connect(usdcWhale).transfer(
+      donor4.address,
+      ethers.utils.parseUnits("500", 6)
+    );
+
     await USDC.connect(donor2).approve(
       daoWallet.address,
       ethers.utils.parseUnits("1000", 6)
@@ -106,6 +112,10 @@ describe("Raffle Contract Tests", function () {
       ethers.utils.parseUnits("1000", 6)
     );
     await USDC.connect(donor1).approve(
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+    await USDC.connect(donor4).approve(
       daoWallet.address,
       ethers.utils.parseUnits("1000", 6)
     );
@@ -120,6 +130,11 @@ describe("Raffle Contract Tests", function () {
     );
 
     await USDC.connect(donor3).approve(
+      RaffleInstance.address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await USDC.connect(donor4).approve(
       RaffleInstance.address,
       ethers.utils.parseUnits("1000", 6)
     );
@@ -145,10 +160,11 @@ describe("Raffle Contract Tests", function () {
     // Turn on token rewards in Raffle
     await RaffleInstance.connect(owner).turnOnTokenRewards(
       TokenRewardsInstance.address,
-      ArtTokenInstance.address);
+      ArtTokenInstance.address,
+      1);
 
     // Mint Reward Tokens to daoWallet
-    await ArtTokenInstance.connect(owner).mint(daoWalletAddress, 3000);
+    await ArtTokenInstance.connect(owner).mint(daoWalletAddress, 30000);
 
     // set times
     startTime = await currentTime();
@@ -156,87 +172,230 @@ describe("Raffle Contract Tests", function () {
 
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
     await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 3000);
+
+    const raffle = await createRaffleObject(
+      NFTInstance.address,
+      ownerAddress,
+      1,
+      startTime,
+      endTime,
+      ethers.utils.parseUnits("25", 6),
+      owner.address,
+      ethers.utils.parseUnits("25", 6),
+      BigNumber.from(1000),
+    );
+    await RaffleInstance.connect(curator).createRaffle(raffle);
+
+    let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("100", 6),
+        0
+      );
+    await RaffleInstance.connect(donor1).donate(donation1);
+
+    let donation2 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("50", 6),
+        0
+      );
+    await RaffleInstance.connect(donor1).donate(donation2);
+
+    let donation3 = await createDonationObject(
+      donor2Address,
+      1,
+      ethers.utils.parseUnits("300", 6),
+      0
+    );
+    await RaffleInstance.connect(donor2).donate(donation3);
+
+    let donation4 = await createDonationObject(
+      donor2Address,
+      1,
+      ethers.utils.parseUnits("70", 6),
+      0
+    );
+    await RaffleInstance.connect(donor2).donate(donation4);
   });
 
-  describe("Token Rewards Calculation", function () {
-    beforeEach(async () => {
-        const raffle = await createRaffleObject(
-            NFTInstance.address,
-        ownerAddress,
-        1,
-        startTime,
-        endTime,
-        ethers.utils.parseUnits("25", 6),
-        owner.address,
-        ethers.utils.parseUnits("25", 6),
-        BigNumber.from(1000),
-        );
-        await RaffleInstance.connect(curator).createRaffle(raffle);
+  it("claimTokenRewards returns correct amount of tokens for two donations", async () => {
+      
+    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
 
-        let donation1 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("100", 6),
-            0
-          );
-        await RaffleInstance.connect(donor1).donate(donation1);
+    let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
+    // console.log(donorbal1.toString());
 
-        let donation2 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("50", 6),
-            0
-          );
-        await RaffleInstance.connect(donor1).donate(donation2);
+    let donorbal2 = await ArtTokenInstance.balanceOf(donor2Address);
+    // console.log(donorbal2.toString());
 
-        let donation3 = await createDonationObject(
-          donor2Address,
-          1,
-          ethers.utils.parseUnits("300", 6),
-          0
-        );
-        await RaffleInstance.connect(donor2).donate(donation3);
+    expect(donorbal1).to.equal(389);
+    expect(donorbal2).to.equal(610);
 
-        let donation4 = await createDonationObject(
-          donor2Address,
-          1,
-          ethers.utils.parseUnits("70", 6),
-          0
-        );
-        await RaffleInstance.connect(donor2).donate(donation4);
-    });
-    it("claim token rewards returns correct amount of reward tokens", async () => {
-        
-        
-        // let tokensInBuffer = await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1);
-        // console.log(tokensInBuffer.toString())
-        await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
-        await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
-        // let donoationArray = await RaffleInstance.connect(owner).getAllDonationsPerAddressesArray();
-        // console.log(donoationArray);
-        // tokensInBuffer = await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1);
-        // console.log(tokensInBuffer.toString())
+  });
+  it("claimTokenRewards returns correct amount of tokens for three donations", async () => {
 
-        
+    let donation5 = await createDonationObject(
+      donor3Address,
+      1,
+      ethers.utils.parseUnits("200", 6),
+      0
+    );
+    await RaffleInstance.connect(donor3).donate(donation5);
 
-        // donoationArray = await RaffleInstance.connect(owner).getAllDonationsPerAddressesArray();
-        // console.log(donoationArray);
+    let donation6 = await createDonationObject(
+      donor3Address,
+      1,
+      ethers.utils.parseUnits("60", 6),
+      0
+    );
+    await RaffleInstance.connect(donor3).donate(donation6);
+      
+    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+    await RaffleInstance.connect(donor3).claimTokenRewards(1, donor3Address);
 
-        let bal = await ArtTokenInstance.balanceOf(donor1Address);
-        console.log(bal.toString());
+    let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
+    // console.log(donorbal1.toString());
 
-        
-        let bal2 = await ArtTokenInstance.balanceOf(donor2Address);
-        console.log(bal2.toString());
+    let donorbal2 = await ArtTokenInstance.balanceOf(donor2Address);
+    // console.log(donorbal2.toString());
 
-        // let donation1 = await RaffleInstance.connect(donor1).getTotalDonationPerAddressPerCycle(1, donor1Address);
-        // let donation2 = await RaffleInstance.connect(donor2).getTotalDonationPerAddressPerCycle(1, donor2Address);
+    let donorbal3 = await ArtTokenInstance.balanceOf(donor3Address);
+    // console.log(donorbal3.toString());
 
-        // console.log(donation1.toString());
-        // console.log(donation2.toString());
+    expect(donorbal1).to.equal(257);
+    expect(donorbal2).to.equal(404);
+    expect(donorbal3).to.equal(338);
 
-        // let totalMatchUnits = await TokenRewardsInstance.connect(owner).calculateTotalMatchUnits([150,370]);
-        // console.log(totalMatchUnits.toString());
-    });
+  });
+  it("throws NoRewardsForRaffle if tokenRewards not turned on", async () => {
+
+    // mint NFT to artist
+    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
+    await NFTInstance.connect(owner).setApprovalForAll(
+      RaffleInstance.address,
+      true
+    );
+
+    const raffle2 = await createRaffleObject(
+      NFTInstance.address,
+      ownerAddress,
+      2,
+      startTime,
+      endTime,
+      ethers.utils.parseUnits("25", 6),
+      owner.address,
+      ethers.utils.parseUnits("25", 6),
+      BigNumber.from(1000),
+    );
+
+    await RaffleInstance.connect(curator).createRaffle(raffle2);
+
+    let donation1 = await createDonationObject(
+      donor1Address,
+      2,
+      ethers.utils.parseUnits("100", 6),
+      0
+    );
+    await RaffleInstance.connect(donor1).donate(donation1);
+
+    let donation2 = await createDonationObject(
+      donor2Address,
+      2,
+      ethers.utils.parseUnits("300", 6),
+      0
+    );
+    await RaffleInstance.connect(donor2).donate(donation2);
+
+    await expect(RaffleInstance.connect(donor1).claimTokenRewards(2, donor1Address))
+      .to.be.revertedWith("NoRewardsForRaffle()");
+  });
+  
+  it("throws CannotClaimRewards() if user hasnt donated", async () => {
+    await expect(RaffleInstance.connect(donor4).claimTokenRewards(1, donor4Address))
+    .to.be.revertedWith("CannotClaimRewards()");
+  });
+  it("reverts if user has already claimed", async () => {
+    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+
+    await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
+    .to.be.revertedWith("CannotClaimRewards()");
+
+  });
+  it("claims correctly for multiple raffles", async () => {
+
+    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+
+    let raffle1Donor1Bal = await ArtTokenInstance.balanceOf(donor1Address);
+    // console.log(donorbal1.toString());
+
+    let raffle1Donor2Bal = await ArtTokenInstance.balanceOf(donor2Address);
+    // console.log(donorbal2.toString());
+
+    expect(raffle1Donor1Bal).to.equal(389);
+    expect(raffle1Donor2Bal).to.equal(610);
+
+    // mint NFT to artist
+    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
+    await NFTInstance.connect(owner).setApprovalForAll(
+      RaffleInstance.address,
+      true
+    );
+    
+    // Create second raffle
+
+    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
+    await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 30000);
+
+    const raffle2 = await createRaffleObject(
+      NFTInstance.address,
+      ownerAddress,
+      2,
+      startTime,
+      endTime,
+      ethers.utils.parseUnits("25", 6),
+      owner.address,
+      ethers.utils.parseUnits("25", 6),
+      BigNumber.from(1000),
+    );
+
+    await RaffleInstance.connect(owner).turnOnTokenRewards(
+      TokenRewardsInstance.address,
+      ArtTokenInstance.address,
+      2
+    );
+    
+    await RaffleInstance.connect(curator).createRaffle(raffle2);
+
+    let raffle2Donation1 = await createDonationObject(
+      donor3Address,
+      2,
+      ethers.utils.parseUnits("150", 6),
+      0
+    );
+    await RaffleInstance.connect(donor3).donate(raffle2Donation1);
+
+    let raffle2Donation2 = await createDonationObject(
+      donor4Address,
+      2,
+      ethers.utils.parseUnits("370", 6),
+      0
+    );
+    await RaffleInstance.connect(donor4).donate(raffle2Donation2);
+
+    await RaffleInstance.connect(donor3).claimTokenRewards(2, donor3Address);
+    await RaffleInstance.connect(donor4).claimTokenRewards(2, donor4Address);
+
+    let raffle2Donor1Bal = await ArtTokenInstance.balanceOf(donor1Address);
+    // console.log(donorbal1.toString());
+
+    let raffle2Donor2Bal = await ArtTokenInstance.balanceOf(donor2Address);
+    // console.log(donorbal2.toString());
+
+    expect(raffle2Donor1Bal).to.equal(389);
+    expect(raffle2Donor2Bal).to.equal(610);
   });
 });

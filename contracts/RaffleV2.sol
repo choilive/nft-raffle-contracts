@@ -21,19 +21,19 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     address public DAOWallet;
     address public nftAuthorWallet;
 
-    bool optionalTokenRewards;
+    // bool optionalTokenRewards;
 
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
     string public override versionRecipient = "2.2.6";
 
-    uint256[] allDonationsPerAddresses;
     // -------------------------------------------------------------
     // STORAGE
     // --------------------------------------------------------------
     struct Raffle {
         address nftContract; // address of NFT contract
         address nftOwner;
+        uint256 raffleID;
         uint256 tokenID;
         uint256 startTime;
         uint256 endTime;
@@ -51,8 +51,11 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         uint256 timestamp;
     }
     mapping(uint256 => Raffle) public raffles;
-    mapping(uint256 => Donation) public donations;
     // raffleID => amount
+    mapping(uint256 => Donation) public donations;
+    // RaffleID => token rewards activated
+    mapping(uint256 => bool) public tokenRewardsActivated;
+    
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
     mapping(uint256 => mapping(address => uint256))
@@ -60,8 +63,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     // raffleID => addresses array
     mapping(uint256 => address[]) public donorsArrayPerCycle;
     // Mapping to ensure donor does not get added to donorsArrayPerCycle twice and get two refunds
-    // TODO do we need a nested loop here from raffleID?
-    mapping(address => bool) public donorExistsInArray;
+    // raffleID => donor => donated
+    mapping(uint256 => mapping(address => bool)) public donorExistsInArray;
     //raffleID => address
     mapping(uint256 => address) topDonor;
     // raffleID => amount
@@ -72,7 +75,11 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
 
+    /* This is to prevent duplication of donations when calculating rewards. */
+    // checks if donation is already in allDonationsPerAddresses
+    // Amount donated => bool
     mapping(uint256 => bool) addedToAllDonationsPerAddresses;
+    uint256[] allDonationsPerAddresses;
 
     // --------------------------------------------------------------
     // EVENTS
@@ -184,7 +191,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
 
     function turnOnTokenRewards(
         address _tokenRewardsModuleAddress,
-        address _rewardTokenAddress
+        address _rewardTokenAddress,
+        uint256 _raffleID
     ) public onlyRole(DEFAULT_ADMIN_ROLE) {
         if (
             _rewardTokenAddress == address(0) ||
@@ -192,7 +200,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         ) revert ZeroAddressNotAllowed();
         REWARD_TOKEN = IERC20(_rewardTokenAddress);
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
-        optionalTokenRewards = true;
+        tokenRewardsActivated[_raffleID] = true;
+
         emit RewardTokenAddressSet(_rewardTokenAddress);
         emit TokenRewardsModuleAddressSet(_tokenRewardsModuleAddress);
     }
@@ -228,10 +237,12 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
 
         raffleCount++;
+        // Set the id of the raffle in the raffle struct
+        _raffle.raffleID = raffleCount;
         raffles[raffleCount] = _raffle;
 
         // if the rewards are turned on transfer tokens to contract
-        if (optionalTokenRewards == true) {
+        if (tokenRewardsActivated[_raffle.raffleID] == true) {
             _topUpRewardTokenBalance(raffleCount, _raffle.tokenAllocation);
         }
 
@@ -321,9 +332,9 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         // add amount to total donations per cycle
         totalDonationsPerCycle[raffleId] += _donation.amount;
 
-        if (donorExistsInArray[_msgSender()] == false) {
+        if (donorExistsInArray[raffleId][_msgSender()] == false) {
             donorsArrayPerCycle[raffleId].push(_msgSender());
-            donorExistsInArray[_msgSender()] = true;
+            donorExistsInArray[raffleId][_msgSender()] = true;
         }
 
         uint256 donorsTotalDonationsInRaffle = totalDonationPerAddressPerCycle[
@@ -418,8 +429,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     }
 
     function claimTokenRewards(uint256 raffleID, address donor) public {
-        if (!optionalTokenRewards) revert NoRewardsForRaffle();
-        if (!donorExistsInArray[donor]) revert CannotClaimRewards();
+        if (tokenRewardsActivated[raffleID] == false) revert NoRewardsForRaffle();
+        if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
 
@@ -436,6 +447,7 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
                 raffleID,
                 donorsArray[i]
             );
+            // Check if donation has been added to array. If not, ad it. Prevents duplication of donation
             if(addedToAllDonationsPerAddresses[donationPerAddress] == false){
                 addedToAllDonationsPerAddresses[donationPerAddress] = true;
                 allDonationsPerAddresses.push(donationPerAddress);
@@ -450,15 +462,15 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         ).calculateUserRewards(
                 rewardTokenBalanceInRaffle,
                 totalUserDonation,
-                // donorsArray,
                 allDonationsPerAddresses
             );
         rewardsClaimedPerCycle[raffleID][donor] = true;
         totalRewardsClaimedPerAddress[donor] += amountToPay;
-        // raffles[raffleID].tokenAllocation -= amountToPay;
 
-        //transferring rewards to donor
-        // REWARD_TOKEN.approve(address(this), amountToPay);
+        /*
+        Reward Tokens are transfered from the DaoWallet so that the tokens in the buffer remain the same.
+        */
+
         REWARD_TOKEN.transferFrom(DAOWallet, donor, amountToPay);
 
         emit RewardsTransferred(raffleID, donor, amountToPay);
@@ -594,15 +606,12 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         return topDonor[raffleID];
     }
 
+    // why is this end of cycle? Does it change during the raffle?
     function getTokensInTheBufferEndOfCycle(uint256 raffleID)
         public
         view
         returns (uint256)
     {
         return raffles[raffleID].tokenAllocation;
-    }
-
-    function getAllDonationsPerAddressesArray() public view returns (uint[] memory){
-        return allDonationsPerAddresses;
     }
 }
