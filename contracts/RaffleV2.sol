@@ -125,7 +125,6 @@ contract RaffleV2 is
   error NoRewardsForRaffle();
   error AmountsNotEqual();
   error NoMoreTokensToClaim();
-  error RaffleHasNotEnded();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
