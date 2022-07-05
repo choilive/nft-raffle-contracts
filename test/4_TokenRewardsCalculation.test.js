@@ -183,6 +183,7 @@ describe("Token Rewards Contract Tests", function () {
       owner.address,
       ethers.utils.parseUnits("25", 6),
       BigNumber.from(1000),
+      BigNumber.from(1000),
     );
     await RaffleInstance.connect(curator).createRaffle(raffle);
 
@@ -289,6 +290,7 @@ describe("Token Rewards Contract Tests", function () {
       owner.address,
       ethers.utils.parseUnits("25", 6),
       BigNumber.from(1000),
+      BigNumber.from(1000),
     );
 
     await RaffleInstance.connect(curator).createRaffle(raffle2);
@@ -324,7 +326,7 @@ describe("Token Rewards Contract Tests", function () {
     .to.be.revertedWith("CannotClaimRewards()");
 
   });
-  it.only("claims correctly for multiple raffles", async () => {
+  it("claims correctly for multiple raffles", async () => {
 
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
     await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
@@ -359,6 +361,7 @@ describe("Token Rewards Contract Tests", function () {
       ethers.utils.parseUnits("25", 6),
       owner.address,
       ethers.utils.parseUnits("25", 6),
+      BigNumber.from(1000),
       BigNumber.from(1000),
     );
 

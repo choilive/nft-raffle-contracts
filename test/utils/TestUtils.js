@@ -21,7 +21,8 @@ const createRaffleObject = async (
   minimumDonationAmount,
   topDonor,
   topDonatedAmount,
-  tokenAllocation
+  tokenAllocation,
+  buffer
 ) => {
   const _raffle = {
     nftContract: nftContract,
@@ -34,6 +35,7 @@ const createRaffleObject = async (
     topDonor: topDonor,
     topDonatedAmount: topDonatedAmount,
     tokenAllocation, tokenAllocation,
+    buffer: buffer,
     cancelled: false,
   };
 

@@ -54,7 +54,7 @@ describe("Raffle Contract Tests", function () {
     ArtTokenInstance = await ArtTokenContract.connect(owner).deploy(
       "Rewards Token",
       "ART",
-      3000
+      30000
     );
 
     // Deploy Raffle
@@ -213,6 +213,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10),
         1000,
+        1000,
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let raffle = await RaffleInstance.getRaffle(1);
@@ -241,6 +242,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await expect(
         RaffleInstance.connect(owner).createRaffle(newRaffle)
@@ -260,6 +262,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await expect(
         RaffleInstance.connect(curator).createRaffle(newRaffle)
@@ -276,6 +279,7 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10),
         owner.address,
         BigNumber.from(10),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -296,6 +300,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       expect(await RaffleInstance.connect(curator).createRaffle(newRaffle))
         .to.emit(RaffleInstance, "RaffleCreated")
@@ -315,6 +320,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
@@ -332,6 +338,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -356,6 +363,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -408,6 +416,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -468,6 +477,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
@@ -496,6 +506,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(
@@ -522,6 +533,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(
@@ -546,6 +558,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("25", 6),
         owner.address,
         ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(Raffle1);
@@ -622,6 +635,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("25", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(Raffle2);
 
@@ -674,6 +688,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
@@ -694,6 +709,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         BigNumber.from(10),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(donor1Address, 1, 5, 0);
@@ -711,6 +727,7 @@ describe("Raffle Contract Tests", function () {
         BigNumber.from(10),
         owner.address,
         BigNumber.from(10),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -733,6 +750,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -776,6 +794,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(
@@ -811,6 +830,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(
@@ -839,6 +859,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        1000,
         1000,
       );
       await RaffleInstance.connect(curator).createRaffle(raffle1);
@@ -875,6 +896,7 @@ describe("Raffle Contract Tests", function () {
         owner.address,
         ethers.utils.parseUnits("100", 6),
         BigNumber.from(1000),
+        BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
       let newDonation = await createDonationObject(
@@ -901,6 +923,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -931,6 +954,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
@@ -964,6 +988,7 @@ describe("Raffle Contract Tests", function () {
         ethers.utils.parseUnits("100", 6),
         owner.address,
         ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);

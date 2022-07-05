@@ -41,6 +41,7 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         address topDonor;
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
+        uint256 buffer;
         bool cancelled;
     }
 
@@ -122,6 +123,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     error RaffleCancelled();
     error CannotClaimRewards();
     error NoRewardsForRaffle();
+    error AmountsNotEqual();
+    error NoMoreTokensToClaim();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -235,7 +238,7 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
-
+        if(_raffle.tokenAllocation != _raffle.buffer) revert AmountsNotEqual();
         raffleCount++;
         // Set the id of the raffle in the raffle struct
         _raffle.raffleID = raffleCount;
@@ -434,6 +437,8 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
 
+        
+
         uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
             raffleID,
             donor
@@ -453,25 +458,27 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
                 allDonationsPerAddresses.push(donationPerAddress);
             }
         }
-        uint256 rewardTokenBalanceInRaffle = getTokensInTheBufferEndOfCycle(
+        uint256 tokenBuffer = getTokenBuffer(
             raffleID
         );
         // call rewards calculation contract
         uint256 amountToPay = ITokenRewardsCalculation(
             tokenRewardsModuleAddress
         ).calculateUserRewards(
-                rewardTokenBalanceInRaffle,
+                tokenBuffer,
                 totalUserDonation,
                 allDonationsPerAddresses
             );
         rewardsClaimedPerCycle[raffleID][donor] = true;
         totalRewardsClaimedPerAddress[donor] += amountToPay;
 
-        /*
-        Reward Tokens are transfered from the DaoWallet so that the tokens in the buffer remain the same.
-        */
+        raffles[raffleID].tokenAllocation -= amountToPay;
 
-        REWARD_TOKEN.transferFrom(DAOWallet, donor, amountToPay);
+        if(raffles[raffleID].tokenAllocation == 0) revert NoMoreTokensToClaim();
+
+        //transferring rewards to donor
+        REWARD_TOKEN.approve(address(this), amountToPay);
+        REWARD_TOKEN.transferFrom(address(this), donor, amountToPay);
 
         emit RewardsTransferred(raffleID, donor, amountToPay);
     }
@@ -607,6 +614,14 @@ contract RaffleV2 is Ownable, AccessControl, ReentrancyGuard, BaseRelayRecipient
     }
 
     // why is this end of cycle? Does it change during the raffle?
+    function getTokenBuffer(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
+        return raffles[raffleID].buffer;
+    }
+
     function getTokensInTheBufferEndOfCycle(uint256 raffleID)
         public
         view
