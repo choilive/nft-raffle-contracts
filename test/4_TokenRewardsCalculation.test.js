@@ -324,7 +324,7 @@ describe("Token Rewards Contract Tests", function () {
     .to.be.revertedWith("CannotClaimRewards()");
 
   });
-  it("claims correctly for multiple raffles", async () => {
+  it.only("claims correctly for multiple raffles", async () => {
 
     await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
     await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
@@ -389,10 +389,10 @@ describe("Token Rewards Contract Tests", function () {
     await RaffleInstance.connect(donor3).claimTokenRewards(2, donor3Address);
     await RaffleInstance.connect(donor4).claimTokenRewards(2, donor4Address);
 
-    let raffle2Donor1Bal = await ArtTokenInstance.balanceOf(donor1Address);
+    let raffle2Donor1Bal = await ArtTokenInstance.balanceOf(donor3Address);
     // console.log(donorbal1.toString());
 
-    let raffle2Donor2Bal = await ArtTokenInstance.balanceOf(donor2Address);
+    let raffle2Donor2Bal = await ArtTokenInstance.balanceOf(donor4Address);
     // console.log(donorbal2.toString());
 
     expect(raffle2Donor1Bal).to.equal(389);
