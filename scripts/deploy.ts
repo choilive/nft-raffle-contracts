@@ -47,12 +47,8 @@ async function main() {
   const USDC = "0x566368d78DBdEc50F04b588E152dE3cEC0d5889f"; // MUMBAI TESTNET
 
   const raffleContract = await deploy(
-    "Raffle",
-    [
-      USDC,
-      "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
-      "0x0000000000000000000000000000000000000000",
-    ],
+    "RaffleV2",
+    ["0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b", USDC],
     {}
   );
 
