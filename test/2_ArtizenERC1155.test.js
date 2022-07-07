@@ -296,15 +296,20 @@ describe("ArtizenERC1155 contract tests", function () {
         .withArgs(ownerAddress, ownerAddress, aliceAddress, [1, 2], [4, 3]);
     });
   });
-  describe("setURI function", function () {
-    it("can set URI", async () => {
+  describe("URI Storage functions", function () {
+    it.only("can set URI per token id", async () => {
+
       expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("");
 
-      await ERC1155Instance.connect(owner).setURI("newUri/{id}");
+      // Sets base uri for all tokens
+      await ERC1155Instance.connect(owner).setBaseURI("https://baseURI/");
 
-      expect(await ERC1155Instance.connect(owner).uri(1)).to.equal(
-        "newUri/{id}"
-      );
+      // Sets the token Uri per token id
+      await ERC1155Instance.connect(owner).setURI(1, "1");
+      expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("https://baseURI/1.json");
+
+      await ERC1155Instance.connect(owner).setURI(2, "2");
+      expect(await ERC1155Instance.connect(owner).uri(2)).to.equal("https://baseURI/2.json");
     });
   });
 });

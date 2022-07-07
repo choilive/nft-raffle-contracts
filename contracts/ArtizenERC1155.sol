@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.11;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract ArtizenERC1155 is ERC1155, Ownable {
+contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIds;
     mapping(address => bool) public whitelistedAddresses;
-
-    string private _uri;
 
     constructor() ERC1155("") {}
 
@@ -73,23 +71,16 @@ contract ArtizenERC1155 is ERC1155, Ownable {
         _safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 
-    function setURI(string memory uri) public onlyOwner {
-        _setURI(uri);
+    function setURI(uint256 tokenId, string memory tokenURI) public onlyOwner {
+        _setURI(tokenId, tokenURI);
+    }
+
+    function setBaseURI(string memory _uri) public onlyOwner {
+        _setBaseURI(_uri);
     }
 
     function addAddressToWhitelist(address whitelisted) public onlyOwner {
         whitelistedAddresses[whitelisted] = true;
     }
 
-    /*------ View Functions ------*/
-
-    function uri(uint256) public view override returns (string memory) {
-        return _uri;
-    }
-
-    /*------ Internal Functions ------*/
-
-    function _setURI(string memory newuri) internal override {
-        _uri = newuri;
-    }
 }
