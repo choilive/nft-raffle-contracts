@@ -302,6 +302,12 @@ contract RaffleV2 is
             4,
             ""
         );
+
+        // transfers reward tokens back to DAO Wallet
+
+        uint256 refundAmount = raffles[raffleID].tokenAllocation;
+        raffles[raffleID].tokenAllocation = 0;
+        withdraw(DAOWallet, refundAmount);
     }
 
     /**

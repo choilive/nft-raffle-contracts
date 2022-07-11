@@ -45,11 +45,15 @@ async function main() {
 
   // const USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174" // MATIC MAINET
   const USDC = "0x566368d78DBdEc50F04b588E152dE3cEC0d5889f"; // MUMBAI TESTNET
-  const trustedForwarder = "​​0x9399BB24DBB5C4b782C70c2969F58716Ebbd6a3b";
 
-  const raffleContract = await deploy("RaffleV2", [trustedForwarder, USDC], {});
+  const raffleContract = await deploy(
+    "RaffleV2",
+    [USDC, "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b"],
+    {}
+  );
 
   const rewardsContract = await deploy("TokenRewardsCalculationV2", [], {});
+  //const nftContract = await deploy("ArtizenERC1155", [], {});
 
   // verification
   if (verifiableNetwork.includes(network)) await verify();
