@@ -366,7 +366,7 @@ contract RaffleV2 is
         @notice distributes NFTs to winners at the end of a raffle cycle
         @param raffleID id of raffle
     */
-  function sendNFTRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
+  function sendRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
     if (raffles[raffleID].endTime > block.timestamp) revert RaffleHasNotEnded();
     if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
 
