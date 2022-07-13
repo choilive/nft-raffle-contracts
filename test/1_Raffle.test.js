@@ -61,8 +61,7 @@ describe("Raffle Contract Tests", function () {
     RaffleContract = await ethers.getContractFactory("RaffleV2");
     RaffleInstance = await RaffleContract.connect(owner).deploy(
       constants.POLYGON.USDC,
-      forwarderAddress,
-      ArtTokenInstance.address
+      forwarderAddress
     );
 
     // Deploy NFT
@@ -494,6 +493,29 @@ describe("Raffle Contract Tests", function () {
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 1)).to.equal(0);
       expect(await NFTInstance.balanceOf(ownerAddress, 1)).to.equal(4);
     });
+    it("sends rewardTokens to daoWallet", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000),
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      expect(await ArtTokenInstance.balanceOf(RaffleInstance.address)).to.equal(1000);
+      expect(await ArtTokenInstance.balanceOf(daoWalletAddress)).to.equal(29000);
+
+      await RaffleInstance.connect(owner).cancelRaffle(1);
+
+      expect(await ArtTokenInstance.balanceOf(RaffleInstance.address)).to.equal(0);
+      expect(await ArtTokenInstance.balanceOf(daoWalletAddress)).to.equal(30000);
+    });
   });
 
   describe("Donate function", function () {
@@ -740,8 +762,9 @@ describe("Raffle Contract Tests", function () {
         .withArgs(donor1Address, 1, 100);
     });
   });
-  describe("SendNFTsToWinners function", function () {
-    it("calculates winners correctly,NFT reflect in winners balances", async () => {
+  describe("SendRewards function", function () {
+    it("calculates winners correctly, NFT reflect in winners balances", async () => {
+      // The tokenRewards part of this function is tested in 4_TokenRewardsCalculation.test.js
       // NOTE : this test result for the random donor changes every time you run the test because the random donor is different each time
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -764,7 +787,7 @@ describe("Raffle Contract Tests", function () {
       );
 
       let newDonationTwo = await createDonationObject(
-        donor1Address,
+        donor2Address,
         1,
         ethers.utils.parseUnits("150", 6),
         0
@@ -774,7 +797,7 @@ describe("Raffle Contract Tests", function () {
 
       await fastForward(endTime);
 
-      await RaffleInstance.connect(curator).sendNFTRewards(1);
+      await RaffleInstance.connect(curator).sendRewards(1);
 
       expect(await NFTInstance.balanceOf(donor1Address, 1)).to.be.at.least(1);
       expect(await NFTInstance.balanceOf(donor1Address, 1)).to.be.at.most(2);
@@ -817,7 +840,7 @@ describe("Raffle Contract Tests", function () {
 
       await fastForward(endTime);
 
-      expect(await RaffleInstance.connect(curator).sendNFTRewards(1))
+      expect(await RaffleInstance.connect(curator).sendRewards(1))
         .to.emit(RaffleInstance, "NFTsentToWinner")
         .withArgs(1, donor1Address);
     });
@@ -845,9 +868,10 @@ describe("Raffle Contract Tests", function () {
       await RaffleInstance.connect(donor1).donate(newDonation);
 
       await expect(
-        RaffleInstance.connect(curator).sendNFTRewards(1)
+        RaffleInstance.connect(curator).sendRewards(1)
       ).to.be.revertedWith("RaffleHasNotEnded()");
     });
+    it("reverts if raffle is cancelled");
   });
 
   describe("withdraw function tests", function () {

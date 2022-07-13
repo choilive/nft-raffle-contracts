@@ -62,8 +62,7 @@ describe("Token Rewards Contract Tests", function () {
     RaffleContract = await ethers.getContractFactory("RaffleV2");
     RaffleInstance = await RaffleContract.connect(owner).deploy(
       constants.POLYGON.USDC,
-      forwarderAddress,
-      ArtTokenInstance.address
+      forwarderAddress
     );
 
     // Deploy NFT
@@ -224,8 +223,8 @@ describe("Token Rewards Contract Tests", function () {
 
     await fastForward(constants.TEST.twoMonths);
 
-    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
-    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+    await RaffleInstance.connect(curator).sendRewards(1);
+    // await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
 
     let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
@@ -257,9 +256,7 @@ describe("Token Rewards Contract Tests", function () {
 
     await fastForward(constants.TEST.oneMonth);
       
-    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
-    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
-    await RaffleInstance.connect(donor3).claimTokenRewards(1, donor3Address);
+    await RaffleInstance.connect(curator).sendRewards(1);
 
     let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
@@ -318,31 +315,33 @@ describe("Token Rewards Contract Tests", function () {
     );
     await RaffleInstance.connect(donor2).donate(donation2);
 
-    await expect(RaffleInstance.connect(donor1).claimTokenRewards(2, donor1Address))
+    await fastForward(constants.TEST.twoMonths);
+
+    await expect(RaffleInstance.connect(curator).sendRewards(2))
       .to.be.revertedWith("NoRewardsForRaffle()");
   });
   
-  it("throws CannotClaimRewards() if user hasnt donated", async () => {
-    await expect(RaffleInstance.connect(donor4).claimTokenRewards(1, donor4Address))
-    .to.be.revertedWith("CannotClaimRewards()");
-  });
-  it("reverts if user has already claimed", async () => {
-    await fastForward(constants.TEST.twoMonths);
-    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
+  /* --- These requires should be in the sendRewards function --- */
+  // it("throws CannotClaimRewards() if user hasnt donated", async () => {
+  //   await expect(RaffleInstance.connect(donor4).claimTokenRewards(1, donor4Address))
+  //   .to.be.revertedWith("CannotClaimRewards()");
+  // });
+  // it("reverts if user has already claimed", async () => {
+  //   await fastForward(constants.TEST.twoMonths);
+  //   await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
 
-    await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
-    .to.be.revertedWith("CannotClaimRewards()");
-  });
-  it("reverts if raffle hasnt ended", async () => {
-    await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
-    .to.be.revertedWith("RaffleHasNotEnded()");
-  });
+  //   await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
+  //   .to.be.revertedWith("CannotClaimRewards()");
+  // });
+  // it("reverts if raffle hasnt ended", async () => {
+  //   await expect(RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address))
+  //   .to.be.revertedWith("RaffleHasNotEnded()");
+  // });
   it("claims correctly for multiple raffles", async () => {
 
     await fastForward(constants.TEST.twoMonths);
 
-    await RaffleInstance.connect(donor1).claimTokenRewards(1, donor1Address);
-    await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
+    await RaffleInstance.connect(curator).sendRewards(1);
 
     let raffle1Donor1Bal = await ArtTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
@@ -407,8 +406,7 @@ describe("Token Rewards Contract Tests", function () {
 
     await fastForward(constants.TEST.twoMonths);
 
-    await RaffleInstance.connect(donor1).claimTokenRewards(2, donor1Address);
-    await RaffleInstance.connect(donor2).claimTokenRewards(2, donor2Address);
+    await RaffleInstance.connect(curator).sendRewards(2);
 
     let raffle2Donor1BalAfter = await ArtTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());

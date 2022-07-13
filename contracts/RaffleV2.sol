@@ -210,7 +210,7 @@ contract RaffleV2 is
     public
     onlyRole(DEFAULT_ADMIN_ROLE)
   {
-    if (REWARD_TOKEN.balanceOf(address(this)) <= amount)
+    if (REWARD_TOKEN.balanceOf(address(this)) < amount)
       revert InsufficientAmount();
     REWARD_TOKEN.approve(address(this), amount);
     REWARD_TOKEN.transferFrom(address(this), account, amount);
