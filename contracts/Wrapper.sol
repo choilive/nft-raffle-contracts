@@ -3,9 +3,14 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract Wrapper is AccessControl {
 
+uint256 public constant SCALE = 10000; // Scale is 10 000
+uint256 public protocolFee;
+
   struct Organization {
     string name, // should we register name on-chain
     address[] contractsDeployed,
+    address walletAddress,
+    uint organizationID // organization centracl wallet address
   }
 
 
@@ -17,12 +22,19 @@ event OrganizationCreated(string name);
 event RaffleModuleAdded(uint organizationID,address module);
 event TreasuryModuleAdded(uint organizationID,address module);
 
+  // --------------------------------------------------------------
+  // EVENTS
+  // --------------------------------------------------------------
+
+  error FeeOutOfRange();
    // --------------------------------------------------------------
   // PUBLIC FUNCTIONS
   // --------------------------------------------------------------
 
 
-  function registerOrganization() public
+  function registerOrganization() public {
+
+  }
   function createNewRaffleContract() public{}
   function createNewTreasuryContract() public {}
 
@@ -30,7 +42,12 @@ event TreasuryModuleAdded(uint organizationID,address module);
   // ONLY OWNER FUNCTIONS
   // --------------------------------------------------------------
 
-  function setFees(uint fee) public onlyOwner returns(uint){
-    // set organization fee going back to protocol
+  function setProtocolFee(uint _protocolFee) public onlyOwner returns(uint){
+         require(
+            _protocolFee < SCALE
+        ) revert FeeOutOfRange();
+
+        protocolFee = _protocolFee;
+        return protocolFee;
   }
 }
