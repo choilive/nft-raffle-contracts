@@ -17,6 +17,17 @@ describe("Free Ross Pfp Nft tests", function () {
         donor1Address = await donor1.getAddress();
 
         FreeRossNftContract = await ethers.getContractFactory("FreeRossPfpNft");
-        FreeRossNftInstance = await FreeRossNftContract.deploy();
+        FreeRossNftInstance = await FreeRossNftContract.deploy(
+            318,
+            2
+        );
+    });
+
+    describe("Initialization", function () {
+        it("Contract initializes properly", async () => {
+            expect(await FreeRossNftInstance.maxSupply()).to.equal(318);
+            expect(await FreeRossNftInstance.maxPerWallet()).to.equal(2);
+            expect(await FreeRossNftInstance.minDonation()).to.equal(ethers.utils.parseEther("0.2"));
+        });
     });
 });
