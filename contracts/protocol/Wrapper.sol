@@ -1,10 +1,12 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Wrapper is AccessControl {
+contract Wrapper is Ownable {
 
 uint256 public constant SCALE = 10000; // Scale is 10 000
 uint256 public protocolFee;
+
+
 
   struct Organization {
     string name, // should we register name on-chain
@@ -32,9 +34,8 @@ event TreasuryModuleAdded(uint organizationID,address module);
   // CONSTRUCTOR
   // --------------------------------------------------------------
 
-  constructor(address _usdc, address _forwarder) {
-    // Sets deployer as DEFAULT_ADMIN_ROLE
-    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  constructor() {
+
   }
    // --------------------------------------------------------------
   // PUBLIC FUNCTIONS
