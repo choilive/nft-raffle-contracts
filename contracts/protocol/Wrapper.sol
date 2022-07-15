@@ -1,6 +1,7 @@
 pragma solidity 0.8.11;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RaffleModule.sol";
+import "./TreasuryModule.sol";
 
 contract Wrapper is Ownable {
     uint256 public constant SCALE = 10000; // Scale is 10 000
@@ -78,8 +79,17 @@ contract Wrapper is Ownable {
 
     function addTreasuryContract(uint256 organizationID)
         public
-        returns (address)
-    {}
+        returns (address treasuryModuleAddress)
+    {
+        TreasuryModule _treasuryModule = new TreasuryModule();
+        treasuryModuleAddress = address(_treasuryModule);
+
+        address[] storage organizationContracts = organizations[organizationID]
+            .contractsDeployed;
+        organizationContracts.push(treasuryModuleAddress);
+
+        emit TreasuryModuleAdded(organizationID, treasuryModuleAddress);
+    }
 
     // --------------------------------------------------------------
     // ONLY OWNER FUNCTIONS
