@@ -60,6 +60,21 @@ contract Wrapper is Ownable {
         return organizationCount;
     }
 
+    function addTreasuryModule(uint256 organizationID)
+        public
+        returns (address treasuryModuleAddress)
+    {
+        // TODO should an organization only allowed to have 1 treasury?
+        TreasuryModule _treasuryModule = new TreasuryModule();
+        treasuryModuleAddress = address(_treasuryModule);
+
+        address[] storage organizationContracts = organizations[organizationID]
+            .contractsDeployed;
+        organizationContracts.push(treasuryModuleAddress);
+
+        emit TreasuryModuleAdded(organizationID, treasuryModuleAddress);
+    }
+
     function addNewRaffleModule(
         uint256 organizationID,
         address _usdc,
@@ -75,20 +90,6 @@ contract Wrapper is Ownable {
         organizationContracts.push(raffleModuleAddress);
 
         emit RaffleModuleAdded(organizationID, raffleModuleAddress);
-    }
-
-    function addTreasuryContract(uint256 organizationID)
-        public
-        returns (address treasuryModuleAddress)
-    {
-        TreasuryModule _treasuryModule = new TreasuryModule();
-        treasuryModuleAddress = address(_treasuryModule);
-
-        address[] storage organizationContracts = organizations[organizationID]
-            .contractsDeployed;
-        organizationContracts.push(treasuryModuleAddress);
-
-        emit TreasuryModuleAdded(organizationID, treasuryModuleAddress);
     }
 
     // --------------------------------------------------------------
