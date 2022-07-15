@@ -27,12 +27,21 @@ event TreasuryModuleAdded(uint organizationID,address module);
   // --------------------------------------------------------------
 
   error FeeOutOfRange();
+
+    // --------------------------------------------------------------
+  // CONSTRUCTOR
+  // --------------------------------------------------------------
+
+  constructor(address _usdc, address _forwarder) {
+    // Sets deployer as DEFAULT_ADMIN_ROLE
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+  }
    // --------------------------------------------------------------
   // PUBLIC FUNCTIONS
   // --------------------------------------------------------------
 
 
-  function registerOrganization() public {
+  function createOrganization() public {
 
   }
   function createNewRaffleContract() public{}
