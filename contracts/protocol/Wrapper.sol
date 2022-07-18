@@ -123,5 +123,11 @@ contract Wrapper is Ownable {
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getOrganisationDetails(uint256 organisationID) public view {}
+    function getOrganisationDetails(uint256 organisationID)
+        public
+        view
+        returns (Organisation memory)
+    {
+        return organisation[organisationID];
+    }
 }
