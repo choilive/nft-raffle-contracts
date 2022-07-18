@@ -80,7 +80,11 @@ contract Wrapper is Ownable {
         address _usdc,
         address _forwarder
     ) public returns (address raffleModuleAddress) {
-        RaffleModule _raffleModule = new RaffleModule(_usdc, _forwarder);
+        RaffleModule _raffleModule = new RaffleModule(
+            _usdc,
+            _forwarder,
+            address(this)
+        );
         raffleModuleAddress = address(_raffleModule);
 
         // register deployed contract with organization
