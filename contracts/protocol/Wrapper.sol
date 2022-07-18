@@ -83,7 +83,8 @@ contract Wrapper is Ownable {
         RaffleModule _raffleModule = new RaffleModule(
             _usdc,
             _forwarder,
-            address(this)
+            address(this),
+            organisationID
         );
         raffleModuleAddress = address(_raffleModule);
 
