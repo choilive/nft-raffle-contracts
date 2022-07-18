@@ -437,8 +437,10 @@ contract RaffleV2 is
         // send token rewards to all donors in raffle
         address[] memory donorsArray = getDonorsPerCycle(raffleID);
 
-        for (uint256 i = 0; i < donorsArray.length; i++) {
-            claimTokenRewards(raffleID, donorsArray[i]);
+        if (tokenRewardsActivated[raffleID] = true) {
+            for (uint256 i = 0; i < donorsArray.length; i++) {
+                claimTokenRewards(raffleID, donorsArray[i]);
+            }
         }
     }
 
