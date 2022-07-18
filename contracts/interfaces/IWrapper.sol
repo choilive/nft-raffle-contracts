@@ -8,5 +8,10 @@ interface IWrapper {
         view
         returns (address);
 
+    function getDAOWalletAddess(uint256 organisationID)
+        external
+        view
+        returns (address);
+
     function getFees() external view returns (uint256);
 }

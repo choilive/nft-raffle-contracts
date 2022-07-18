@@ -22,8 +22,8 @@ contract RaffleModule is
     IERC20 public REWARD_TOKEN;
 
     address public wrapperContractAddress;
-    address public tokenRewardsModuleAddress;
     address public DAOWallet;
+    address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
 
     // bool optionalTokenRewards;
@@ -153,16 +153,16 @@ contract RaffleModule is
     // --------------------------------------------------------------
 
     /**
-        @notice sets DAO wallet address for transfering funds
-        @param _DAOWallet address of DAO wallet
-    */
-    function setDAOWalletAddress(address _DAOWallet)
+      @notice connecting the organisations wallet address that was registered in the wrapper contract to this contract
+      @param organisationID organisation's id from wrapper contract
+  */
+    function connectDAOWalletAddress(uint256 organisationID)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
-        if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
-        DAOWallet = _DAOWallet;
-        emit DAOWalletAddressSet(_DAOWallet);
+        DAOWallet = IWrapper(wrapperContractAddress).getDAOWalletAddess(
+            organisationID
+        );
     }
 
     /**
@@ -305,7 +305,7 @@ contract RaffleModule is
             ""
         );
 
-        // transfers reward tokens back to DAO Wallet
+        // transfers reward tokens back to Organisation Wallet
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
@@ -369,7 +369,7 @@ contract RaffleModule is
             raffles[raffleId] = currentRaffle;
         }
 
-        //transfer funds to contract
+        //transfer funds to contract // TODO funds move to treasury
         USDC.transferFrom(_msgSender(), DAOWallet, _donation.amount);
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
