@@ -6,26 +6,26 @@ import "./TreasuryModule.sol";
 contract Wrapper is Ownable {
     uint256 public constant SCALE = 10000; // Scale is 10 000
     uint256 public protocolFee;
-    uint256 public organizationCount;
+    uint256 public organisationCount;
     address public tokenRewardsModuleAddress;
     address public protocolWalletAddress;
 
-    struct Organization {
+    struct Organisation {
         string name; //TODO do we need this on chain?
         address[] contractsDeployed;
         address walletAddress; // wallet address given by organization
-        uint256 organizationID;
+        uint256 organisationID;
     }
 
-    mapping(uint256 => Organization) organizations;
+    mapping(uint256 => Organisation) organisation;
 
     // --------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------
 
     event OrganizationCreated(uint256 id, address walletAddress);
-    event RaffleModuleAdded(uint256 organizationID, address module);
-    event TreasuryModuleAdded(uint256 organizationID, address module);
+    event RaffleModuleAdded(uint256 organisationID, address module);
+    event TreasuryModuleAdded(uint256 organisationID, address module);
 
     // --------------------------------------------------------------
     // EVENTS
@@ -44,23 +44,23 @@ contract Wrapper is Ownable {
     // PUBLIC FUNCTIONS
     // --------------------------------------------------------------
 
-    function createOrganization(Organization memory _organization)
+    function createOrganization(Organisation memory _organisation)
         public
         returns (uint256)
     {
-        if (_organization.walletAddress == address(0))
+        if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
-        organizationCount++;
-        _organization.organizationID = organizationCount;
-        organizations[organizationCount] = _organization;
+        organisationCount++;
+        _organisation.organisationID = organisationCount;
+        organisation[organisationCount] = _organisation;
         emit OrganizationCreated(
-            _organization.organizationID,
-            _organization.walletAddress
+            _organisation.organisationID,
+            _organisation.walletAddress
         );
-        return organizationCount;
+        return organisationCount;
     }
 
-    function addTreasuryModule(uint256 organizationID)
+    function addTreasuryModule(uint256 organisationID)
         public
         returns (address treasuryModuleAddress)
     {
@@ -68,15 +68,15 @@ contract Wrapper is Ownable {
         TreasuryModule _treasuryModule = new TreasuryModule();
         treasuryModuleAddress = address(_treasuryModule);
 
-        address[] storage organizationContracts = organizations[organizationID]
+        address[] storage organisationContracts = organisation[organisationID]
             .contractsDeployed;
-        organizationContracts.push(treasuryModuleAddress);
+        organisationContracts.push(treasuryModuleAddress);
 
-        emit TreasuryModuleAdded(organizationID, treasuryModuleAddress);
+        emit TreasuryModuleAdded(organisationID, treasuryModuleAddress);
     }
 
     function addNewRaffleModule(
-        uint256 organizationID,
+        uint256 organisationID,
         address _usdc,
         address _forwarder
     ) public returns (address raffleModuleAddress) {
@@ -85,11 +85,11 @@ contract Wrapper is Ownable {
 
         // register deployed contract with organization
 
-        address[] storage organizationContracts = organizations[organizationID]
+        address[] storage organisationContracts = organisation[organisationID]
             .contractsDeployed;
-        organizationContracts.push(raffleModuleAddress);
+        organisationContracts.push(raffleModuleAddress);
 
-        emit RaffleModuleAdded(organizationID, raffleModuleAddress);
+        emit RaffleModuleAdded(organisationID, raffleModuleAddress);
     }
 
     // --------------------------------------------------------------
@@ -118,4 +118,10 @@ contract Wrapper is Ownable {
         protocolFee = _protocolFee;
         return protocolFee;
     }
+
+    // --------------------------------------------------------------
+    // VIEW FUNCTIONS
+    // --------------------------------------------------------------
+
+    function getOrganisationDetails(uint256 organisationID) public view {}
 }
