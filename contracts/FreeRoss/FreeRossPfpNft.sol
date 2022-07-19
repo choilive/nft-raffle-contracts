@@ -18,6 +18,8 @@ contract FreeRossPfpNft is ERC1155, Ownable {
     mapping(uint256 => address) private _ownerOf;
     mapping(address => uint256) public amountPerWalletOwned;
 
+    event BaseURISet(string);
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -58,6 +60,7 @@ contract FreeRossPfpNft is ERC1155, Ownable {
 
     function setBaseURI(string memory _baseURI) public onlyOwner {
         baseURI = _baseURI;
+        emit BaseURISet(_baseURI);
     }
 
 }

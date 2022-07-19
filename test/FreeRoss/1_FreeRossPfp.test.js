@@ -77,6 +77,11 @@ describe("Free Ross Pfp Nft tests", function () {
             await expect(FreeRossNftInstance.connect(donor1).setBaseURI("ipfs://.../"))
                 .to.be.revertedWith("Ownable: caller is not the owner");
         });
+        it("emits BaseURISet event", async () => {
+            expect(await FreeRossNftInstance.connect(owner).setBaseURI("ipfs://.../"))
+                .to.emit(FreeRossNftInstance, "BaseURISet")
+                .withArgs("ipfs://.../");
+        });
     });
     describe("uri", function () {
         it("returns the correct uri", async () => {
