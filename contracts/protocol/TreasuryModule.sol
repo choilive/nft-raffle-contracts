@@ -9,7 +9,6 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule is Ownable {
-    uint256 public treasuryBalance;
     uint256 constant SCALE = 10000; // Scale is 10 000
 
     IERC20 public USDC;
@@ -23,6 +22,8 @@ contract TreasuryModule is Ownable {
     address public raffleModuleAddress;
     address public wrapperContractAddress;
 
+    // raffleID => total amount of donations
+    mapping(uint256 => uint256) totaldonationsPerRaffle;
     // ------------------------------------------ //
     //                  EVENTS                    //
     // ------------------------------------------ //
@@ -32,9 +33,13 @@ contract TreasuryModule is Ownable {
     event USDCMovedFromAaveToTreasury(uint256 amount);
     event USDCMovedFromTreasuryToAave(uint256 amount);
     event ProtocolFeesReduced(uint256 amount);
+    event RaffleModuleAddressSet(address raffleModuleAddress);
+    event DonationReceivedFromRaffle(uint256 raffleID, uint256 amount);
+    event FundsWithdrawnToOrganisationWallet(
+        uint256 amount,
+        address organisationWallet
+    );
 
-    // raffleID => total amount of donations
-    mapping(uint256 => uint256) totaldonationsPerRaffle;
     // --------------------------------------------------------------
     // CUSTOM ERRORS
     // --------------------------------------------------------------
@@ -81,6 +86,8 @@ contract TreasuryModule is Ownable {
         if (_raffleModuleAddress == address(0)) revert ZeroAddressNotAllowed();
 
         raffleModuleAddress = _raffleModuleAddress;
+
+        emit RaffleModuleAddressSet(_raffleModuleAddress);
     }
 
     // TODO this needs to be called from the raffle on donation
@@ -93,6 +100,8 @@ contract TreasuryModule is Ownable {
 
         // TODO need to check how the protocol fees will be taken
         totaldonationsPerRaffle[raffleID] += amount;
+
+        emit DonationReceivedFromRaffle(raffleID, amount);
     }
 
     function withdrawFundsToOrganisationWallet(
@@ -101,6 +110,8 @@ contract TreasuryModule is Ownable {
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         USDC.transferFrom(address(this), organisationWallet, amount);
+
+        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
     }
 
     // ** AAVE DEPOSIT AND WITHDRAWAL ** //
@@ -114,5 +125,17 @@ contract TreasuryModule is Ownable {
     function withdrawFromAave(uint256 amount) public onlyOwner {
         if (amount > 0) revert NoZeroWithDrawals();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
+    }
+
+    // --------------------------------------------------------------
+    // VIEW FUNCTIONS
+    // --------------------------------------------------------------
+
+    function getTotalDonationsPerRaffle(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
+        return totaldonationsPerRaffle[raffleID];
     }
 }
