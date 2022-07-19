@@ -95,11 +95,12 @@ contract TreasuryModule is Ownable {
         totaldonationsPerRaffle[raffleID] += amount;
     }
 
-    function withdrawFundsToOrganisationWallet(uint256 amount)
-        public
-        onlyOwner
-    {
+    function withdrawFundsToOrganisationWallet(
+        uint256 amount,
+        address organisationWallet
+    ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+        USDC.transferFrom(address(this), organisationWallet, amount);
     }
 
     // ** AAVE DEPOSIT AND WITHDRAWAL ** //
