@@ -280,7 +280,11 @@ contract RaffleModule is
                 donorsArray[i]
             );
 
-            USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
+            USDC.transferFrom(
+                treasuryAddress,
+                donorsArray[i],
+                refundPerAddress
+            );
         }
 
         // send NFTs back to owner
@@ -361,8 +365,8 @@ contract RaffleModule is
             raffles[raffleId] = currentRaffle;
         }
 
-        //transfer funds to contract // TODO funds move to treasury
-        USDC.transferFrom(_msgSender(), DAOWallet, _donation.amount);
+        //funds move to treasury
+        USDC.transferFrom(_msgSender(), treasuryAddress, _donation.amount);
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
