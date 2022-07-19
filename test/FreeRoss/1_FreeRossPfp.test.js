@@ -60,6 +60,11 @@ describe("Free Ross Pfp Nft tests", function () {
             await expect(FreeRossNftInstance.connect(donor3).mint(donor3Address))
                 .to.be.revertedWith("MINT HAS ENDED");            
         });
+        it("emits TransferSingle event", async () => {
+            expect(await FreeRossNftInstance.connect(donor1).mint(donor1Address))
+                .to.emit(FreeRossNftInstance, "TransferSingle")
+                .withArgs(donor1Address, ethers.constants.AddressZero, donor1Address, 1, 1);
+        });
     });
 
     describe("setBaseURI", function () {
