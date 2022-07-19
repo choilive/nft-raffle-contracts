@@ -25,6 +25,7 @@ contract RaffleModule is
     address public DAOWallet;
     address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
+    address public treasuryAddress;
 
     // bool optionalTokenRewards;
 
@@ -155,6 +156,15 @@ contract RaffleModule is
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
+
+    // function setTreasuryAddress(address _treasuryAddress)
+    //     public
+    //     onlyRole(CURATOR_ROLE)
+    // {
+    //     if (_treasuryAddress == address(0)) revert ZeroAddressNotAllowed();
+    //     treasuryAddress = _treasuryAddress;
+    //     emit treasuryAddressSet(_treasuryAddress);
+    // }
 
     /**
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle

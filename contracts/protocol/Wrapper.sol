@@ -14,11 +14,12 @@ contract Wrapper is Ownable {
         string name; //TODO do we need this on chain?
         address[] contractsDeployed;
         address walletAddress; // wallet address given by organization
+        address centralTreasury;
         uint256 organisationID;
     }
 
     mapping(uint256 => Organisation) organisation;
-
+    mapping(uint256 => bool) treasuryExist;
     // --------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------
@@ -33,6 +34,7 @@ contract Wrapper is Ownable {
 
     error FeeOutOfRange();
     error NoZeroAddressAllowed();
+    error OnlyOneTreasuryPerOrganisation();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -64,13 +66,14 @@ contract Wrapper is Ownable {
         public
         returns (address treasuryModuleAddress)
     {
-        // TODO should an organization only allowed to have 1 treasury?
+        if (treasuryExist[organisationID] == true)
+            revert OnlyOneTreasuryPerOrganisation();
+
+        treasuryExist[organisationID] = true;
         TreasuryModule _treasuryModule = new TreasuryModule();
         treasuryModuleAddress = address(_treasuryModule);
 
-        address[] storage organisationContracts = organisation[organisationID]
-            .contractsDeployed;
-        organisationContracts.push(treasuryModuleAddress);
+        organisation[organisationID].centralTreasury = treasuryModuleAddress;
 
         emit TreasuryModuleAdded(organisationID, treasuryModuleAddress);
     }
