@@ -13,5 +13,10 @@ interface IWrapper {
         view
         returns (address);
 
+    function getTreasuryAddress(uint256 organisationID)
+        external
+        view
+        returns (address);
+
     function getFees() external view returns (uint256);
 }

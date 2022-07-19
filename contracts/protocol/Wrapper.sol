@@ -156,6 +156,14 @@ contract Wrapper is Ownable {
         return organisation[organisationID].walletAddress;
     }
 
+    function getTreasuryAddress(uint256 organisationID)
+        public
+        view
+        returns (address)
+    {
+        return organisation[organisationID].centralTreasury;
+    }
+
     function getFees() public view returns (uint256) {
         return protocolFee;
     }

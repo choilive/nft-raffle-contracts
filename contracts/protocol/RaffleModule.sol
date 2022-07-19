@@ -151,20 +151,14 @@ contract RaffleModule is
         DAOWallet = IWrapper(wrapperContractAddress).getDAOWalletAddess(
             organisationID
         );
+        treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
+            organisationID
+        );
     }
 
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
-
-    // function setTreasuryAddress(address _treasuryAddress)
-    //     public
-    //     onlyRole(CURATOR_ROLE)
-    // {
-    //     if (_treasuryAddress == address(0)) revert ZeroAddressNotAllowed();
-    //     treasuryAddress = _treasuryAddress;
-    //     emit treasuryAddressSet(_treasuryAddress);
-    // }
 
     /**
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
