@@ -197,6 +197,8 @@ contract RaffleModule is
             .getTokenRewardsCalculationAddress();
         tokenRewardsActivated[_raffleID] = true;
 
+        // transfer reward tokens to contract
+        _topUpRewardTokenBalance(_raffleID, raffles[_raffleID].tokenAllocation);
         emit RewardTokenAddressSet(_rewardTokenAddress);
     }
 
@@ -234,11 +236,6 @@ contract RaffleModule is
         // Set the id of the raffle in the raffle struct
         _raffle.raffleID = raffleCount;
         raffles[raffleCount] = _raffle;
-
-        // if the rewards are turned on transfer tokens to contract
-        if (tokenRewardsActivated[_raffle.raffleID] == true) {
-            _topUpRewardTokenBalance(raffleCount, _raffle.tokenAllocation);
-        }
 
         emit RaffleCreated(
             _raffle.nftOwner,
