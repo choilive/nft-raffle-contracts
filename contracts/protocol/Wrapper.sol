@@ -63,15 +63,24 @@ contract Wrapper is Ownable {
         return organisationCount;
     }
 
-    function addTreasuryModule(uint256 organisationID)
-        public
-        returns (address treasuryModuleAddress)
-    {
+    function addTreasuryModule(
+        uint256 organisationID,
+        address USDC,
+        address aUSDC,
+        address aaveIncentivesController,
+        address lendingPool
+    ) public returns (address treasuryModuleAddress) {
         if (treasuryExist[organisationID] == true)
             revert OnlyOneTreasuryPerOrganisation();
 
         treasuryExist[organisationID] = true;
-        TreasuryModule _treasuryModule = new TreasuryModule();
+        TreasuryModule _treasuryModule = new TreasuryModule(
+            USDC,
+            aUSDC,
+            aaveIncentivesController,
+            lendingPool,
+            address(this)
+        );
         treasuryModuleAddress = address(_treasuryModule);
 
         organisation[organisationID].centralTreasury = treasuryModuleAddress;
