@@ -8,8 +8,8 @@ contract FreeRossPfpNft is ERC1155, Ownable {
     using Strings for uint256;
 
     uint256 public immutable MAX_SUPPLY;
+    uint256 public immutable amountPerWallet;
     uint256 public currentIndex = 1;
-    uint256 public amountPerWallet;
 
     string public name;
     string public symbol;
