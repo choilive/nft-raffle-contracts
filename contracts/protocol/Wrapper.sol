@@ -143,14 +143,6 @@ contract Wrapper is Ownable {
         return protocolFee;
     }
 
-    function setOrganisationFee(
-        uint256 organisationID,
-        uint256 _organisationFee
-    ) public {
-        if (organisation[organisationID].organisationFee < SCALE)
-            revert FeeOutOfRange();
-    }
-
     // --------------------------------------------------------------
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
