@@ -82,5 +82,4 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     function addAddressToWhitelist(address whitelisted) public onlyOwner {
         whitelistedAddresses[whitelisted] = true;
     }
-
 }

@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
-import "./interfaces/ITokenRewardsCalculation.sol";
+import "../interfaces/ITokenRewardsCalculation.sol";
+import "../interfaces/IWrapper.sol";
 
-contract RaffleV2 is
+contract RaffleModule is
     Ownable,
     AccessControl,
     ReentrancyGuard,
@@ -20,9 +21,11 @@ contract RaffleV2 is
     IERC20 public USDC;
     IERC20 public REWARD_TOKEN;
 
-    address public tokenRewardsModuleAddress;
+    address public wrapperContractAddress;
     address public DAOWallet;
+    address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
+    address public treasuryAddress;
 
     // bool optionalTokenRewards;
 
@@ -100,7 +103,6 @@ contract RaffleV2 is
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
     event DAOWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
-    event TokenRewardsModuleAddressSet(address tokenRewardsModuleAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
@@ -134,30 +136,29 @@ contract RaffleV2 is
     // CONSTRUCTOR
     // --------------------------------------------------------------
 
-    constructor(address _usdc, address _forwarder) {
+    constructor(
+        address _usdc,
+        address _forwarder,
+        address _wrapperContractAddress,
+        uint256 organisationID
+    ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        wrapperContractAddress = _wrapperContractAddress;
+        DAOWallet = IWrapper(wrapperContractAddress).getDAOWalletAddess(
+            organisationID
+        );
+        treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
+            organisationID
+        );
     }
 
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
-
-    /**
-        @notice sets DAO wallet address for transfering funds
-        @param _DAOWallet address of DAO wallet
-    */
-    function setDAOWalletAddress(address _DAOWallet)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (_DAOWallet == address(0)) revert ZeroAddressNotAllowed();
-        DAOWallet = _DAOWallet;
-        emit DAOWalletAddressSet(_DAOWallet);
-    }
 
     /**
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
@@ -190,23 +191,19 @@ contract RaffleV2 is
         revokeRole(CURATOR_ROLE, curator);
     }
 
-    function turnOnTokenRewards(
-        address _tokenRewardsModuleAddress,
-        address _rewardTokenAddress,
-        uint256 _raffleID
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (
-            _rewardTokenAddress == address(0) ||
-            _tokenRewardsModuleAddress == address(0)
-        ) revert ZeroAddressNotAllowed();
+    function turnOnTokenRewards(address _rewardTokenAddress, uint256 _raffleID)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
         REWARD_TOKEN = IERC20(_rewardTokenAddress);
-        tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
+        tokenRewardsModuleAddress = IWrapper(wrapperContractAddress)
+            .getTokenRewardsCalculationAddress();
         tokenRewardsActivated[_raffleID] = true;
 
         // transfer reward tokens to contract
         _topUpRewardTokenBalance(_raffleID, raffles[_raffleID].tokenAllocation);
         emit RewardTokenAddressSet(_rewardTokenAddress);
-        emit TokenRewardsModuleAddressSet(_tokenRewardsModuleAddress);
     }
 
     /**
@@ -283,7 +280,11 @@ contract RaffleV2 is
                 donorsArray[i]
             );
 
-            USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
+            USDC.transferFrom(
+                treasuryAddress,
+                donorsArray[i],
+                refundPerAddress
+            );
         }
 
         // send NFTs back to owner
@@ -300,7 +301,7 @@ contract RaffleV2 is
             ""
         );
 
-        // transfers reward tokens back to DAO Wallet
+        // transfers reward tokens back to Organisation Wallet
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
@@ -364,8 +365,8 @@ contract RaffleV2 is
             raffles[raffleId] = currentRaffle;
         }
 
-        //transfer funds to contract
-        USDC.transferFrom(_msgSender(), DAOWallet, _donation.amount);
+        //funds move to treasury
+        USDC.transferFrom(_msgSender(), treasuryAddress, _donation.amount);
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
@@ -433,7 +434,6 @@ contract RaffleV2 is
 
         // send token rewards to all donors in raffle
         address[] memory donorsArray = getDonorsPerCycle(raffleID);
-
         if (tokenRewardsActivated[raffleID] = true) {
             for (uint256 i = 0; i < donorsArray.length; i++) {
                 claimTokenRewards(raffleID, donorsArray[i]);
