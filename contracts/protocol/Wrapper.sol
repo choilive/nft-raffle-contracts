@@ -4,178 +4,195 @@ import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
 contract Wrapper is Ownable {
-    uint256 public constant SCALE = 10000; // Scale is 10 000
-    uint256 public protocolFee;
-    uint256 public organisationCount;
-    address public tokenRewardsModuleAddress;
-    address public protocolWalletAddress;
+  uint256 public constant SCALE = 10000; // Scale is 10 000
+  uint256 public protocolFee;
+  uint256 public organisationFee;
+  uint256 public organisationCount;
+  address public tokenRewardsModuleAddress;
+  address public protocolWalletAddress;
 
-    struct Organisation {
-        string name; //TODO do we need this on chain?
-        address[] contractsDeployed;
-        address walletAddress; // wallet address given by organization
-        address centralTreasury;
-        uint256 organisationID;
-    }
+  struct Organisation {
+    string name; //TODO do we need this on chain?
+    uint256 organisationID;
+    uint256 organisationFee;
+    address walletAddress; // wallet address given by organization
+    address centralTreasury;
+    address[] contractsDeployed;
+  }
 
-    mapping(uint256 => Organisation) organisation;
-    mapping(uint256 => bool) treasuryExist;
-    // --------------------------------------------------------------
-    // EVENTS
-    // --------------------------------------------------------------
+  mapping(uint256 => Organisation) organisation;
+  // organisationID => bool
+  mapping(uint256 => bool) treasuryExist;
+  // --------------------------------------------------------------
+  // EVENTS
+  // --------------------------------------------------------------
 
-    event OrganizationCreated(uint256 id, address walletAddress);
-    event RaffleModuleAdded(uint256 organisationID, address module);
-    event TreasuryModuleAdded(uint256 organisationID, address module);
+  event OrganizationCreated(uint256 id, address walletAddress);
+  event RaffleModuleAdded(uint256 organisationID, address module);
+  event TreasuryModuleAdded(uint256 organisationID, address module);
 
-    // --------------------------------------------------------------
-    // EVENTS
-    // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // CUSTOM ERRORS
+  // --------------------------------------------------------------
 
-    error FeeOutOfRange();
-    error NoZeroAddressAllowed();
-    error OnlyOneTreasuryPerOrganisation();
-    error NeedToCreateTreasuryFirst();
+  error FeeOutOfRange();
+  error NoZeroAddressAllowed();
+  error OnlyOneTreasuryPerOrganisation();
+  error NeedToCreateTreasuryFirst();
 
-    // --------------------------------------------------------------
-    // CONSTRUCTOR
-    // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // CONSTRUCTOR
+  // --------------------------------------------------------------
 
-    constructor() {}
+  constructor() {}
 
-    // --------------------------------------------------------------
-    // PUBLIC FUNCTIONS
-    // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // PUBLIC FUNCTIONS
+  // --------------------------------------------------------------
 
-    function createOrganization(Organisation memory _organisation)
-        public
-        returns (uint256)
-    {
-        if (_organisation.walletAddress == address(0))
-            revert NoZeroAddressAllowed();
-        organisationCount++;
-        _organisation.organisationID = organisationCount;
-        organisation[organisationCount] = _organisation;
-        emit OrganizationCreated(
-            _organisation.organisationID,
-            _organisation.walletAddress
-        );
-        return organisationCount;
-    }
+  function createOrganization(Organisation memory _organisation)
+    public
+    returns (uint256)
+  {
+    if (_organisation.organisationFee < SCALE) revert FeeOutOfRange();
+    if (_organisation.walletAddress == address(0))
+      revert NoZeroAddressAllowed();
+    organisationCount++;
+    _organisation.organisationID = organisationCount;
+    organisation[organisationCount] = _organisation;
+    emit OrganizationCreated(
+      _organisation.organisationID,
+      _organisation.walletAddress
+    );
+    return organisationCount;
+  }
 
-    function addTreasuryModule(
-        uint256 organisationID,
-        address USDC,
-        address aUSDC,
-        address aaveIncentivesController,
-        address lendingPool
-    ) public returns (address treasuryModuleAddress) {
-        if (treasuryExist[organisationID] == true)
-            revert OnlyOneTreasuryPerOrganisation();
+  function addTreasuryModule(
+    uint256 organisationID,
+    address USDC,
+    address aUSDC,
+    address aaveIncentivesController,
+    address lendingPool
+  ) public returns (address treasuryModuleAddress) {
+    if (treasuryExist[organisationID] == true)
+      revert OnlyOneTreasuryPerOrganisation();
 
-        treasuryExist[organisationID] = true;
-        TreasuryModule _treasuryModule = new TreasuryModule(
-            USDC,
-            aUSDC,
-            aaveIncentivesController,
-            lendingPool,
-            address(this)
-        );
-        treasuryModuleAddress = address(_treasuryModule);
+    treasuryExist[organisationID] = true;
+    TreasuryModule _treasuryModule = new TreasuryModule(
+      USDC,
+      aUSDC,
+      aaveIncentivesController,
+      lendingPool,
+      address(this)
+    );
+    treasuryModuleAddress = address(_treasuryModule);
 
-        organisation[organisationID].centralTreasury = treasuryModuleAddress;
+    organisation[organisationID].centralTreasury = treasuryModuleAddress;
 
-        emit TreasuryModuleAdded(organisationID, treasuryModuleAddress);
-    }
+    emit TreasuryModuleAdded(organisationID, treasuryModuleAddress);
+  }
 
-    function addNewRaffleModule(
-        uint256 organisationID,
-        address _usdc,
-        address _forwarder
-    ) public returns (address raffleModuleAddress) {
-        if (!treasuryExist[organisationID]) revert NeedToCreateTreasuryFirst();
-        RaffleModule _raffleModule = new RaffleModule(
-            _usdc,
-            _forwarder,
-            address(this),
-            organisationID
-        );
-        raffleModuleAddress = address(_raffleModule);
+  function addNewRaffleModule(
+    uint256 organisationID,
+    address _usdc,
+    address _forwarder
+  ) public returns (address raffleModuleAddress) {
+    if (!treasuryExist[organisationID]) revert NeedToCreateTreasuryFirst();
+    RaffleModule _raffleModule = new RaffleModule(
+      _usdc,
+      _forwarder,
+      address(this),
+      organisationID
+    );
+    raffleModuleAddress = address(_raffleModule);
 
-        // register deployed contract with organization
+    // register deployed contract with organization
 
-        address[] storage organisationContracts = organisation[organisationID]
-            .contractsDeployed;
-        organisationContracts.push(raffleModuleAddress);
+    address[] storage organisationContracts = organisation[organisationID]
+      .contractsDeployed;
+    organisationContracts.push(raffleModuleAddress);
 
-        emit RaffleModuleAdded(organisationID, raffleModuleAddress);
-    }
+    emit RaffleModuleAdded(organisationID, raffleModuleAddress);
+  }
 
-    // --------------------------------------------------------------
-    // ONLY OWNER FUNCTIONS
-    // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // ONLY OWNER FUNCTIONS
+  // --------------------------------------------------------------
 
-    function setProtocolWalletAddress(address _protocolWalletAddress)
-        public
-        onlyOwner
-        returns (address)
-    {
-        protocolWalletAddress = _protocolWalletAddress;
-    }
+  function setProtocolWalletAddress(address _protocolWalletAddress)
+    public
+    onlyOwner
+    returns (address)
+  {
+    protocolWalletAddress = _protocolWalletAddress;
+  }
 
-    function setTokenRewardsCalculationAddress(
-        address _tokenRewardsModuleAddress
-    ) public onlyOwner returns (address) {
-        tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
-    }
+  function setTokenRewardsCalculationAddress(address _tokenRewardsModuleAddress)
+    public
+    onlyOwner
+    returns (address)
+  {
+    tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
+  }
 
-    function setProtocolFee(uint256 _protocolFee)
-        public
-        onlyOwner
-        returns (uint256)
-    {
-        if (_protocolFee < SCALE) revert FeeOutOfRange();
-        protocolFee = _protocolFee;
-        return protocolFee;
-    }
+  function setProtocolFee(uint256 _protocolFee)
+    public
+    onlyOwner
+    returns (uint256)
+  {
+    if (_protocolFee < SCALE) revert FeeOutOfRange();
+    protocolFee = _protocolFee;
+    return protocolFee;
+  }
 
-    // --------------------------------------------------------------
-    // VIEW FUNCTIONS
-    // --------------------------------------------------------------
+  function setOrganisationFee(uint256 organisationID, uint256 _organisationFee)
+    public
+  {
+    if (organisation[organisationID].organisationFee < SCALE)
+      revert FeeOutOfRange();
+  }
 
-    function getOrganisationDetails(uint256 organisationID)
-        public
-        view
-        returns (Organisation memory)
-    {
-        return organisation[organisationID];
-    }
+  // --------------------------------------------------------------
+  // VIEW FUNCTIONS
+  // --------------------------------------------------------------
 
-    function getProtocolWalletAddress() public view returns (address) {
-        return protocolWalletAddress;
-    }
+  function getOrganisationDetails(uint256 organisationID)
+    public
+    view
+    returns (Organisation memory)
+  {
+    return organisation[organisationID];
+  }
 
-    function getTokenRewardsCalculationAddress() public view returns (address) {
-        return tokenRewardsModuleAddress;
-    }
+  function getProtocolWalletAddress() public view returns (address) {
+    return protocolWalletAddress;
+  }
 
-    function getDAOWalletAddess(uint256 organisationID)
-        public
-        view
-        returns (address)
-    {
-        return organisation[organisationID].walletAddress;
-    }
+  function getTokenRewardsCalculationAddress() public view returns (address) {
+    return tokenRewardsModuleAddress;
+  }
 
-    function getTreasuryAddress(uint256 organisationID)
-        public
-        view
-        returns (address)
-    {
-        return organisation[organisationID].centralTreasury;
-    }
+  function getDAOWalletAddess(uint256 organisationID)
+    public
+    view
+    returns (address)
+  {
+    return organisation[organisationID].walletAddress;
+  }
 
-    function getFees() public view returns (uint256) {
-        return protocolFee;
-    }
+  function getTreasuryAddress(uint256 organisationID)
+    public
+    view
+    returns (address)
+  {
+    return organisation[organisationID].centralTreasury;
+  }
+
+  function getProtocolFee() public view returns (uint256) {
+    return protocolFee;
+  }
+
+  function getOrganisationFee() public view returns (uint256) {
+    return organisationFee;
+  }
 }
