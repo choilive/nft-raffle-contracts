@@ -91,15 +91,24 @@ contract TreasuryModule is Ownable {
     }
 
     // TODO this needs to be called from the raffle on donation
-    function processDonationFromRaffle(uint256 raffleID, uint256 amount)
-        external
-    {
+    function processDonationFromRaffle(
+        uint256 raffleID,
+        uint256 amount,
+        uint256 organisationID
+    ) external {
         if (msg.sender != raffleModuleAddress)
             revert OnlyRegisteredModulesCanCallThisFunction();
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // TODO need to check how the protocol fees will be taken
-        totaldonationsPerRaffle[raffleID] += amount;
+        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
+        uint256 organisationFee = IWrapper(wrapperContractAddress)
+            .getOrganisationFee(organisationID);
+        uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 amountAfterFees = amount -
+            (protocolFeesEarned + organisationFeesEarned);
+        totaldonationsPerRaffle[raffleID] += amountAfterFees;
 
         emit DonationReceivedFromRaffle(raffleID, amount);
     }
