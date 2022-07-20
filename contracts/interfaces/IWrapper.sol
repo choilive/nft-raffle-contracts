@@ -18,5 +18,10 @@ interface IWrapper {
         view
         returns (address);
 
-    function getFees() external view returns (uint256);
+    function getProtocolFee() external view returns (uint256);
+
+    function getOrganisationFee(uint256 organisationID)
+        external
+        view
+        returns (uint256);
 }
