@@ -42,6 +42,23 @@ const createRaffleObject = async (
   return _raffle;
 };
 
+const createOrganizationObject = async (
+  name,
+  organisationFee,
+  walletAddress,
+) => {
+  const _organisation = {
+    name: name,
+    organisationID: 0,
+    organisationFee: organisationFee,
+    walletAddress: walletAddress,
+    centralTreasury: ethers.constants.AddressZero,
+    contractsDeployed: [],
+  };
+
+  return _organisation;
+};
+
 const createDonationObject = async (donor, raffleID, amount, timestamp) => {
   const _donation = {
     donor: donor,
@@ -55,6 +72,7 @@ const createDonationObject = async (donor, raffleID, amount, timestamp) => {
 module.exports = {
   createRaffleObject,
   createDonationObject,
+  createOrganizationObject,
   fastForward,
   currentTime,
 };
