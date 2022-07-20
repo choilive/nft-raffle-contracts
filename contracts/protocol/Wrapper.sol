@@ -22,14 +22,14 @@ contract Wrapper is Ownable {
 
     mapping(uint256 => Organisation) organisation;
     // organisationID => bool
-    mapping(uint256 => bool) treasuryExist;
+    mapping(uint256 => bool) public treasuryExist;
     // --------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------
 
     event OrganizationCreated(uint256 id, address walletAddress);
-    event RaffleModuleAdded(uint256 organisationID, address module);
-    event TreasuryModuleAdded(uint256 organisationID, address module);
+    event RaffleModuleAdded(uint256 organisationID);
+    event TreasuryModuleAdded(uint256 organisationID);
 
     // --------------------------------------------------------------
     // CUSTOM ERRORS
@@ -89,7 +89,7 @@ contract Wrapper is Ownable {
 
         organisation[organisationID].centralTreasury = treasuryModuleAddress;
 
-        emit TreasuryModuleAdded(organisationID, treasuryModuleAddress);
+        emit TreasuryModuleAdded(organisationID);
     }
 
     function addNewRaffleModule(
@@ -112,7 +112,8 @@ contract Wrapper is Ownable {
             .contractsDeployed;
         organisationContracts.push(raffleModuleAddress);
 
-        emit RaffleModuleAdded(organisationID, raffleModuleAddress);
+        emit RaffleModuleAdded(organisationID);
+
     }
 
     // --------------------------------------------------------------

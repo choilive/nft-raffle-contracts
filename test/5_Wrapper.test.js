@@ -54,7 +54,7 @@ describe("Raffle Contract Tests", function () {
     WrapperContract = await ethers.getContractFactory("Wrapper");
     WrapperInstance = await WrapperContract.connect(owner).deploy();
   });
-  describe.only("createOrganization", function () {
+  describe("createOrganization", function () {
     it("creates organisation correctly", async () => {
         expect(await WrapperInstance.organisationCount()).to.equal(0);
 
@@ -106,5 +106,187 @@ describe("Raffle Contract Tests", function () {
             .withArgs(1, daoWalletAddress);
     });
   });
-  describe("addTreasuryModule", function () {});
+  describe("addTreasuryModule", function () {
+    this.beforeEach(async () => {
+        let organization1 = await createOrganizationObject(
+            "organisation1",
+            ethers.utils.parseUnits("10", 6),
+            daoWalletAddress
+        );
+        await WrapperInstance.connect(owner).createOrganization(organization1);
+    });
+    it("deploys treasuryModule", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+        let organizationObject = await WrapperInstance.connect(owner)
+            .getOrganisationDetails(organizationID);
+        
+        expect(organizationObject.centralTreasury).to.equal(ethers.constants.AddressZero);
+        expect(await WrapperInstance.treasuryExist(organizationID)).to.equal(false);
+        
+        await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        );
+
+        organizationObject = await WrapperInstance.connect(owner)
+            .getOrganisationDetails(organizationID);
+        console.log(organizationObject.centralTreasury);
+        expect(organizationObject.centralTreasury).to.not.equal(ethers.constants.AddressZero); 
+
+        expect(await WrapperInstance.treasuryExist(organizationID)).to.equal(true);
+    });
+    it("throws OnlyOneTreasuryPerOrganisation", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+
+        await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        );
+        await expect(WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        )).to.be.revertedWith("OnlyOneTreasuryPerOrganisation()");
+    });
+    it("emits TreasuryModuleAdded", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+        let organizationObject = await WrapperInstance.connect(owner).getOrganisationDetails(organizationID);
+        let treasuryModuleAddress = organizationObject.centralTreasury;
+
+        expect(await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        )).to.emit(WrapperInstance, "TreasuryModuleAdded").withArgs(organizationID);
+    });
+  });
+  describe.only("addNewRaffleModule", function () {
+    this.beforeEach(async () => {
+        let organization1 = await createOrganizationObject(
+            "organisation1",
+            ethers.utils.parseUnits("10", 6),
+            daoWalletAddress
+        );
+        await WrapperInstance.connect(owner).createOrganization(organization1);
+    });
+    it("creates new raffle module", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+
+        let organizationObject = await WrapperInstance.connect(owner)
+            .getOrganisationDetails(organizationID);
+        
+        expect(organizationObject.contractsDeployed.length).to.equal(0);
+
+        await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        );
+
+        await WrapperInstance.connect(owner).addNewRaffleModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            forwarderAddress
+        );
+
+        organizationObject = await WrapperInstance.connect(owner)
+            .getOrganisationDetails(organizationID);
+        
+        expect(organizationObject.contractsDeployed.length).to.equal(1);
+
+        await WrapperInstance.connect(owner).addNewRaffleModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            forwarderAddress
+        );
+
+        organizationObject = await WrapperInstance.connect(owner)
+            .getOrganisationDetails(organizationID);
+        
+        expect(organizationObject.contractsDeployed.length).to.equal(2);
+    });
+    it("throws NeedToCreateTreasuryFirst", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+
+        await expect(WrapperInstance.connect(owner).addNewRaffleModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            forwarderAddress
+        )).to.be.revertedWith("NeedToCreateTreasuryFirst()");
+    });
+    it("emits RaffleModuleAdded", async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+
+        await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        );
+
+        expect(await WrapperInstance.connect(owner).addNewRaffleModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            forwarderAddress
+        )).to.emit(WrapperInstance, "RaffleModuleAdded")
+        .withArgs(organizationID);
+    });
+  });
+  describe.only("setter fuctions", function () {
+    it("setProtocolWalletAddress", async () => {
+        expect(await WrapperInstance.protocolWalletAddress()).to.equal(ethers.constants.AddressZero);
+
+        await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
+
+        expect(await WrapperInstance.protocolWalletAddress()).to.equal(daoWalletAddress);
+    });
+    it("only owner can call setProtocolWalletAddress", async () => {
+        await expect(WrapperInstance.connect(donor1).setProtocolWalletAddress(daoWalletAddress))
+            .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+    it("setTokenRewardsCalculationAddress", async () => {
+        let TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
+        let TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
+
+        expect(await WrapperInstance.tokenRewardsModuleAddress()).to.equal(ethers.constants.AddressZero);
+
+        await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
+
+        expect(await WrapperInstance.tokenRewardsModuleAddress()).to.equal(TokenRewardsInstance.address);
+    });
+    it("only owner can call setTokenRewardsCalculationAddress", async () => {
+        let TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
+        let TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
+        await expect(WrapperInstance.connect(donor1).setTokenRewardsCalculationAddress(TokenRewardsInstance.address))
+            .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+    it("setProtocolFee", async () => {
+        expect(await WrapperInstance.protocolFee()).to.equal(0);
+
+        await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+
+        expect(await WrapperInstance.protocolFee()).to.equal(ethers.utils.parseUnits("10", 6));
+    });
+    it("throws FeeOutOfRange()", async () => {
+        await expect(WrapperInstance.connect(owner).setProtocolFee(10))
+            .to.be.revertedWith("FeeOutOfRange()");
+    });
+    it("only owner can call setProtocolFee", async () => {
+        await expect(WrapperInstance.connect(donor1).setProtocolFee(ethers.utils.parseUnits("10", 6)))
+            .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+  });
 });
