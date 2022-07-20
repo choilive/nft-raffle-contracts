@@ -6,19 +6,22 @@ import "./TreasuryModule.sol";
 contract Wrapper is Ownable {
     uint256 public constant SCALE = 10000; // Scale is 10 000
     uint256 public protocolFee;
+    uint256 public organisationFee;
     uint256 public organisationCount;
     address public tokenRewardsModuleAddress;
     address public protocolWalletAddress;
 
     struct Organisation {
         string name; //TODO do we need this on chain?
-        address[] contractsDeployed;
+        uint256 organisationID;
+        uint256 organisationFee;
         address walletAddress; // wallet address given by organization
         address centralTreasury;
-        uint256 organisationID;
+        address[] contractsDeployed;
     }
 
     mapping(uint256 => Organisation) organisation;
+    // organisationID => bool
     mapping(uint256 => bool) treasuryExist;
     // --------------------------------------------------------------
     // EVENTS
@@ -29,7 +32,7 @@ contract Wrapper is Ownable {
     event TreasuryModuleAdded(uint256 organisationID, address module);
 
     // --------------------------------------------------------------
-    // EVENTS
+    // CUSTOM ERRORS
     // --------------------------------------------------------------
 
     error FeeOutOfRange();
@@ -51,6 +54,7 @@ contract Wrapper is Ownable {
         public
         returns (uint256)
     {
+        if (_organisation.organisationFee < SCALE) revert FeeOutOfRange();
         if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
         organisationCount++;
@@ -139,6 +143,14 @@ contract Wrapper is Ownable {
         return protocolFee;
     }
 
+    function setOrganisationFee(
+        uint256 organisationID,
+        uint256 _organisationFee
+    ) public {
+        if (organisation[organisationID].organisationFee < SCALE)
+            revert FeeOutOfRange();
+    }
+
     // --------------------------------------------------------------
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
@@ -175,7 +187,15 @@ contract Wrapper is Ownable {
         return organisation[organisationID].centralTreasury;
     }
 
-    function getFees() public view returns (uint256) {
+    function getProtocolFee() public view returns (uint256) {
         return protocolFee;
+    }
+
+    function getOrganisationFee(uint256 organisationID)
+        public
+        view
+        returns (uint256)
+    {
+        return organisation[organisationID].organisationFee;
     }
 }
