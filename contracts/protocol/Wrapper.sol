@@ -192,7 +192,11 @@ contract Wrapper is Ownable {
     return protocolFee;
   }
 
-  function getOrganisationFee() public view returns (uint256) {
-    return organisationFee;
+  function getOrganisationFee(uint256 organisationID)
+    public
+    view
+    returns (uint256)
+  {
+    return organisations[organisationID].organisationFee;
   }
 }
