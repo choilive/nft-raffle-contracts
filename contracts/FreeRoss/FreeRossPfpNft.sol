@@ -25,8 +25,7 @@ contract FreeRossPfpNft is ERC1155, Ownable {
         string memory _symbol,
         uint256 _MAX_SUPPLY,
         uint256 _amountPerWallet
-        ) ERC1155("") 
-    {
+    ) ERC1155("") {
         name = _name;
         symbol = _symbol;
         MAX_SUPPLY = _MAX_SUPPLY;
@@ -36,7 +35,10 @@ contract FreeRossPfpNft is ERC1155, Ownable {
     function mint(address _to) public {
         uint256 _currentIndex = currentIndex;
         require(_currentIndex < MAX_SUPPLY + 1, "MINT HAS ENDED");
-        require(amountPerWalletOwned[_to] < amountPerWallet, "MAX AMOUNT ALREADY MINTED");
+        require(
+            amountPerWalletOwned[_to] < amountPerWallet,
+            "MAX AMOUNT ALREADY MINTED"
+        );
 
         _mint(_to, _currentIndex, 1, "");
 
@@ -49,12 +51,12 @@ contract FreeRossPfpNft is ERC1155, Ownable {
         currentIndex = _currentIndex;
     }
 
-    function uri(uint256 id) public view override returns(string memory) {
+    function uri(uint256 id) public view override returns (string memory) {
         require(id <= currentIndex, "invalid id");
         return string(abi.encodePacked(baseURI, id.toString(), ".json"));
     }
 
-    function ownerOf(uint256 _id) public view returns(address) {
+    function ownerOf(uint256 _id) public view returns (address) {
         return _ownerOf[_id];
     }
 
@@ -62,5 +64,4 @@ contract FreeRossPfpNft is ERC1155, Ownable {
         baseURI = _baseURI;
         emit BaseURISet(_baseURI);
     }
-
 }
