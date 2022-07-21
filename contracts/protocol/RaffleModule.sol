@@ -148,7 +148,7 @@ contract RaffleModule is
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         wrapperContractAddress = _wrapperContractAddress;
-        DAOWallet = IWrapper(wrapperContractAddress).getDAOWalletAddess(
+        DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
             organisationID
         );
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
