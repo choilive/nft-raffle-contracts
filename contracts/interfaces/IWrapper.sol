@@ -8,7 +8,7 @@ interface IWrapper {
         view
         returns (address);
 
-    function getDAOWalletAddess(uint256 organisationID)
+    function getOrgaisationWalletAddess(uint256 organisationID)
         external
         view
         returns (address);

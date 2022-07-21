@@ -39,11 +39,12 @@ const USDC = new ethers.Contract(
 
 describe("Raffle Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
+    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
     daoWalletAddress = await daoWallet.getAddress();
+    organisationWalletAddress = await organisationWallet.getAddress();
     nftAuthorAddress = await nftAuthor.getAddress();
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
@@ -61,7 +62,7 @@ describe("Raffle Contract Tests", function () {
         let organization1 = await createOrganizationObject(
             "organisation1",
             ethers.utils.parseUnits("10", 6),
-            daoWalletAddress
+            organisationWalletAddress
         );
         await WrapperInstance.connect(owner).createOrganization(organization1);
 
@@ -73,7 +74,7 @@ describe("Raffle Contract Tests", function () {
         expect(organizationObject.name).to.equal("organisation1");
         expect(organizationObject.organisationID).to.equal(1);
         expect(organizationObject.organisationFee).to.equal(ethers.utils.parseUnits("10", 6));
-        expect(organizationObject.walletAddress).to.equal(daoWalletAddress);
+        expect(organizationObject.walletAddress).to.equal(organisationWalletAddress);
         expect(organizationObject.centralTreasury).to.equal(ethers.constants.AddressZero);
         expect(organizationObject.contractsDeployed.length).to.equal(0);
     });
@@ -99,19 +100,19 @@ describe("Raffle Contract Tests", function () {
         let organization1 = await createOrganizationObject(
             "organisation1",
             ethers.utils.parseUnits("10", 6),
-            daoWalletAddress
+            organisationWalletAddress
         );
         expect(await WrapperInstance.connect(owner).createOrganization(organization1))
             .to.emit(WrapperInstance, "OrganizationCreated")
-            .withArgs(1, daoWalletAddress);
+            .withArgs(1, organisationWalletAddress);
     });
   });
   describe("addTreasuryModule", function () {
-    this.beforeEach(async () => {
+    beforeEach(async () => {
         let organization1 = await createOrganizationObject(
             "organisation1",
             ethers.utils.parseUnits("10", 6),
-            daoWalletAddress
+            organisationWalletAddress
         );
         await WrapperInstance.connect(owner).createOrganization(organization1);
     });
@@ -159,8 +160,7 @@ describe("Raffle Contract Tests", function () {
     it("emits TreasuryModuleAdded", async () => {
         let organizationID = await WrapperInstance.organisationCount();
         let organizationObject = await WrapperInstance.connect(owner).getOrganisationDetails(organizationID);
-        let treasuryModuleAddress = organizationObject.centralTreasury;
-
+        
         expect(await WrapperInstance.connect(owner).addTreasuryModule(
             organizationID,
             constants.POLYGON.USDC,
@@ -170,12 +170,12 @@ describe("Raffle Contract Tests", function () {
         )).to.emit(WrapperInstance, "TreasuryModuleAdded").withArgs(organizationID);
     });
   });
-  describe.only("addNewRaffleModule", function () {
-    this.beforeEach(async () => {
+  describe("addNewRaffleModule", function () {
+    beforeEach(async () => {
         let organization1 = await createOrganizationObject(
             "organisation1",
             ethers.utils.parseUnits("10", 6),
-            daoWalletAddress
+            organisationWalletAddress
         );
         await WrapperInstance.connect(owner).createOrganization(organization1);
     });
@@ -245,7 +245,7 @@ describe("Raffle Contract Tests", function () {
         .withArgs(organizationID);
     });
   });
-  describe.only("setter fuctions", function () {
+  describe("setter fuctions", function () {
     it("setProtocolWalletAddress", async () => {
         expect(await WrapperInstance.protocolWalletAddress()).to.equal(ethers.constants.AddressZero);
 
@@ -287,6 +287,64 @@ describe("Raffle Contract Tests", function () {
     it("only owner can call setProtocolFee", async () => {
         await expect(WrapperInstance.connect(donor1).setProtocolFee(ethers.utils.parseUnits("10", 6)))
             .to.be.revertedWith("Ownable: caller is not the owner");
+    });
+  });
+  describe("view functions", function () {
+    beforeEach(async () => {
+        let organizationID = await WrapperInstance.organisationCount();
+
+        let organization1 = await createOrganizationObject(
+            "organisation1",
+            ethers.utils.parseUnits("10", 6),
+            organisationWalletAddress
+        );
+        await WrapperInstance.connect(owner).createOrganization(organization1);
+
+        await WrapperInstance.connect(owner).addTreasuryModule(
+            organizationID,
+            constants.POLYGON.USDC,
+            constants.POLYGON.amUSDC,
+            constants.POLYGON.AaveIncentivesController,
+            constants.POLYGON.AaveLendingPool
+        );
+
+        await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+        await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
+
+    });
+    it("getOrganisationDetails", async () => {
+        // Tested in createOrganization test.
+    });
+    it("getProtocolWalletAddress", async () => {
+        expect(await WrapperInstance.connect(owner).getProtocolWalletAddress())
+            .to.equal(daoWalletAddress);
+    });
+    it("getTokenRewardsCalculationAddress", async () => {
+        let TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
+        let TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
+
+        await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
+
+        expect(await WrapperInstance.tokenRewardsModuleAddress()).to.equal(TokenRewardsInstance.address);
+        expect(await WrapperInstance.connect(owner).getTokenRewardsCalculationAddress())
+            .to.equal(await WrapperInstance.tokenRewardsModuleAddress());
+    });
+    it("getOrgaisationWalletAddess", async () => {
+        expect(await WrapperInstance.connect(owner).getOrgaisationWalletAddess(1))
+            .to.equal(organisationWalletAddress);
+    });
+    it("getTreasuryAddress", async () => {
+        let organizationObject = await WrapperInstance.connect(owner).getOrganisationDetails(1);
+        expect(await WrapperInstance.connect(owner).getTreasuryAddress(1))
+            .to.equal(organizationObject.centralTreasury);
+    });
+    it("getProtocolFee", async () => {
+        expect(await WrapperInstance.connect(owner).getProtocolFee())
+            .to.equal(ethers.utils.parseUnits("10", 6));
+    });
+    it("getOrganisationFee", async () => {
+        expect(await WrapperInstance.connect(owner).getOrganisationFee(1))
+            .to.equal(ethers.utils.parseUnits("10", 6));
     });
   });
 });

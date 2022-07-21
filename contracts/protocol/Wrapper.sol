@@ -164,7 +164,7 @@ contract Wrapper is Ownable {
         return tokenRewardsModuleAddress;
     }
 
-    function getDAOWalletAddess(uint256 organisationID)
+    function getOrgaisationWalletAddess(uint256 organisationID)
         public
         view
         returns (address)
