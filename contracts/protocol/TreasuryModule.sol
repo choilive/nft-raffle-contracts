@@ -42,6 +42,8 @@ contract TreasuryModule is Ownable {
         address organisationWallet
     );
     event ProtocolFeesPaidOnDonation(uint256 amount);
+    event FundsDepositedToAave(uint256 amount);
+    event FundsWithdrawnFromAave(uint256 amount);
 
     // --------------------------------------------------------------
     // CUSTOM ERRORS
@@ -140,11 +142,15 @@ contract TreasuryModule is Ownable {
         if (amount > 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
+
+        emit FundsDepositedToAave(amount);
     }
 
     function withdrawFromAave(uint256 amount) public onlyOwner {
         if (amount > 0) revert NoZeroWithDrawals();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
+
+        emit FundsWithdrawnFromAave(amount);
     }
 
     // --------------------------------------------------------------
