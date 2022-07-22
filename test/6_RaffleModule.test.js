@@ -36,7 +36,13 @@ const USDC = new ethers.Contract(
   ethers.provider
 );
 
-describe("Raffle Contract Tests", function () {
+const amUSDC = new ethers.Contract(
+  constants.POLYGON.amUSDC,
+  ERC20_ABI.abi,
+  ethers.provider
+);
+
+describe("Raffle Module Tests", function () {
   beforeEach(async () => {
     [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
       await ethers.getSigners();
@@ -52,61 +58,40 @@ describe("Raffle Contract Tests", function () {
     forwarderAddress = await forwarder.getAddress();
 
     await hre.network.provider.request({
-        method: "hardhat_impersonateAccount",
-        params: [constants.POLYGON.USDC_WHALE],
-      });
-  
+      method: "hardhat_impersonateAccount",
+      params: [constants.POLYGON.USDC_WHALE],
+    });
+
     usdcWhale = await ethers.getSigner(constants.POLYGON.USDC_WHALE);
     usdcWhaleAddress = await usdcWhale.getAddress();
 
     // setting up donors with USDC
     await USDC.connect(usdcWhale).transfer(
-        donor1.address,
-        ethers.utils.parseUnits("500", 6)
+      donor1.address,
+      ethers.utils.parseUnits("500", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
-        donor2.address,
-        ethers.utils.parseUnits("500", 6)
+      donor2.address,
+      ethers.utils.parseUnits("500", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
-        donor3.address,
-        ethers.utils.parseUnits("500", 6)
+      donor3.address,
+      ethers.utils.parseUnits("500", 6)
     );
 
     await USDC.connect(donor2).approve(
-        daoWallet.address,
-        ethers.utils.parseUnits("1000", 6)
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
     );
     await USDC.connect(donor3).approve(
-    daoWallet.address,
-    ethers.utils.parseUnits("1000", 6)
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
     );
     await USDC.connect(donor1).approve(
-        daoWallet.address,
-        ethers.utils.parseUnits("1000", 6)
-    );
-    await USDC.connect(donor1).approve(
-        RaffleInstance.address,
-        ethers.utils.parseUnits("1000", 6)
-    );
-
-    await USDC.connect(donor2).approve(
-        RaffleInstance.address,
-        ethers.utils.parseUnits("1000", 6)
-    );
-
-    await USDC.connect(donor3).approve(
-        RaffleInstance.address,
-        ethers.utils.parseUnits("1000", 6)
-    );
-
-    // mint NFT to artist
-    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
-    await NFTInstance.connect(owner).setApprovalForAll(
-        RaffleInstance.address,
-        true
+      daoWallet.address,
+      ethers.utils.parseUnits("1000", 6)
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
@@ -124,27 +109,131 @@ describe("Raffle Contract Tests", function () {
     NFTContract = await ethers.getContractFactory("RewardNFT");
     NFTInstance = await NFTContract.connect(owner).deploy();
 
+    // mint NFT to artist
+    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
+
     TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
     TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
 
     // Create Organisation
     let organization1 = await createOrganizationObject(
-        "organisation1",
-        ethers.utils.parseUnits("10", 6),
-        organisationWalletAddress
+      "organisation1",
+      ethers.utils.parseUnits("10", 6),
+      organisationWalletAddress
     );
     await WrapperInstance.connect(owner).createOrganization(organization1);
 
+    let organizationID = await WrapperInstance.organisationCount();
+
     await WrapperInstance.connect(owner).addTreasuryModule(
-        organizationID,
-        constants.POLYGON.USDC,
-        constants.POLYGON.amUSDC,
-        constants.POLYGON.AaveIncentivesController,
-        constants.POLYGON.AaveLendingPool
+      organizationID,
+      constants.POLYGON.USDC,
+      constants.POLYGON.amUSDC,
+      constants.POLYGON.AaveIncentivesController,
+      constants.POLYGON.AaveLendingPool
     );
 
     await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
     await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
     await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+
+    await WrapperInstance.connect(owner).addNewRaffleModule(
+      organizationID,
+      constants.POLYGON.USDC,
+      forwarderAddress
+    );
+
+    let organisationOblect = await WrapperInstance.connect(owner)
+      .getOrganisationDetails(organizationID);
+
+    let raffle1AddressArray = organisationOblect.contractsDeployed;
+    let raffle1Address = raffle1AddressArray[0];
+
+    await USDC.connect(donor1).approve(
+      raffle1Address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await USDC.connect(donor2).approve(
+      raffle1Address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await USDC.connect(donor3).approve(
+      raffle1Address,
+      ethers.utils.parseUnits("1000", 6)
+    );
+
+    await NFTInstance.connect(owner).setApprovalForAll(
+      raffle1Address,
+      true
+    );
+
+    // set times
+    startTime = await currentTime();
+    endTime = startTime + constants.TEST.oneMonth;
+
+    // set NFT Author address
+    console.log("Curator: " + curatorAddress);
+    console.log("Owner: " + ownerAddress);
+    console.log("Wrapper: " + WrapperInstance.address);
+
+  });
+  describe("donate", function () {
+    this.beforeEach(async () => {
+      let organizationID = await WrapperInstance.organisationCount();
+
+      let organisationObject = await WrapperInstance.connect(owner)
+        .getOrganisationDetails(organizationID);
+
+      let raffle1AddressArray = organisationObject.contractsDeployed;
+      let raffle1Address = raffle1AddressArray[0];
+      let treasuryAddress = organisationObject.centralTreasury;
+
+      let RaffleInstance = await ethers.getContractAt(
+        "RaffleModule",
+        raffle1Address,
+        owner
+      );
+
+      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+
+      await RaffleInstance.connect(curator).setNftAuthorWalletAddress(
+        nftAuthorAddress
+      );
+
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000),
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(donation1);
+    });
+    it("donation processes correctly", async () => {
+      let organizationID = await WrapperInstance.organisationCount();
+
+      let organisationObject = await WrapperInstance.connect(owner)
+        .getOrganisationDetails(organizationID);
+      
+      let treasuryAddress = organisationObject.centralTreasury;
+      
+      expect(await USDC.balanceOf(treasuryAddress)).to.equal(ethers.utils.parseUnits("200", 6));
+    });
   });
 });
