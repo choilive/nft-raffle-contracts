@@ -9,170 +9,177 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule is Ownable {
-    uint256 constant SCALE = 10000; // Scale is 10 000
+  uint256 constant SCALE = 10000; // Scale is 10 000
 
-    IERC20 public USDC;
-    IAToken public aUSDC;
-    IAaveIncentivesController public AaveIncentivesController;
-    ILendingPool public AaveLendingPool;
+  IERC20 public USDC;
+  IAToken public aUSDC;
+  IAaveIncentivesController public AaveIncentivesController;
+  ILendingPool public AaveLendingPool;
 
-    address public USDCAddress; // needed for lending pool ops
-    address public aaveLendingPoolAddress;
+  address public USDCAddress; // needed for lending pool ops
+  address public aaveLendingPoolAddress;
 
-    address public raffleModuleAddress;
-    address public wrapperContractAddress;
+  address public raffleModuleAddress;
+  address public wrapperContractAddress;
 
-    uint256 organisationFeeBalance;
+  uint256 organisationFeeBalance;
 
-    // raffleID => total amount of donations
-    mapping(uint256 => uint256) totaldonationsPerRaffle;
-    // ------------------------------------------ //
-    //                  EVENTS                    //
-    // ------------------------------------------ //
+  // raffleID => total amount of donations
+  mapping(uint256 => uint256) totaldonationsPerRaffle;
+  // ------------------------------------------ //
+  //                  EVENTS                    //
+  // ------------------------------------------ //
 
-    event USDCWithdrawal(uint256 amountWithdrawn);
-    event USDCWithdrawalAdmin(address indexed recipient, uint256 amount);
-    event USDCMovedFromAaveToTreasury(uint256 amount);
-    event USDCMovedFromTreasuryToAave(uint256 amount);
-    event ProtocolFeesReduced(uint256 amount);
-    event RaffleModuleAddressSet(address raffleModuleAddress);
-    event DonationReceivedFromRaffle(uint256 raffleID, uint256 amount);
-    event FundsWithdrawnToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
+  event USDCWithdrawal(uint256 amountWithdrawn);
+  event USDCWithdrawalAdmin(address indexed recipient, uint256 amount);
+  event USDCMovedFromAaveToTreasury(uint256 amount);
+  event USDCMovedFromTreasuryToAave(uint256 amount);
+  event ProtocolFeesReduced(uint256 amount);
+  event RaffleModuleAddressSet(address raffleModuleAddress);
+  event DonationReceivedFromRaffle(uint256 raffleID, uint256 amount);
+  event FundsWithdrawnToOrganisationWallet(
+    uint256 amount,
+    address organisationWallet
+  );
+  event ProtocolFeesPaidOnDonation(uint256 amount);
+  event FundsDepositedToAave(uint256 amount);
+  event FundsWithdrawnFromAave(uint256 amount);
+
+  // --------------------------------------------------------------
+  // CUSTOM ERRORS
+  // --------------------------------------------------------------
+
+  error ZeroAddressNotAllowed();
+  error OnlyRegisteredModulesCanCallThisFunction();
+  error NoZeroDeposits();
+  error NoZeroWithDrawals();
+  error InsufficentFunds();
+
+  // --------------------------------------------------------------
+  // CONSTRUCTOR
+  // --------------------------------------------------------------
+
+  constructor(
+    address _USDC,
+    address _aUSDC,
+    address _aaveIncentivesController,
+    address _lendingPool,
+    address _wrapperContractAddress
+  ) {
+    USDCAddress = _USDC;
+    aaveLendingPoolAddress = _lendingPool;
+    USDC = IERC20(_USDC);
+    aUSDC = IAToken(_aUSDC);
+    AaveIncentivesController = IAaveIncentivesController(
+      _aaveIncentivesController
     );
-    event ProtocolFeesPaidOnDonation(uint256 amount);
-    event FundsDepositedToAave(uint256 amount);
-    event FundsWithdrawnFromAave(uint256 amount);
+    AaveLendingPool = ILendingPool(_lendingPool);
 
-    // --------------------------------------------------------------
-    // CUSTOM ERRORS
-    // --------------------------------------------------------------
+    wrapperContractAddress = _wrapperContractAddress;
+    // Infinite approve Aave for USDC deposits
+    USDC.approve(_lendingPool, type(uint256).max);
+  }
 
-    error ZeroAddressNotAllowed();
-    error OnlyRegisteredModulesCanCallThisFunction();
-    error NoZeroDeposits();
-    error NoZeroWithDrawals();
-    error InsufficentFunds();
+  // --------------------------------------------------------------
+  // STATE-MODIFYING FUNCTIONS
+  // --------------------------------------------------------------
 
-    // --------------------------------------------------------------
-    // CONSTRUCTOR
-    // --------------------------------------------------------------
+  function setRaffleModuleAddress(address _raffleModuleAddress)
+    public
+    onlyOwner
+  {
+    if (_raffleModuleAddress == address(0)) revert ZeroAddressNotAllowed();
 
-    constructor(
-        address _USDC,
-        address _aUSDC,
-        address _aaveIncentivesController,
-        address _lendingPool,
-        address _wrapperContractAddress
-    ) {
-        USDCAddress = _USDC;
-        aaveLendingPoolAddress = _lendingPool;
-        USDC = IERC20(_USDC);
-        aUSDC = IAToken(_aUSDC);
-        AaveIncentivesController = IAaveIncentivesController(
-            _aaveIncentivesController
-        );
-        AaveLendingPool = ILendingPool(_lendingPool);
+    raffleModuleAddress = _raffleModuleAddress;
 
-        wrapperContractAddress = _wrapperContractAddress;
-        // Infinite approve Aave for USDC deposits
-        USDC.approve(_lendingPool, type(uint256).max);
-    }
+    emit RaffleModuleAddressSet(_raffleModuleAddress);
+  }
 
-    // --------------------------------------------------------------
-    // STATE-MODIFYING FUNCTIONS
-    // --------------------------------------------------------------
+  // TODO this needs to be called from the raffle on donation
+  function processDonationFromRaffle(
+    uint256 raffleID,
+    uint256 amount,
+    uint256 organisationID
+  ) external {
+    if (msg.sender != raffleModuleAddress)
+      revert OnlyRegisteredModulesCanCallThisFunction();
+    require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
-    function setRaffleModuleAddress(address _raffleModuleAddress)
-        public
-        onlyOwner
-    {
-        if (_raffleModuleAddress == address(0)) revert ZeroAddressNotAllowed();
+    // get protocol and organisation fees
+    uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
+    uint256 organisationFee = IWrapper(wrapperContractAddress)
+      .getOrganisationFee(organisationID);
+    uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
+    uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
 
-        raffleModuleAddress = _raffleModuleAddress;
+    // add organisation fee to balance
+    organisationFeeBalance += organisationFeesEarned;
 
-        emit RaffleModuleAddressSet(_raffleModuleAddress);
-    }
+    // transfer protocol fee to protocol wallet
+    _transferProtocolFee(protocolFeesEarned);
 
-    // TODO this needs to be called from the raffle on donation
-    function processDonationFromRaffle(
-        uint256 raffleID,
-        uint256 amount,
-        uint256 organisationID
-    ) external {
-        if (msg.sender != raffleModuleAddress)
-            revert OnlyRegisteredModulesCanCallThisFunction();
-        require(USDC.transfer(address(this), amount), "DONATION FAILED");
+    // update total donations for raffle
+    uint256 amountAfterFees = amount -
+      (protocolFeesEarned + organisationFeesEarned);
+    totaldonationsPerRaffle[raffleID] += amountAfterFees;
 
-        // get protocol and organisation fees
-        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
-        uint256 organisationFee = IWrapper(wrapperContractAddress)
-            .getOrganisationFee(organisationID);
-        uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
-        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+    emit DonationReceivedFromRaffle(raffleID, amount);
+  }
 
-        // add organisation fee to balance
-        organisationFeeBalance += organisationFeesEarned;
+  function withdrawFundsToOrganisationWallet(
+    uint256 amount,
+    address organisationWallet
+  ) public onlyOwner {
+    if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+    USDC.transferFrom(address(this), organisationWallet, amount);
 
-        // transfer protocol fee to protocol wallet
-        _transferProtocolFee(protocolFeesEarned);
+    emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
+  }
 
-        // update total donations for raffle
-        uint256 amountAfterFees = amount -
-            (protocolFeesEarned + organisationFeesEarned);
-        totaldonationsPerRaffle[raffleID] += amountAfterFees;
+  // ** AAVE DEPOSIT AND WITHDRAWAL ** //
 
-        emit DonationReceivedFromRaffle(raffleID, amount);
-    }
+  function depositToAave(uint256 amount) public onlyOwner {
+    if (amount > 0) revert NoZeroDeposits();
+    if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+    AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
 
-    function withdrawFundsToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
-    ) public onlyOwner {
-        if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
-        USDC.transferFrom(address(this), organisationWallet, amount);
+    emit FundsDepositedToAave(amount);
+  }
 
-        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
-    }
+  function withdrawFromAave(uint256 amount) public onlyOwner {
+    if (amount > 0) revert NoZeroWithDrawals();
+    AaveLendingPool.withdraw(USDCAddress, amount, address(this));
 
-    // ** AAVE DEPOSIT AND WITHDRAWAL ** //
+    emit FundsWithdrawnFromAave(amount);
+  }
 
-    function depositToAave(uint256 amount) public onlyOwner {
-        if (amount > 0) revert NoZeroDeposits();
-        if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
-        AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
+  function claimAaveRewards(address[] calldata _assets, uint256 _amountToClaim)
+    external
+    onlyOwner
+  {
+    AaveIncentivesController.claimRewards(_assets, _amountToClaim, msg.sender);
+  }
 
-        emit FundsDepositedToAave(amount);
-    }
+  // --------------------------------------------------------------
+  // INTERNAL FUNCTIONS
+  // --------------------------------------------------------------
 
-    function withdrawFromAave(uint256 amount) public onlyOwner {
-        if (amount > 0) revert NoZeroWithDrawals();
-        AaveLendingPool.withdraw(USDCAddress, amount, address(this));
+  function _transferProtocolFee(uint256 amount) internal {
+    address protocolWallet = IWrapper(wrapperContractAddress)
+      .getProtocolWalletAddress();
+    USDC.transferFrom(address(this), protocolWallet, amount);
+    emit ProtocolFeesPaidOnDonation(amount);
+  }
 
-        emit FundsWithdrawnFromAave(amount);
-    }
+  // --------------------------------------------------------------
+  // VIEW FUNCTIONS
+  // --------------------------------------------------------------
 
-    // --------------------------------------------------------------
-    // INTERNAL FUNCTIONS
-    // --------------------------------------------------------------
-
-    function _transferProtocolFee(uint256 amount) internal {
-        address protocolWallet = IWrapper(wrapperContractAddress)
-            .getProtocolWalletAddress();
-        USDC.transferFrom(address(this), protocolWallet, amount);
-        emit ProtocolFeesPaidOnDonation(amount);
-    }
-
-    // --------------------------------------------------------------
-    // VIEW FUNCTIONS
-    // --------------------------------------------------------------
-
-    function getTotalDonationsPerRaffle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return totaldonationsPerRaffle[raffleID];
-    }
+  function getTotalDonationsPerRaffle(uint256 raffleID)
+    public
+    view
+    returns (uint256)
+  {
+    return totaldonationsPerRaffle[raffleID];
+  }
 }
