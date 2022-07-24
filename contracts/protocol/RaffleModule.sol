@@ -369,6 +369,14 @@ contract RaffleModule is
         //funds move to treasury
         USDC.transferFrom(_msgSender(), treasuryAddress, _donation.amount);
 
+        // calls function from treasury to register incoming donation
+        uint256 organisationID; // TODO figure out how to get organisationID from wrapper
+        ITreasuryModule(treasuryAddress).processDonationFromRaffle(
+            _donation.raffleID,
+            _donation.amount,
+            organisationID
+        );
+
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
         return donationCount;
