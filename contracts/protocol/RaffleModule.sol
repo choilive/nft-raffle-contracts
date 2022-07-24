@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
+import "../interfaces/ITreasuryModule.sol";
 
 contract RaffleModule is
     Ownable,
