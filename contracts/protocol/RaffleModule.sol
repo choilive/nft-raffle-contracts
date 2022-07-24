@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
+import "../interfaces/ITreasuryModule.sol";
 
 contract RaffleModule is
     Ownable,
@@ -26,6 +27,8 @@ contract RaffleModule is
     address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
     address public treasuryAddress;
+
+    uint256 organisationID;
 
     // bool optionalTokenRewards;
 
@@ -140,13 +143,14 @@ contract RaffleModule is
         address _usdc,
         address _forwarder,
         address _wrapperContractAddress,
-        uint256 organisationID
+        uint256 _organisationID
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
         DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
             organisationID
@@ -367,6 +371,13 @@ contract RaffleModule is
 
         //funds move to treasury
         USDC.transferFrom(_msgSender(), treasuryAddress, _donation.amount);
+
+        // calls function from treasury to register incoming donation
+        ITreasuryModule(treasuryAddress).processDonationFromRaffle(
+            _donation.raffleID,
+            _donation.amount,
+            organisationID
+        );
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
