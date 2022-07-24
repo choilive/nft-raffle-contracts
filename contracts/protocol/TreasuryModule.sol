@@ -147,7 +147,9 @@ contract TreasuryModule is Ownable {
     }
 
     function withdrawFromAave(uint256 amount) public onlyOwner {
+        uint256 AaveBalance = getUSDCInAave();
         if (amount > 0) revert NoZeroWithDrawals();
+        if (amount > AaveBalance) revert InsufficentFunds();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
 
         emit FundsWithdrawnFromAave(amount);
