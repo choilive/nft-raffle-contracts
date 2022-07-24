@@ -28,6 +28,8 @@ contract RaffleModule is
     address public nftAuthorWallet;
     address public treasuryAddress;
 
+    uint256 organisationID;
+
     // bool optionalTokenRewards;
 
     bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
@@ -141,13 +143,14 @@ contract RaffleModule is
         address _usdc,
         address _forwarder,
         address _wrapperContractAddress,
-        uint256 organisationID
+        uint256 _organisationID
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
         DAOWallet = IWrapper(wrapperContractAddress).getDAOWalletAddess(
             organisationID
@@ -370,7 +373,6 @@ contract RaffleModule is
         USDC.transferFrom(_msgSender(), treasuryAddress, _donation.amount);
 
         // calls function from treasury to register incoming donation
-        uint256 organisationID; // TODO figure out how to get organisationID from wrapper
         ITreasuryModule(treasuryAddress).processDonationFromRaffle(
             _donation.raffleID,
             _donation.amount,
