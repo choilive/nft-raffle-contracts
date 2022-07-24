@@ -191,4 +191,9 @@ contract TreasuryModule is Ownable {
         uint256 USDCInAave = aUSDC.balanceOf(address(this));
         return USDCInAave;
     }
+
+    function getUSDCFromTreasury() public view returns (uint256) {
+        uint256 USDCInTreasury = USDC.balanceOf(address(this));
+        return USDCInTreasury;
+    }
 }
