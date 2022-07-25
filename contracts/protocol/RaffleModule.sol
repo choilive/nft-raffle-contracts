@@ -153,8 +153,8 @@ contract RaffleModule is
         organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
         DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
-            organisationID
-        );
+                organisationID
+            );
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
             organisationID
         );

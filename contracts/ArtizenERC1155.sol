@@ -18,7 +18,7 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     function mint(
         address to,
         uint256 amount,
-        bytes memory data
+        bytes memory data,
         string memory tokenURI
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
@@ -32,7 +32,7 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     function batchMint(
         address to,
         uint256[] memory amounts,
-        bytes memory data
+        bytes memory data,
         string[] memory tokenURIs
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
