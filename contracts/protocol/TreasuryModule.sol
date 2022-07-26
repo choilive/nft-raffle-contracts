@@ -23,8 +23,8 @@ contract TreasuryModule is Ownable {
 
     uint256 organisationFeeBalance;
 
-    // raffleID => total amount of donations
-    mapping(uint256 => uint256) totaldonationsPerRaffle;
+    // raffleContractAddress => raffleID => total amount of donations
+    mapping(address => mapping(uint256 => uint256)) totaldonationsPerRaffle;
     // ------------------------------------------ //
     //                  EVENTS                    //
     // ------------------------------------------ //
@@ -109,7 +109,9 @@ contract TreasuryModule is Ownable {
         // update total donations for raffle
         uint256 amountAfterFees = amount -
             (protocolFeesEarned + organisationFeesEarned);
-        totaldonationsPerRaffle[raffleID] += amountAfterFees;
+        totaldonationsPerRaffle[raffleContractAddress][
+            raffleID
+        ] += amountAfterFees;
 
         emit DonationReceivedFromRaffle(
             raffleID,
@@ -173,12 +175,11 @@ contract TreasuryModule is Ownable {
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getTotalDonationsPerRaffle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return totaldonationsPerRaffle[raffleID];
+    function getTotalDonationsPerRaffle(
+        address raffleContractAddress,
+        uint256 raffleID
+    ) public view returns (uint256) {
+        return totaldonationsPerRaffle[raffleContractAddress][raffleID];
     }
 
     function getUSDCInAave() public view returns (uint256) {
