@@ -11,6 +11,7 @@ import "contracts/interfaces/IWrapper.sol";
 contract TreasuryModule is Ownable {
     uint256 constant SCALE = 10000; // Scale is 10 000
 
+    IWrapper WrapperContract;
     IERC20 public USDC;
     IAToken public aUSDC;
     IAaveIncentivesController public AaveIncentivesController;
@@ -19,7 +20,7 @@ contract TreasuryModule is Ownable {
     address public USDCAddress; // needed for lending pool ops
     address public aaveLendingPoolAddress;
 
-    address public wrapperContractAddress;
+    // address public wrapperContractAddress;
 
     uint256 organisationFeeBalance;
 
@@ -75,8 +76,9 @@ contract TreasuryModule is Ownable {
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
+        WrapperContract = IWrapper(_wrapperContractAddress);
 
-        wrapperContractAddress = _wrapperContractAddress;
+        // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
     }
@@ -94,14 +96,15 @@ contract TreasuryModule is Ownable {
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // get protocol and organisation fees
-        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
-        uint256 organisationFee = IWrapper(wrapperContractAddress)
-            .getOrganisationFee(organisationID);
+        uint256 protocolFee = WrapperContract.getProtocolFee();
+        uint256 organisationFee = WrapperContract.getOrganisationFee(organisationID);
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
-        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 organisationFeesEarned = (amount * organisationFee) / SCALE;
 
         // add organisation fee to balance
         organisationFeeBalance += organisationFeesEarned;
+
+        USDC.approve(address(this), protocolFeesEarned);
 
         // transfer protocol fee to protocol wallet
         _transferProtocolFee(protocolFeesEarned);
@@ -165,8 +168,7 @@ contract TreasuryModule is Ownable {
     // --------------------------------------------------------------
 
     function _transferProtocolFee(uint256 amount) internal {
-        address protocolWallet = IWrapper(wrapperContractAddress)
-            .getProtocolWalletAddress();
+        address protocolWallet = WrapperContract.getProtocolWalletAddress();
         USDC.transferFrom(address(this), protocolWallet, amount);
         emit ProtocolFeesPaidOnDonation(amount);
     }

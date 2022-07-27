@@ -604,17 +604,17 @@ contract RaffleModule is
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
-        return raffles[raffleID];
-    }
+    // function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
+    //     return raffles[raffleID];
+    // }
 
-    function getDonation(uint256 donationID)
-        public
-        view
-        returns (Donation memory)
-    {
-        return donations[donationID];
-    }
+    // function getDonation(uint256 donationID)
+    //     public
+    //     view
+    //     returns (Donation memory)
+    // {
+    //     return donations[donationID];
+    // }
 
     function getTotalDonationsPerCycle(uint256 raffleID)
         public
