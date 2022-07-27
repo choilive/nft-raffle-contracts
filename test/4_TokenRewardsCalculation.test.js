@@ -75,7 +75,7 @@ describe("Token Rewards Contract Tests", function () {
     // Create Organisation
     let organization1 = await createOrganizationObject(
       "organisation1",
-      ethers.utils.parseUnits("10", 6),
+      10,
       organisationWalletAddress
     );
     await WrapperInstance.connect(owner).createOrganization(organization1);
@@ -97,11 +97,10 @@ describe("Token Rewards Contract Tests", function () {
     );
 
     // Get Raffle contract instance
-    let organisationOblect = await WrapperInstance.connect(owner)
-      .getOrganisationDetails(1);
+    let contractsDeployed = await WrapperInstance.connect(owner)
+      .getDeployedContracts(1);
 
-    let raffle1AddressArray = organisationOblect.contractsDeployed;
-    let raffle1Address = raffle1AddressArray[0];
+    let raffle1Address = contractsDeployed[0];
     
     RaffleInstance = await ethers.getContractAt(
       "RaffleModule",
@@ -188,7 +187,7 @@ describe("Token Rewards Contract Tests", function () {
     // SETUP
     await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
     await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
-    await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+    await WrapperInstance.connect(owner).setProtocolFee(10);
     // Add curator role
     await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
 
