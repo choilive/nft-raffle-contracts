@@ -19,13 +19,12 @@ contract TreasuryModule is Ownable {
     address public USDCAddress; // needed for lending pool ops
     address public aaveLendingPoolAddress;
 
-    address public raffleModuleAddress;
     address public wrapperContractAddress;
 
     uint256 organisationFeeBalance;
 
-    // raffleID => total amount of donations
-    mapping(uint256 => uint256) totaldonationsPerRaffle;
+    // raffleContractAddress => raffleID => total amount of donations
+    mapping(address => mapping(uint256 => uint256)) totaldonationsPerRaffle;
     // ------------------------------------------ //
     //                  EVENTS                    //
     // ------------------------------------------ //
@@ -35,8 +34,11 @@ contract TreasuryModule is Ownable {
     event USDCMovedFromAaveToTreasury(uint256 amount);
     event USDCMovedFromTreasuryToAave(uint256 amount);
     event ProtocolFeesReduced(uint256 amount);
-    event RaffleModuleAddressSet(address raffleModuleAddress);
-    event DonationReceivedFromRaffle(uint256 raffleID, uint256 amount);
+    event DonationReceivedFromRaffle(
+        uint256 raffleID,
+        uint256 amount,
+        address raffleContract
+    );
     event FundsWithdrawnToOrganisationWallet(
         uint256 amount,
         address organisationWallet
@@ -50,7 +52,6 @@ contract TreasuryModule is Ownable {
     // --------------------------------------------------------------
 
     error ZeroAddressNotAllowed();
-    error OnlyRegisteredModulesCanCallThisFunction();
     error NoZeroDeposits();
     error NoZeroWithDrawals();
     error InsufficentFunds();
@@ -84,25 +85,12 @@ contract TreasuryModule is Ownable {
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
 
-    function setRaffleModuleAddress(address _raffleModuleAddress)
-        public
-        onlyOwner
-    {
-        if (_raffleModuleAddress == address(0)) revert ZeroAddressNotAllowed();
-
-        raffleModuleAddress = _raffleModuleAddress;
-
-        emit RaffleModuleAddressSet(_raffleModuleAddress);
-    }
-
-    // TODO this needs to be called from the raffle on donation
     function processDonationFromRaffle(
         uint256 raffleID,
         uint256 amount,
-        uint256 organisationID
+        uint256 organisationID,
+        address raffleContractAddress
     ) external {
-        if (msg.sender != raffleModuleAddress)
-            revert OnlyRegisteredModulesCanCallThisFunction();
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // get protocol and organisation fees
@@ -121,9 +109,15 @@ contract TreasuryModule is Ownable {
         // update total donations for raffle
         uint256 amountAfterFees = amount -
             (protocolFeesEarned + organisationFeesEarned);
-        totaldonationsPerRaffle[raffleID] += amountAfterFees;
+        totaldonationsPerRaffle[raffleContractAddress][
+            raffleID
+        ] += amountAfterFees;
 
-        emit DonationReceivedFromRaffle(raffleID, amount);
+        emit DonationReceivedFromRaffle(
+            raffleID,
+            amount,
+            raffleContractAddress
+        );
     }
 
     function withdrawFundsToOrganisationWallet(
@@ -181,12 +175,11 @@ contract TreasuryModule is Ownable {
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getTotalDonationsPerRaffle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return totaldonationsPerRaffle[raffleID];
+    function getTotalDonationsPerRaffle(
+        address raffleContractAddress,
+        uint256 raffleID
+    ) public view returns (uint256) {
+        return totaldonationsPerRaffle[raffleContractAddress][raffleID];
     }
 
     function getUSDCInAave() public view returns (uint256) {

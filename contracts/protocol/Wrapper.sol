@@ -13,7 +13,6 @@ contract Wrapper is AccessControl {
     address public protocolWalletAddress;
 
     struct Organisation {
-        string name; //TODO do we need this on chain?
         uint256 organisationID;
         uint256 organisationFee;
         address walletAddress; // wallet address given by organization
@@ -117,7 +116,6 @@ contract Wrapper is AccessControl {
         organisationContracts.push(raffleModuleAddress);
 
         emit RaffleModuleAdded(organisationID);
-
     }
 
     // --------------------------------------------------------------
@@ -152,13 +150,13 @@ contract Wrapper is AccessControl {
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getOrganisationDetails(uint256 organisationID)
-        public
-        view
-        returns (Organisation memory)
-    {
-        return organisation[organisationID];
-    }
+    //   function getOrganisationDetails(uint256 organisationID)
+    //     public
+    //     view
+    //     returns (Organisation memory)
+    //   {
+    //     return organisation[organisationID];
+    //   }
 
     function getProtocolWalletAddress() public view returns (address) {
         return protocolWalletAddress;
@@ -182,6 +180,14 @@ contract Wrapper is AccessControl {
         returns (address)
     {
         return organisation[organisationID].centralTreasury;
+    }
+
+    function getDeployedContracts(uint256 organisationID)
+        public
+        view
+        returns (address[] memory)
+    {
+        return organisation[organisationID].contractsDeployed;
     }
 
     function getProtocolFee() public view returns (uint256) {

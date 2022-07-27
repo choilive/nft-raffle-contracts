@@ -65,6 +65,50 @@
 - Mumbai Testnet Address:
   0x64b141AA093cb409d5Dc1ccdcb7e4003d2A3B03e
 
+  ​
+  **function setURI**
+  ​
+
+* Sets a new URI for all token types -> by relying on the token type ID
+* Only the owner of this contract can access this function
+  ​
+  **function mint**
+  ​
+* Creates amount tokens of token id, and assigns them to account.
+* Mints a single token and assigns it to an account
+* It is minted to an address, with the tokenID, 1 token
+* After each mint the token ID increases by 1
+* **whitelistedAddresses** only addresses on that list are able to call this function
+  ​
+  **function batchMint**
+  ​
+* Creates amount tokens of token id, and assigns them to account.
+* Mints multiple tokens and assigns it to an account
+* Distrubites multiple tokens with different tokenID's and more than 1 token to a address
+* **whitelistedAddresses** only addresses on that list are able to call this function
+  ​
+  **function safeTransferFrom**
+  ​
+* Transfers amount tokens of token id from from to to
+* The to address cannot be a zero address
+  ​
+  **isApprovedForAll**
+  ​
+* Only the owner can call the **function safeTransferFrom**
+* Returns true if operator is approved to transfer account's tokens.
+
+**function safeBatchTransferFrom**
+​
+
+- Transfers multiple amount tokens of token id's from address to the to address
+- The to address cannot be a zero address
+  ​
+  **function addAddressToWhitelist**
+  ​
+- Only owner can call this function
+- List of address that have first access to mint a token/tokens
+=======
+
 
 
   # TEST Contracts
@@ -84,3 +128,4 @@ https://mumbai.polygonscan.com/address/0x208F456F20E08bc02707D6ab02192226749267d
 Successfully verified contract TokenRewardsCalculationV2 on Etherscan.
 https://mumbai.polygonscan.com/address/0x47d8cC71536404A3f684363370D430963Dd39D24#code
 ✅ TokenRewardsCalculationV2 verified!
+
