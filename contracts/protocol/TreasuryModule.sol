@@ -22,7 +22,7 @@ contract TreasuryModule is Ownable {
 
     // address public wrapperContractAddress;
 
-    uint256 organisationFeeBalance;
+    uint256 public organisationFeeBalance;
 
     // raffleContractAddress => raffleID => total amount of donations
     mapping(address => mapping(uint256 => uint256)) totaldonationsPerRaffle;
@@ -128,6 +128,7 @@ contract TreasuryModule is Ownable {
         address organisationWallet
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+        USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
