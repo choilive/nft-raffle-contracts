@@ -22,9 +22,10 @@ contract RaffleModule is
     IERC20 public REWARD_TOKEN;
 
     address public wrapperContractAddress;
-    address public DAOWallet;
+    // CHANGED DAOWallet to  organisationWallet as DAOWallet is misleading
+    address public organisationWallet;
     address public tokenRewardsModuleAddress;
-    address public nftAuthorWallet;
+    // address public nftAuthorWallet;
     address public treasuryAddress;
 
     // bool optionalTokenRewards;
@@ -101,9 +102,9 @@ contract RaffleModule is
         uint256 minimumDonationAmount
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
-    event DAOWalletAddressSet(address walletAddress);
+    // event organisationWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
-    event nftAuthorWalletAddressSet(address nftAuthorWallet);
+    // event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
     event tokensWithdrawnFromContract(address account, uint256 amount);
@@ -148,7 +149,7 @@ contract RaffleModule is
         // Sets deployer as DEFAULT_ADMIN_ROLE
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         wrapperContractAddress = _wrapperContractAddress;
-        DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
+        organisationWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
             organisationID
         );
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
@@ -164,14 +165,15 @@ contract RaffleModule is
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
         @param _nftAuthorWallet address of NFT author wallet
     */
-    function setNftAuthorWalletAddress(address _nftAuthorWallet)
-        public
-        onlyRole(CURATOR_ROLE)
-    {
-        if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
-        nftAuthorWallet = _nftAuthorWallet;
-        emit nftAuthorWalletAddressSet(_nftAuthorWallet);
-    }
+    // THIS IS NOT NEEDED AS WE CAN GET THE nftAuthorWallet FROM THE RAFFLE OBJECT
+    // function setNftAuthorWalletAddress(address _nftAuthorWallet)
+    //     public
+    //     onlyRole(CURATOR_ROLE)
+    // {
+    //     if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
+    //     nftAuthorWallet = _nftAuthorWallet;
+    //     emit nftAuthorWalletAddressSet(_nftAuthorWallet);
+    // }
 
     /**
         @notice sets curator address for curator role
@@ -279,7 +281,6 @@ contract RaffleModule is
                 raffleID,
                 donorsArray[i]
             );
-
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],
@@ -305,7 +306,7 @@ contract RaffleModule is
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
-        withdraw(DAOWallet, refundAmount);
+        withdraw(organisationWallet, refundAmount);
     }
 
     /**
@@ -381,6 +382,7 @@ contract RaffleModule is
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
+        if (tokenRewardsActivated[raffleID] == false) revert NoRewardsForRaffle();
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -390,6 +392,7 @@ contract RaffleModule is
         address topDonor = getTopDonor(raffleID);
 
         address nftContractAddress = raffles[raffleID].nftContract;
+        address nftAuthorWallet = raffles[raffleID].nftOwner;
         uint256 tokenID = raffles[raffleID].tokenID;
 
         // transfer to random donor
@@ -416,12 +419,12 @@ contract RaffleModule is
         // transfer to DAO Wallet
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
-            DAOWallet,
+            organisationWallet,
             tokenID,
             1,
             ""
         );
-        emit NFTsentToWinner(raffleID, DAOWallet);
+        emit NFTsentToWinner(raffleID, organisationWallet);
         // transfer to NFT author
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
@@ -442,8 +445,6 @@ contract RaffleModule is
     }
 
     function claimTokenRewards(uint256 raffleID, address donor) internal {
-        if (tokenRewardsActivated[raffleID] == false)
-            revert NoRewardsForRaffle();
         if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
@@ -552,7 +553,7 @@ contract RaffleModule is
         internal
     {
         raffles[raffleID].tokenAllocation = amount;
-        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+        REWARD_TOKEN.transferFrom(organisationWallet, address(this), amount);
 
         emit RewardTokenBalanceToppedUp(amount);
     }
