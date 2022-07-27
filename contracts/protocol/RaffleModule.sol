@@ -27,7 +27,6 @@ contract RaffleModule is
   address public tokenRewardsModuleAddress;
   address public nftAuthorWallet;
   address public treasuryAddress;
-  address public limitedNftCollectionAddress;
 
   uint256 organisationID;
 
@@ -52,6 +51,8 @@ contract RaffleModule is
     uint256 topDonatedAmount;
     uint256 tokenAllocation;
     uint256 buffer;
+    address limitedNftCollectionAddress;
+    uint256 minimumNFTprice;
     bool cancelled;
   }
 
@@ -132,6 +133,7 @@ contract RaffleModule is
   error NoRewardsForRaffle();
   error AmountsNotEqual();
   error NoMoreTokensToClaim();
+  error MinimumDonationRequired();
 
   // --------------------------------------------------------------
   // CONSTRUCTOR
@@ -207,12 +209,15 @@ contract RaffleModule is
 
   function turnOnLimitedNftCollection(
     address _limitedNftCollectionAddress,
-    uint256 raffleID
+    uint256 raffleID,
+    uint256 minimumNFTprice
   ) public onlyRole(DEFAULT_ADMIN_ROLE) {
     if (_limitedNftCollectionAddress == address(0))
       revert ZeroAddressNotAllowed();
     limitedNFTCollectionActivated[raffleID] = true;
-    limitedNftCollectionAddress = _limitedNftCollectionAddress;
+    raffles[raffleID]
+      .limitedNftCollectionAddress = _limitedNftCollectionAddress;
+    raffles[raffleID].minimumNFTprice = _minimumNFTprice;
   }
 
   /**
@@ -376,7 +381,12 @@ contract RaffleModule is
     );
 
     if (limitedNFTCollectionActivated[_donation.raffleID] == true) {
+      if (_donation.minimumNFTprice > amount) revert MinimumDonationRequired();
+      address nftCollectionAddress = raffles[raffleID]
+        .limitedNftCollectionAddress;
       // TODO
+      // ILimitedCollection(nftCollectionAddress).mint(msg.sender);
+      // TODO has to be set in the NFT collection how much an account can have
     }
     emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
