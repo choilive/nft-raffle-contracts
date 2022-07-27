@@ -57,63 +57,67 @@ The treasury module has to be created before the Raffle module since the treasur
 
 # Raffle Module
 
-- The Raffle creates raffle cycles with different IDs to incentivise donors to donate.
-- End of each raffle cycle 4 given NFTs will be distributed to:
+The Raffle creates raffle cycles with different IDs to incentivise donors to donate.
+End of each raffle cycle 4 given NFTs will be distributed to:
 
-* donors
-* creator of the artwork
-* organisation that created the raffle.
+- donors
+- creator of the artwork
+- organisation that created the raffle.
   ​
+  The Raffle also has optional tokenRewards and optional Limited NFT edition rewards.
 
-- On deployment the currency address (USDC) & Biconomy connection address has to be set within constructor.
+* On deployment the currency address (USDC) & Biconomy connection address has to be set within constructor.
 
   ​
   **function setDAOWalletAddress**
   ​
 
-- Where central DAO wallet address has to be set after deployment to ensure the flow of donations to this wallet address.
+* Where central DAO wallet address has to be set after deployment to ensure the flow of donations to this wallet address.
 
   ​
   **function setNftAuthorWalletAddress**
   ​
 
-- Set wallet address of NFT contributor who you'd like to reward with a copy of the given NFT at the end of the raffle cycle.
+* Set wallet address of NFT contributor who you'd like to reward with a copy of the given NFT at the end of the raffle cycle.
   ​
   **function setCuratorRole**
   ​
-- Contract uses AccessControl(OpenZeppelin) that allows the creation of a DEFAULT\*ADMIN_ROLE and a CURATOR_ROLE -> means specific roles can trigger specific functions.
-- Can revoke a role via the \_revokeCuratorRole\* function.
+* Contract uses AccessControl(OpenZeppelin) that allows the creation of a DEFAULT\*ADMIN_ROLE and a CURATOR_ROLE -> means specific roles can trigger specific functions.
+* Can revoke a role via the \_revokeCuratorRole\* function.
 
   ​
   _Now your contract is ready to roll._
   ​
 
-- Can set up Raffles with given conditions using the **createRaffle** function.
+* Can set up Raffles with given conditions using the **createRaffle** function.
 
   ​
   **function turnOnTokenRewards**
   ​
   Token rewards are optional -> turned off by default.
 
-- If you would like to reward your donors with an ERC20-standard compatible reward token you can turn on the function by specifying:
+* If you would like to reward your donors with an ERC20-standard compatible reward token you can turn on the function by specifying:
 
-* The reward token address
-* The calculation formula address
-* The ID of the raffle you want to use the rewards for.
+- The reward token address
+- The calculation formula address
+- The ID of the raffle you want to use the rewards for.
   ​
 
-- You need to send the reward tokens to the raffle contract
-- You have to specify the amount of tokens you'd like to allocate for the raffle when you create it.
+* You need to send the reward tokens to the raffle contract
+* You have to specify the amount of tokens you'd like to allocate for the raffle when you create it.
   ​
-- The users can send their donations via the **donate** function -> all donations flow to the previously set DAO Wallet.
+* The users can send their donations via the **donate** function -> all donations flow to the Treasury module.
   ​
-- At end of the raffle you can reward your users with the NFTs and tokens with calling the **sendRewards** function.
+* At end of the raffle you can reward your users with the NFTs and tokens with calling the **sendRewards** function.
 
-  ​
+  **function turnOnLimitedNftCollection**
+
+  - You can turn on an NFT reward mechanism that rewards users​ with a given NFT if they donate above a certain amount that the organisation can specify.
+
   **function cancelRaffle**
   ​
 
-- Cancel a running raffle
-- Function ensures that users will get their donations back.
-- NFTs and allocated reward tokens will go back to the DAO Wallet.
+* Cancel a running raffle
+* Function ensures that users will get their donations back.
+* NFTs and allocated reward tokens will go back to the DAO Wallet.
   ​
