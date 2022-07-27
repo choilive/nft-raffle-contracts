@@ -9,8 +9,10 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule is Ownable {
+    // TODO change scale to 100
     uint256 constant SCALE = 10000; // Scale is 10 000
 
+    IWrapper WrapperContract;
     IERC20 public USDC;
     IAToken public aUSDC;
     IAaveIncentivesController public AaveIncentivesController;
@@ -19,9 +21,9 @@ contract TreasuryModule is Ownable {
     address public USDCAddress; // needed for lending pool ops
     address public aaveLendingPoolAddress;
 
-    address public wrapperContractAddress;
+    // address public wrapperContractAddress;
 
-    uint256 organisationFeeBalance;
+    uint256 public organisationFeeBalance;
 
     // raffleContractAddress => raffleID => total amount of donations
     mapping(address => mapping(uint256 => uint256)) totaldonationsPerRaffle;
@@ -75,8 +77,9 @@ contract TreasuryModule is Ownable {
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
+        WrapperContract = IWrapper(_wrapperContractAddress);
 
-        wrapperContractAddress = _wrapperContractAddress;
+        // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
     }
@@ -94,14 +97,15 @@ contract TreasuryModule is Ownable {
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // get protocol and organisation fees
-        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
-        uint256 organisationFee = IWrapper(wrapperContractAddress)
-            .getOrganisationFee(organisationID);
+        uint256 protocolFee = WrapperContract.getProtocolFee();
+        uint256 organisationFee = WrapperContract.getOrganisationFee(organisationID);
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
-        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 organisationFeesEarned = (amount * organisationFee) / SCALE;
 
         // add organisation fee to balance
         organisationFeeBalance += organisationFeesEarned;
+
+        USDC.approve(address(this), protocolFeesEarned);
 
         // transfer protocol fee to protocol wallet
         _transferProtocolFee(protocolFeesEarned);
@@ -125,6 +129,7 @@ contract TreasuryModule is Ownable {
         address organisationWallet
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+        USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
@@ -165,8 +170,7 @@ contract TreasuryModule is Ownable {
     // --------------------------------------------------------------
 
     function _transferProtocolFee(uint256 amount) internal {
-        address protocolWallet = IWrapper(wrapperContractAddress)
-            .getProtocolWalletAddress();
+        address protocolWallet = WrapperContract.getProtocolWalletAddress();
         USDC.transferFrom(address(this), protocolWallet, amount);
         emit ProtocolFeesPaidOnDonation(amount);
     }
@@ -183,12 +187,12 @@ contract TreasuryModule is Ownable {
     }
 
     function getUSDCInAave() public view returns (uint256) {
-        uint256 USDCInAave = aUSDC.balanceOf(address(this));
-        return USDCInAave;
+        return aUSDC.balanceOf(address(this));
+        // return USDCInAave;
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {
-        uint256 USDCInTreasury = USDC.balanceOf(address(this));
-        return USDCInTreasury;
+        return USDC.balanceOf(address(this));
+        // return USDCInTreasury;
     }
 }
