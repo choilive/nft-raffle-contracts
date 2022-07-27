@@ -19,6 +19,42 @@ This is the main element of the Protocol.
 
 - Token rewards mathematical calculation contract address is set here centrally
 
+# Treasury Module
+
+The treasury module has to be created before the Raffle module since the treasury is accounting for all incoming donations and handling fees.It also has optional Aave integration, you can deposit funds to Aave and earn yield on it.
+
+**function processDonationFromRaffle**
+
+- processes all incoming donations to the treasury and pays fees
+
+**function withdrawFundsToOrganisationWallet**
+
+- withdraws funds to organisation wallet address that was set in the wrapper contract centrally
+
+**function depositToAave**
+
+- deposits the given amount to Aave
+
+**function withdrawFromAave**
+
+-withdraws given amount from Aave moves it back to treasury
+
+**function claimAaveRewards**
+
+- claims rewards earned on Aave deposit
+
+**function getTotalDonationsPerRaffle**
+
+- returns the total donation from a raffle from a specific Raffle module address
+
+**function getUSDCInAave**
+
+- returns the amount deposited into Aave
+
+**function getUSDCFromTreasury**
+
+- returns USDC balance in Treasury module
+
 # Raffle Module
 
 - The Raffle creates raffle cycles with different IDs to incentivise donors to donate.
