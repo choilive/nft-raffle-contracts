@@ -376,7 +376,8 @@ contract RaffleModule is
         ITreasuryModule(treasuryAddress).processDonationFromRaffle(
             _donation.raffleID,
             _donation.amount,
-            organisationID
+            organisationID,
+            address(this)
         );
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);

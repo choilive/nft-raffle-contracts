@@ -4,6 +4,7 @@ interface ITreasuryModule {
     function processDonationFromRaffle(
         uint256 raffleID,
         uint256 amount,
-        uint256 organisationID
+        uint256 organisationID,
+        address raffleContractAddress
     ) external;
 }
