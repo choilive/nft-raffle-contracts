@@ -18,19 +18,22 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     function mint(
         address to,
         uint256 amount,
-        bytes memory data
+        bytes memory data,
+        string memory tokenURI
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
         _tokenIds.increment();
         uint256 id = _tokenIds.current();
 
         _mint(to, id, amount, data);
+        _setURI(id, tokenURI);
     }
 
     function batchMint(
         address to,
         uint256[] memory amounts,
-        bytes memory data
+        bytes memory data,
+        string[] memory tokenURIs
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
 
@@ -41,6 +44,10 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
         }
 
         _mintBatch(to, ids, amounts, data);
+
+        for (uint256 i = 0; i < ids.length; i++) {
+            _setURI(ids[i], tokenURIs[i]);
+        }
     }
 
     function safeTransferFrom(

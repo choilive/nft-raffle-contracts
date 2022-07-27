@@ -22,6 +22,8 @@ contract TreasuryModule is Ownable {
     address public raffleModuleAddress;
     address public wrapperContractAddress;
 
+    uint256 organisationFeeBalance;
+
     // raffleID => total amount of donations
     mapping(uint256 => uint256) totaldonationsPerRaffle;
     // ------------------------------------------ //
@@ -39,6 +41,9 @@ contract TreasuryModule is Ownable {
         uint256 amount,
         address organisationWallet
     );
+    event ProtocolFeesPaidOnDonation(uint256 amount);
+    event FundsDepositedToAave(uint256 amount);
+    event FundsWithdrawnFromAave(uint256 amount);
 
     // --------------------------------------------------------------
     // CUSTOM ERRORS
@@ -91,15 +96,32 @@ contract TreasuryModule is Ownable {
     }
 
     // TODO this needs to be called from the raffle on donation
-    function processDonationFromRaffle(uint256 raffleID, uint256 amount)
-        external
-    {
+    function processDonationFromRaffle(
+        uint256 raffleID,
+        uint256 amount,
+        uint256 organisationID
+    ) external {
         if (msg.sender != raffleModuleAddress)
             revert OnlyRegisteredModulesCanCallThisFunction();
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
-        // TODO need to check how the protocol fees will be taken
-        totaldonationsPerRaffle[raffleID] += amount;
+        // get protocol and organisation fees
+        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
+        uint256 organisationFee = IWrapper(wrapperContractAddress)
+            .getOrganisationFee(organisationID);
+        uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+
+        // add organisation fee to balance
+        organisationFeeBalance += organisationFeesEarned;
+
+        // transfer protocol fee to protocol wallet
+        _transferProtocolFee(protocolFeesEarned);
+
+        // update total donations for raffle
+        uint256 amountAfterFees = amount -
+            (protocolFeesEarned + organisationFeesEarned);
+        totaldonationsPerRaffle[raffleID] += amountAfterFees;
 
         emit DonationReceivedFromRaffle(raffleID, amount);
     }
@@ -120,11 +142,39 @@ contract TreasuryModule is Ownable {
         if (amount > 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
+
+        emit FundsDepositedToAave(amount);
     }
 
     function withdrawFromAave(uint256 amount) public onlyOwner {
+        uint256 AaveBalance = getUSDCInAave();
         if (amount > 0) revert NoZeroWithDrawals();
+        if (amount > AaveBalance) revert InsufficentFunds();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
+
+        emit FundsWithdrawnFromAave(amount);
+    }
+
+    function claimAaveRewards(
+        address[] calldata _assets,
+        uint256 _amountToClaim
+    ) external onlyOwner {
+        AaveIncentivesController.claimRewards(
+            _assets,
+            _amountToClaim,
+            msg.sender
+        );
+    }
+
+    // --------------------------------------------------------------
+    // INTERNAL FUNCTIONS
+    // --------------------------------------------------------------
+
+    function _transferProtocolFee(uint256 amount) internal {
+        address protocolWallet = IWrapper(wrapperContractAddress)
+            .getProtocolWalletAddress();
+        USDC.transferFrom(address(this), protocolWallet, amount);
+        emit ProtocolFeesPaidOnDonation(amount);
     }
 
     // --------------------------------------------------------------
@@ -137,5 +187,15 @@ contract TreasuryModule is Ownable {
         returns (uint256)
     {
         return totaldonationsPerRaffle[raffleID];
+    }
+
+    function getUSDCInAave() public view returns (uint256) {
+        uint256 USDCInAave = aUSDC.balanceOf(address(this));
+        return USDCInAave;
+    }
+
+    function getUSDCFromTreasury() public view returns (uint256) {
+        uint256 USDCInTreasury = USDC.balanceOf(address(this));
+        return USDCInTreasury;
     }
 }
