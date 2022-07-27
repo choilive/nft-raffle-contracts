@@ -20,7 +20,7 @@ contract Wrapper is AccessControl {
         address[] contractsDeployed;
     }
 
-    mapping(uint256 => Organisation) organisation;
+    mapping(uint256 => Organisation) public organisation;
     // organisationID => bool
     mapping(uint256 => bool) public treasuryExist;
     // --------------------------------------------------------------
@@ -56,7 +56,7 @@ contract Wrapper is AccessControl {
         public
         returns (uint256)
     {
-        if (_organisation.organisationFee < SCALE) revert FeeOutOfRange();
+        if (_organisation.organisationFee > 100) revert FeeOutOfRange();
         if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
         organisationCount++;
@@ -141,7 +141,7 @@ contract Wrapper is AccessControl {
         onlyRole(DEFAULT_ADMIN_ROLE)
         returns (uint256)
     {
-        if (_protocolFee < SCALE) revert FeeOutOfRange();
+        if (_protocolFee > 100) revert FeeOutOfRange();
         protocolFee = _protocolFee;
         return protocolFee;
     }

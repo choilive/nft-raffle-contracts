@@ -1,5 +1,4 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -11,7 +10,6 @@ import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
 
 contract RaffleModule is
-    Ownable,
     AccessControl,
     ReentrancyGuard,
     BaseRelayRecipient
@@ -572,7 +570,7 @@ contract RaffleModule is
 
     // *** BICONOMY *** //
 
-    function setTrustedForwarder(address _forwarder) public onlyOwner {
+    function setTrustedForwarder(address _forwarder) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _setTrustedForwarder(_forwarder);
     }
 

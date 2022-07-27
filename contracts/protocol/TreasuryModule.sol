@@ -183,12 +183,12 @@ contract TreasuryModule is Ownable {
     }
 
     function getUSDCInAave() public view returns (uint256) {
-        uint256 USDCInAave = aUSDC.balanceOf(address(this));
-        return USDCInAave;
+        return aUSDC.balanceOf(address(this));
+        // return USDCInAave;
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {
-        uint256 USDCInTreasury = USDC.balanceOf(address(this));
-        return USDCInTreasury;
+        return USDC.balanceOf(address(this));
+        // return USDCInTreasury;
     }
 }

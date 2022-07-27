@@ -138,7 +138,7 @@ describe("Raffle Module Tests", function () {
 
     await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
     await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
-    await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+    await WrapperInstance.connect(owner).setProtocolFee(10);
 
     await WrapperInstance.connect(owner).addNewRaffleModule(
       organizationID,
@@ -146,11 +146,10 @@ describe("Raffle Module Tests", function () {
       forwarderAddress
     );
 
-    let organisationOblect = await WrapperInstance.connect(owner)
-      .getOrganisationDetails(organizationID);
+    let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-    let raffle1AddressArray = organisationOblect.contractsDeployed;
-    let raffle1Address = raffle1AddressArray[0];
+    let raffle1Address = deployedContractsArray[0];
 
     await USDC.connect(donor1).approve(
       raffle1Address,
@@ -190,11 +189,10 @@ describe("Raffle Module Tests", function () {
     this.beforeEach(async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      let raffle1AddressArray = organisationObject.contractsDeployed;
-      let raffle1Address = raffle1AddressArray[0];
+      let raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -219,16 +217,15 @@ describe("Raffle Module Tests", function () {
   });
   describe("Create raffle function", function () {
     this.beforeEach(async () => {
-      let raffle1AddressArray, raffle1Address, treasuryAddress;
+      let raffle1Address, treasuryAddress;
       let organisationObject, organizationID;
       
       organizationID = await WrapperInstance.organisationCount();
 
-      organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      raffle1AddressArray = organisationObject.contractsDeployed;
-      raffle1Address = raffle1AddressArray[0];
+      raffle1Address = deployedContractsArray[0];
       treasuryAddress = organisationObject.centralTreasury;
 
       RaffleInstance = await ethers.getContractAt(
@@ -534,16 +531,15 @@ describe("Raffle Module Tests", function () {
   // });
   describe("donate", function () {
     this.beforeEach(async () => {
-      let raffle1AddressArray, raffle1Address, treasuryAddress;
+      let raffle1Address, treasuryAddress;
       let organisationObject, organizationID;
       
       organizationID = await WrapperInstance.organisationCount();
 
-      organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      raffle1AddressArray = organisationObject.contractsDeployed;
-      raffle1Address = raffle1AddressArray[0];
+      raffle1Address = deployedContractsArray[0];
       treasuryAddress = organisationObject.centralTreasury;
 
       RaffleInstance = await ethers.getContractAt(
@@ -726,11 +722,10 @@ describe("Raffle Module Tests", function () {
     this.beforeEach(async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      let raffle1AddressArray = organisationObject.contractsDeployed;
-      let raffle1Address = raffle1AddressArray[0];
+      let raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -787,11 +782,10 @@ describe("Raffle Module Tests", function () {
     this.beforeEach(async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      let raffle1AddressArray = organisationObject.contractsDeployed;
-      let raffle1Address = raffle1AddressArray[0];
+      raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -825,9 +819,7 @@ describe("Raffle Module Tests", function () {
       // NOTE : this test result for the random donor changes every time you run the test because the random donor is different each time
       let raffle = await RaffleInstance.connect(owner).getRaffle(1);
       let nftAuthorAddress = raffle.nftOwner;
-      console.log(raffle.nftOwner);
-      console.log(raffle.raffleID);
-      console.log(raffle.tokenID);
+
       let newDonation = await createDonationObject(
         donor1Address,
         1,
@@ -900,11 +892,10 @@ describe("Raffle Module Tests", function () {
     this.beforeEach(async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      let raffle1AddressArray = organisationObject.contractsDeployed;
-      let raffle1Address = raffle1AddressArray[0];
+      let raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -953,11 +944,10 @@ describe("Raffle Module Tests", function () {
     this.beforeEach(async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let organisationObject = await WrapperInstance.connect(owner)
-        .getOrganisationDetails(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+        .getDeployedContracts(organizationID);
 
-      let raffle1AddressArray = organisationObject.contractsDeployed;
-      let raffle1Address = raffle1AddressArray[0];
+      let raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
