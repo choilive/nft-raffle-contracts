@@ -8,6 +8,7 @@ import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
+import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is
     AccessControl,
@@ -50,6 +51,7 @@ contract RaffleModule is
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
         uint256 buffer;
+        address limitedNftCollectionAddress;
         bool cancelled;
     }
 
@@ -62,9 +64,11 @@ contract RaffleModule is
     mapping(uint256 => Raffle) public raffles;
     // raffleID => amount
     mapping(uint256 => Donation) public donations;
-    // RaffleID => token rewards activated
+    // RaffleID => token rewards
     mapping(uint256 => bool) public tokenRewardsActivated;
-
+    // RaffleID => limited nft collection
+    mapping(uint256 => bool) public limitedNFTCollectionActivated;
+    mapping(uint256 => uint256) public minimumNFTDonation;
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
     mapping(uint256 => mapping(address => uint256))
@@ -133,6 +137,7 @@ contract RaffleModule is
     error NoRewardsForRaffle();
     error AmountsNotEqual();
     error NoMoreTokensToClaim();
+    error MinimumDonationRequired();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -208,6 +213,19 @@ contract RaffleModule is
         // transfer reward tokens to contract
         _topUpRewardTokenBalance(_raffleID, raffles[_raffleID].tokenAllocation);
         emit RewardTokenAddressSet(_rewardTokenAddress);
+    }
+
+    function turnOnLimitedNftCollection(
+        address _limitedNftCollectionAddress,
+        uint256 raffleID,
+        uint256 _minimumNFTDonation
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_limitedNftCollectionAddress == address(0))
+            revert ZeroAddressNotAllowed();
+        limitedNFTCollectionActivated[raffleID] = true;
+        raffles[raffleID]
+            .limitedNftCollectionAddress = _limitedNftCollectionAddress;
+        minimumNFTDonation[raffleID] = _minimumNFTDonation;
     }
 
     /**
@@ -379,6 +397,13 @@ contract RaffleModule is
             address(this)
         );
 
+        if (limitedNFTCollectionActivated[raffleId] == true) {
+            if (_donation.amount < minimumNFTDonation[raffleId])
+                revert MinimumDonationRequired();
+            address nftCollectionAddress = raffles[_donation.raffleID]
+                .limitedNftCollectionAddress;
+            ILimitedNFTCollection(nftCollectionAddress).mint(msg.sender);
+        }
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
         return donationCount;
