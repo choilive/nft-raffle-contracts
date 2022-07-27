@@ -33,9 +33,11 @@
   ​
 * Contract uses AccessControl(OpenZeppelin) that allows the creation of a DEFAULT\*ADMIN_ROLE and a CURATOR_ROLE -> means specific roles can trigger specific functions.
 * Can revoke a role via the \_revokeCuratorRole\* function.
+
   ​
   _Now your contract is ready to roll._
   ​
+
 * Can set up Raffles with given conditions using the **createRaffle** function.
 
   ​
