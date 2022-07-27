@@ -122,9 +122,12 @@ contract TreasuryModule is Ownable {
 
     function withdrawFundsToOrganisationWallet(
         uint256 amount,
-        address organisationWallet
+        uint256 organisationID
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+
+        address organisationWallet = IWrapper(wrapperContractAddress)
+            .getOrgaisationWalletAddess(organisationID);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
