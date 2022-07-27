@@ -9,6 +9,7 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule is Ownable {
+    // TODO change scale to 100
     uint256 constant SCALE = 10000; // Scale is 10 000
 
     IWrapper WrapperContract;
