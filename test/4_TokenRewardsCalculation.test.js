@@ -6,6 +6,7 @@ const { constants } = require("./utils/TestConstants");
 const {
   createRaffleObject,
   createDonationObject,
+  createOrganizationObject,
   fastForward,
   currentTime,
 } = require("./utils/TestUtils");
@@ -22,8 +23,9 @@ let forwarder, forwarderAddress;
 let usdcWhale, usdcWhaleAddress;
 let RaffleContract, RaffleInstance;
 let NFTContract, NFTInstance;
-let ArtTokenContract, ArtTokenInstance;
+let RewardTokenContract, RewardTokenInstance;
 let TokenRewardsContract, TokenRewardsInstance;
+let WrapperContract, WrapperInstance;
 
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
@@ -37,11 +39,12 @@ const USDC = new ethers.Contract(
 
 describe("Token Rewards Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, nftAuthor, donor1, donor2, donor3, donor4, curator, forwarder] =
+    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, donor4, curator, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
     daoWalletAddress = await daoWallet.getAddress();
+    organisationWalletAddress = await organisationWallet.getAddress();
     nftAuthorAddress = await nftAuthor.getAddress();
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
@@ -51,19 +54,15 @@ describe("Token Rewards Contract Tests", function () {
     forwarderAddress = await forwarder.getAddress();
 
     // deploy ArtToken as RewardsToken
-    ArtTokenContract = await ethers.getContractFactory("ArtToken");
-    ArtTokenInstance = await ArtTokenContract.connect(owner).deploy(
+    RewardTokenContract = await ethers.getContractFactory("ArtToken");
+    RewardTokenInstance = await RewardTokenContract.connect(owner).deploy(
       "Rewards Token",
       "ART",
-      3000
+      30000
     );
 
-    // Deploy Raffle
-    RaffleContract = await ethers.getContractFactory("RaffleV2");
-    RaffleInstance = await RaffleContract.connect(owner).deploy(
-      constants.POLYGON.USDC,
-      forwarderAddress
-    );
+    WrapperContract = await ethers.getContractFactory("Wrapper"); 
+    WrapperInstance = await WrapperContract.connect(owner).deploy();
 
     // Deploy NFT
     NFTContract = await ethers.getContractFactory("RewardNFT");
@@ -72,6 +71,43 @@ describe("Token Rewards Contract Tests", function () {
     // Deploy token Rewards Module
     TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
     TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
+
+    // Create Organisation
+    let organization1 = await createOrganizationObject(
+      "organisation1",
+      ethers.utils.parseUnits("10", 6),
+      organisationWalletAddress
+    );
+    await WrapperInstance.connect(owner).createOrganization(organization1);
+
+    // Deploy Treasury
+    await WrapperInstance.connect(owner).addTreasuryModule(
+      1,
+      constants.POLYGON.USDC,
+      constants.POLYGON.amUSDC,
+      constants.POLYGON.AaveIncentivesController,
+      constants.POLYGON.AaveLendingPool
+    );
+
+    // Deploy Raffle Module
+    await WrapperInstance.connect(owner).addNewRaffleModule(
+      1,
+      constants.POLYGON.USDC,
+      forwarderAddress
+    );
+
+    // Get Raffle contract instance
+    let organisationOblect = await WrapperInstance.connect(owner)
+      .getOrganisationDetails(1);
+
+    let raffle1AddressArray = organisationOblect.contractsDeployed;
+    let raffle1Address = raffle1AddressArray[0];
+    
+    RaffleInstance = await ethers.getContractAt(
+      "RaffleModule",
+      raffle1Address,
+      owner
+    );
 
     await hre.network.provider.request({
       method: "hardhat_impersonateAccount",
@@ -144,33 +180,24 @@ describe("Token Rewards Contract Tests", function () {
       RaffleInstance.address,
       true
     );
-    
-    // Add curator role
-    await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-
-    // set DAO wallet
-    await RaffleInstance.connect(owner).setDAOWalletAddress(daoWalletAddress);
-
-    // set NFT Author address
-    await RaffleInstance.connect(curator).setNftAuthorWalletAddress(
-      nftAuthorAddress
-    );
-
-    // Turn on token rewards in Raffle
-    await RaffleInstance.connect(owner).turnOnTokenRewards(
-      TokenRewardsInstance.address,
-      ArtTokenInstance.address,
-      1);
 
     // Mint Reward Tokens to daoWallet
-    await ArtTokenInstance.connect(owner).mint(daoWalletAddress, 30000);
+    await RewardTokenInstance.connect(owner).mint(organisationWalletAddress, 30000);
+    await RewardTokenInstance.connect(organisationWallet).approve(raffle1Address, 30000);
+    
+    // SETUP
+    await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
+    await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
+    await WrapperInstance.connect(owner).setProtocolFee(ethers.utils.parseUnits("10", 6));
+    // Add curator role
+    await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
 
     // set times
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
 
-    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
-    await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 3000);
+    await USDC.connect(organisationWallet).approve(RaffleInstance.address, 5000000000);
+    await RewardTokenInstance.connect(organisationWallet).approve(RaffleInstance.address, 3000);
 
     const raffle = await createRaffleObject(
       NFTInstance.address,
@@ -185,6 +212,12 @@ describe("Token Rewards Contract Tests", function () {
       BigNumber.from(1000),
     );
     await RaffleInstance.connect(curator).createRaffle(raffle);
+
+    // Turn on token rewards in Raffle
+    await RaffleInstance.connect(owner).turnOnTokenRewards(
+      RewardTokenInstance.address,
+      1
+    );
 
     let donation1 = await createDonationObject(
         donor1Address,
@@ -220,21 +253,19 @@ describe("Token Rewards Contract Tests", function () {
   });
 
   it("claimTokenRewards returns correct amount of tokens for two donations", async () => {
-
     await fastForward(constants.TEST.twoMonths);
 
     await RaffleInstance.connect(curator).sendRewards(1);
     // await RaffleInstance.connect(donor2).claimTokenRewards(1, donor2Address);
 
-    let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
+    let donorbal1 = await RewardTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
 
-    let donorbal2 = await ArtTokenInstance.balanceOf(donor2Address);
+    let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
     expect(donorbal1).to.equal(389);
     expect(donorbal2).to.equal(610);
-
   });
   it("claimTokenRewards returns correct amount of tokens for three donations", async () => {
 
@@ -258,13 +289,13 @@ describe("Token Rewards Contract Tests", function () {
       
     await RaffleInstance.connect(curator).sendRewards(1);
 
-    let donorbal1 = await ArtTokenInstance.balanceOf(donor1Address);
+    let donorbal1 = await RewardTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
 
-    let donorbal2 = await ArtTokenInstance.balanceOf(donor2Address);
+    let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
-    let donorbal3 = await ArtTokenInstance.balanceOf(donor3Address);
+    let donorbal3 = await RewardTokenInstance.balanceOf(donor3Address);
     // console.log(donorbal3.toString());
 
     expect(donorbal1).to.equal(257);
@@ -273,7 +304,6 @@ describe("Token Rewards Contract Tests", function () {
 
   });
   it("throws NoRewardsForRaffle if tokenRewards not turned on", async () => {
-
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
 
@@ -338,15 +368,14 @@ describe("Token Rewards Contract Tests", function () {
   //   .to.be.revertedWith("RaffleHasNotEnded()");
   // });
   it("claims correctly for multiple raffles", async () => {
-
     await fastForward(constants.TEST.twoMonths);
 
     await RaffleInstance.connect(curator).sendRewards(1);
 
-    let raffle1Donor1Bal = await ArtTokenInstance.balanceOf(donor1Address);
+    let raffle1Donor1Bal = await RewardTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
 
-    let raffle1Donor2Bal = await ArtTokenInstance.balanceOf(donor2Address);
+    let raffle1Donor2Bal = await RewardTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
     expect(raffle1Donor1Bal).to.equal(389);
@@ -364,8 +393,8 @@ describe("Token Rewards Contract Tests", function () {
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
 
-    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
-    await ArtTokenInstance.connect(daoWallet).approve(RaffleInstance.address, 30000);
+    await USDC.connect(organisationWallet).approve(RaffleInstance.address, 5000000000);
+    await RewardTokenInstance.connect(organisationWallet).approve(RaffleInstance.address, 30000);
 
     const raffle2 = await createRaffleObject(
       NFTInstance.address,
@@ -380,13 +409,12 @@ describe("Token Rewards Contract Tests", function () {
       BigNumber.from(1000),
     );
 
+    await RaffleInstance.connect(curator).createRaffle(raffle2);
+
     await RaffleInstance.connect(owner).turnOnTokenRewards(
-      TokenRewardsInstance.address,
-      ArtTokenInstance.address,
+      RewardTokenInstance.address,
       2
     );
-    
-    await RaffleInstance.connect(curator).createRaffle(raffle2);
 
     let raffle2Donation1 = await createDonationObject(
       donor1Address,
@@ -408,10 +436,10 @@ describe("Token Rewards Contract Tests", function () {
 
     await RaffleInstance.connect(curator).sendRewards(2);
 
-    let raffle2Donor1BalAfter = await ArtTokenInstance.balanceOf(donor1Address);
+    let raffle2Donor1BalAfter = await RewardTokenInstance.balanceOf(donor1Address);
     // console.log(donorbal1.toString());
 
-    let raffle2Donor2BalAfter = await ArtTokenInstance.balanceOf(donor2Address);
+    let raffle2Donor2BalAfter = await RewardTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
     expect(raffle2Donor1BalAfter).to.equal(raffle1Donor1Bal.add(389));
