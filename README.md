@@ -64,6 +64,7 @@
 
 - Mumbai Testnet Address:
   0x64b141AA093cb409d5Dc1ccdcb7e4003d2A3B03e
+
   ​
   **function setURI**
   ​
@@ -106,3 +107,25 @@
   ​
 - Only owner can call this function
 - List of address that have first access to mint a token/tokens
+=======
+
+
+
+  # TEST Contracts
+
+Successfully verified contract ArtToken on Etherscan.
+https://mumbai.polygonscan.com/address/0x70FAc2461795E62c5a92F9C8A49618418dbe243B#code
+✅ ArtToken verified!
+
+Successfully verified contract RaffleV2 on Etherscan.
+https://mumbai.polygonscan.com/address/0xDC035D1e04EDbb62CAdAa640B3919429058CD0d7#code
+✅ RaffleV2 verified!
+
+Successfully verified contract ArtizenERC1155 on Etherscan.
+https://mumbai.polygonscan.com/address/0x208F456F20E08bc02707D6ab02192226749267df#code
+✅ ArtizenERC1155 verified!
+
+Successfully verified contract TokenRewardsCalculationV2 on Etherscan.
+https://mumbai.polygonscan.com/address/0x47d8cC71536404A3f684363370D430963Dd39D24#code
+✅ TokenRewardsCalculationV2 verified!
+

@@ -53,7 +53,13 @@ async function main() {
   );
 
   const rewardsContract = await deploy("TokenRewardsCalculationV2", [], {});
-  //const nftContract = await deploy("ArtizenERC1155", [], {});
+  const nftContract = await deploy("ArtizenERC1155", [], {});
+
+  const artTokenTest = await deploy(
+    "ArtToken",
+    ["ArtTestToken", "ARTTEST", "0"],
+    {}
+  );
 
   // verification
   if (verifiableNetwork.includes(network)) await verify();
