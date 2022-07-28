@@ -1,14 +1,13 @@
 pragma solidity 0.8.11;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "contracts/interfaces/AaveIntegration/ILendingPool.sol";
 import "contracts/interfaces/AaveIntegration/IAToken.sol";
 import "contracts/interfaces/AaveIntegration/IAaveIncentivesController.sol";
 import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
-contract TreasuryModule is Ownable {
+contract TreasuryModule {
     uint256 constant SCALE = 10000; // Scale is 10 000
 
     IERC20 public USDC;
@@ -135,7 +134,7 @@ contract TreasuryModule is Ownable {
     function withdrawFundsToOrganisationWallet(
         uint256 amount,
         uint256 organisationID
-    ) public onlyOwner {
+    ) public onlyOrganisation(organisationID) {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
 
         address organisationWallet = IWrapper(wrapperContractAddress)
@@ -151,7 +150,10 @@ contract TreasuryModule is Ownable {
          @param amount amount to withdraw
     
     */
-    function depositToAave(uint256 amount) public onlyOwner {
+    function depositToAave(uint256 amount, uint256 organisationID)
+        public
+        onlyOrganisation(organisationID)
+    {
         if (amount > 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
@@ -164,7 +166,10 @@ contract TreasuryModule is Ownable {
          @param amount amount to withdraw
     
     */
-    function withdrawFromAave(uint256 amount) public onlyOwner {
+    function withdrawFromAave(uint256 amount, uint256 organisationID)
+        public
+        onlyOrganisation(organisationID)
+    {
         uint256 AaveBalance = getUSDCInAave();
         if (amount > 0) revert NoZeroWithDrawals();
         if (amount > AaveBalance) revert InsufficentFunds();
@@ -181,8 +186,9 @@ contract TreasuryModule is Ownable {
     */
     function claimAaveRewards(
         address[] calldata _assets,
-        uint256 _amountToClaim
-    ) external onlyOwner {
+        uint256 _amountToClaim,
+        uint256 organisationID
+    ) external onlyOrganisation(organisationID) {
         AaveIncentivesController.claimRewards(
             _assets,
             _amountToClaim,
@@ -220,5 +226,16 @@ contract TreasuryModule is Ownable {
     function getUSDCFromTreasury() public view returns (uint256) {
         uint256 USDCInTreasury = USDC.balanceOf(address(this));
         return USDCInTreasury;
+    }
+
+    // --------------------------------------------------------------
+    // INTERNAL FUNCTIONS
+    // --------------------------------------------------------------
+
+    modifier onlyOrganisation(uint256 organisationID) {
+        address organisationWallet = IWrapper(wrapperContractAddress)
+            .getOrgaisationWalletAddess(organisationID);
+        require(msg.sender == organisationWallet);
+        _;
     }
 }
