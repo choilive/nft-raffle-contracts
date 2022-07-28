@@ -5,7 +5,8 @@ import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
 contract Wrapper is AccessControl {
-    uint256 public constant SCALE = 10000; // Scale is 10 000
+    // If protocolFee is set to 1, fee will be 1% of donation
+    // If organisationFee is set to 1, fee will be 1% of donation
     uint256 public protocolFee;
     uint256 public organisationFee;
     uint256 public organisationCount;
