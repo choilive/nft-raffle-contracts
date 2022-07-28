@@ -580,7 +580,7 @@ describe("Raffle Module Tests", function () {
 
       await RaffleInstance.connect(donor1).donate(donation1);
     });
-    it.only("donation processes correctly", async () => {
+    it("donation processes correctly", async () => {
       let organizationID = await WrapperInstance.organisationCount();
       
       let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);

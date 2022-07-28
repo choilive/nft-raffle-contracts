@@ -421,6 +421,8 @@ contract RaffleModule is
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
+        if (tokenRewardsActivated[raffleID] == false)
+            revert NoRewardsForRaffle();
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -482,8 +484,6 @@ contract RaffleModule is
     }
 
     function claimTokenRewards(uint256 raffleID, address donor) internal {
-        if (tokenRewardsActivated[raffleID] == false)
-            revert NoRewardsForRaffle();
         if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();

@@ -97,7 +97,7 @@ describe("Treasury Module Tests", function () {
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
-    WrapperInstance = await WrapperContract.connect(owner).deploy(constants.POLYGON.USDC);
+    WrapperInstance = await WrapperContract.connect(owner).deploy();
 
     // deploy ArtToken as RewardsToken
     RewardTokenContract = await ethers.getContractFactory("ArtToken");

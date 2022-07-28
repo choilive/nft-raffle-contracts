@@ -62,9 +62,7 @@ describe("Token Rewards Contract Tests", function () {
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper"); 
-    WrapperInstance = await WrapperContract.connect(owner).deploy(
-      constants.POLYGON.USDC
-    );
+    WrapperInstance = await WrapperContract.connect(owner).deploy();
 
     // Deploy NFT
     NFTContract = await ethers.getContractFactory("RewardNFT");
@@ -192,6 +190,7 @@ describe("Token Rewards Contract Tests", function () {
     await WrapperInstance.connect(owner).setProtocolFee(10);
     // Add curator role
     await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+    await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
 
     // set times
     startTime = await currentTime();

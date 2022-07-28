@@ -17,7 +17,7 @@ contract Wrapper is AccessControl {
         address centralTreasury;
         address[] contractsDeployed;
     }
-    mapping(uint256 => Organisation) organisation;
+    mapping(uint256 => Organisation) public organisation;
     // organisationID => bool
     mapping(uint256 => bool) public treasuryExist;
 
