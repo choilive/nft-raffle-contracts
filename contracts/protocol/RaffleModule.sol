@@ -1,5 +1,4 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -12,7 +11,6 @@ import "../interfaces/ITreasuryModule.sol";
 import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is
-    Ownable,
     AccessControl,
     ReentrancyGuard,
     BaseRelayRecipient
@@ -24,7 +22,7 @@ contract RaffleModule is
     IERC20 public REWARD_TOKEN;
 
     address public wrapperContractAddress;
-    address public DAOWallet;
+    address public organisationWallet;
     address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
     address public treasuryAddress;
@@ -108,7 +106,7 @@ contract RaffleModule is
         uint256 minimumDonationAmount
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
-    event DAOWalletAddressSet(address walletAddress);
+    event organisationWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
@@ -157,7 +155,7 @@ contract RaffleModule is
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
-        DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
+        organisationWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
                 organisationID
             );
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
@@ -327,7 +325,7 @@ contract RaffleModule is
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
-        withdraw(DAOWallet, refundAmount);
+        withdraw(organisationWallet, refundAmount);
     }
 
     /**
@@ -453,12 +451,12 @@ contract RaffleModule is
         // transfer to DAO Wallet
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
-            DAOWallet,
+            organisationWallet,
             tokenID,
             1,
             ""
         );
-        emit NFTsentToWinner(raffleID, DAOWallet);
+        emit NFTsentToWinner(raffleID, organisationWallet);
         // transfer to NFT author
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
@@ -589,14 +587,14 @@ contract RaffleModule is
         internal
     {
         raffles[raffleID].tokenAllocation = amount;
-        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+        REWARD_TOKEN.transferFrom(organisationWallet, address(this), amount);
 
         emit RewardTokenBalanceToppedUp(amount);
     }
 
     // *** BICONOMY *** //
 
-    function setTrustedForwarder(address _forwarder) public onlyOwner {
+    function setTrustedForwarder(address _forwarder) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _setTrustedForwarder(_forwarder);
     }
 
@@ -630,17 +628,17 @@ contract RaffleModule is
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
-        return raffles[raffleID];
-    }
+    // function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
+    //     return raffles[raffleID];
+    // }
 
-    function getDonation(uint256 donationID)
-        public
-        view
-        returns (Donation memory)
-    {
-        return donations[donationID];
-    }
+    // function getDonation(uint256 donationID)
+    //     public
+    //     view
+    //     returns (Donation memory)
+    // {
+    //     return donations[donationID];
+    // }
 
     function getTotalDonationsPerCycle(uint256 raffleID)
         public

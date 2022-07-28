@@ -8,8 +8,8 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule {
-    uint256 constant SCALE = 10000; // Scale is 10 000
-
+    uint256 constant SCALE = 100;
+    IWrapper public wrapperContract;
     IERC20 public USDC;
     IAToken public aUSDC;
     IAaveIncentivesController public AaveIncentivesController;
@@ -18,7 +18,7 @@ contract TreasuryModule {
     address public USDCAddress; // needed for lending pool ops
     address public aaveLendingPoolAddress;
 
-    address public wrapperContractAddress;
+    // address public wrapperContractAddress;
 
     uint256 organisationFeeBalance;
 
@@ -74,8 +74,9 @@ contract TreasuryModule {
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
+        wrapperContract = IWrapper(_wrapperContractAddress);
 
-        wrapperContractAddress = _wrapperContractAddress;
+        // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
     }
@@ -107,14 +108,15 @@ contract TreasuryModule {
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // get protocol and organisation fees
-        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
-        uint256 organisationFee = IWrapper(wrapperContractAddress)
-            .getOrganisationFee(organisationID);
+        uint256 protocolFee = wrapperContract.getProtocolFee();
+        uint256 organisationFee = wrapperContract.getOrganisationFee(organisationID);
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
         uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
 
         // add organisation fee to balance
         organisationFeeBalance += organisationFeesEarned;
+
+        USDC.approve(address(this),protocolFeesEarned);
 
         // transfer protocol fee to protocol wallet
         _transferProtocolFee(protocolFeesEarned);
@@ -145,8 +147,7 @@ contract TreasuryModule {
     ) public onlyOrganisation(organisationID) {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
 
-        address organisationWallet = IWrapper(wrapperContractAddress)
-            .getOrgaisationWalletAddess(organisationID);
+        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(organisationID);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
@@ -209,8 +210,7 @@ contract TreasuryModule {
     // --------------------------------------------------------------
 
     function _transferProtocolFee(uint256 amount) internal {
-        address protocolWallet = IWrapper(wrapperContractAddress)
-            .getProtocolWalletAddress();
+        address protocolWallet = wrapperContract.getProtocolWalletAddress();
         USDC.transferFrom(address(this), protocolWallet, amount);
         emit ProtocolFeesPaidOnDonation(amount);
     }
@@ -227,13 +227,11 @@ contract TreasuryModule {
     }
 
     function getUSDCInAave() public view returns (uint256) {
-        uint256 USDCInAave = aUSDC.balanceOf(address(this));
-        return USDCInAave;
+        return aUSDC.balanceOf(address(this));
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {
-        uint256 USDCInTreasury = USDC.balanceOf(address(this));
-        return USDCInTreasury;
+        return USDC.balanceOf(address(this));
     }
 
     // --------------------------------------------------------------
@@ -241,8 +239,7 @@ contract TreasuryModule {
     // --------------------------------------------------------------
 
     modifier onlyOrganisation(uint256 organisationID) {
-        address organisationWallet = IWrapper(wrapperContractAddress)
-            .getOrgaisationWalletAddess(organisationID);
+        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(organisationID);
         require(msg.sender == organisationWallet);
         _;
     }

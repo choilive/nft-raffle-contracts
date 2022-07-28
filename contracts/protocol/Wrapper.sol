@@ -1,10 +1,10 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
-contract Wrapper is Ownable {
-    uint256 public constant SCALE = 10000; // Scale is 10 000
+contract Wrapper is AccessControl {
+    uint256 public constant SCALE = 100;
     uint256 public protocolFee;
     uint256 public organisationFee;
     uint256 public organisationCount;
@@ -42,7 +42,9 @@ contract Wrapper is Ownable {
     // CONSTRUCTOR
     // --------------------------------------------------------------
 
-    constructor() {}
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    }
 
     // --------------------------------------------------------------
     // PUBLIC FUNCTIONS
@@ -52,7 +54,7 @@ contract Wrapper is Ownable {
         public
         returns (uint256)
     {
-        if (_organisation.organisationFee < SCALE) revert FeeOutOfRange();
+        if (_organisation.organisationFee > SCALE) revert FeeOutOfRange();
         if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
         organisationCount++;
@@ -118,7 +120,7 @@ contract Wrapper is Ownable {
 
     function setProtocolWalletAddress(address _protocolWalletAddress)
         public
-        onlyOwner
+        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (address)
     {
         protocolWalletAddress = _protocolWalletAddress;
@@ -126,16 +128,16 @@ contract Wrapper is Ownable {
 
     function setTokenRewardsCalculationAddress(
         address _tokenRewardsModuleAddress
-    ) public onlyOwner returns (address) {
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
     }
 
     function setProtocolFee(uint256 _protocolFee)
         public
-        onlyOwner
+        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (uint256)
     {
-        if (_protocolFee < SCALE) revert FeeOutOfRange();
+        if (_protocolFee > SCALE) revert FeeOutOfRange();
         protocolFee = _protocolFee;
         return protocolFee;
     }
