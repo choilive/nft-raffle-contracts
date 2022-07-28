@@ -83,6 +83,14 @@ contract TreasuryModule {
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
+
+    function approveRaffleContract(
+        address raffleContractAddress,
+        uint256 organisationID
+    ) public onlyOrganisation(organisationID) {
+        USDC.approve(raffleContractAddress, type(uint256).max);
+    }
+
     /**
         @notice this function get's called by the Raffle externally after every donation
         @param raffleID id of raffle donation is made to
