@@ -62,7 +62,9 @@ describe("Token Rewards Contract Tests", function () {
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper"); 
-    WrapperInstance = await WrapperContract.connect(owner).deploy();
+    WrapperInstance = await WrapperContract.connect(owner).deploy(
+      constants.POLYGON.USDC
+    );
 
     // Deploy NFT
     NFTContract = await ethers.getContractFactory("RewardNFT");

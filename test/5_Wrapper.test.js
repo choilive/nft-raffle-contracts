@@ -53,7 +53,9 @@ describe("Raffle Contract Tests", function () {
     forwarderAddress = await forwarder.getAddress();
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
-    WrapperInstance = await WrapperContract.connect(owner).deploy();
+    WrapperInstance = await WrapperContract.connect(owner).deploy(
+        constants.POLYGON.USDC
+    );
   });
   describe("createOrganization", function () {
     it("creates organisation correctly", async () => {

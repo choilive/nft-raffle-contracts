@@ -97,7 +97,7 @@ describe("Treasury Module Tests", function () {
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
-    WrapperInstance = await WrapperContract.connect(owner).deploy();
+    WrapperInstance = await WrapperContract.connect(owner).deploy(constants.POLYGON.USDC);
 
     // deploy ArtToken as RewardsToken
     RewardTokenContract = await ethers.getContractFactory("ArtToken");
@@ -122,7 +122,7 @@ describe("Treasury Module Tests", function () {
     // Create Organisation
     let organization1 = await createOrganizationObject(
       "organisation1",
-      10,
+      1,
       organisationWalletAddress
     );
     await WrapperInstance.connect(owner).createOrganization(organization1);
@@ -145,8 +145,6 @@ describe("Treasury Module Tests", function () {
       treasuryAddress,
       owner
     );
-
-    TreasuryInstance.connect(owner)
 
     await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
     await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
@@ -231,7 +229,7 @@ describe("Treasury Module Tests", function () {
         );
         await RaffleInstance.connect(curator).createRaffle(newRaffle);
     });
-    it.only("deducts the correct protocol fee", async () => {
+    it("deducts the correct protocol fee", async () => {
         let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
 
         let donation1 = await createDonationObject(
@@ -354,26 +352,143 @@ describe("Treasury Module Tests", function () {
         await RaffleInstance.connect(donor1).donate(donation1);
     });
     it("withdraws to organisation wallet", async () => {
-        let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
         let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
         let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
-
-        let TreasuryInstance = await ethers.getContractAt(
-            "TreasuryModule",
-            treasuryAddress,
-            owner
-        );
 
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(0);
         
-        await TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
-            organisationFee,
-            organisationWalletAddress
+        await WrapperInstance.connect(owner).withdrawFundsToOrganisationWallet(
+          1,
+          organisationFee,
+          organisationWalletAddress
         );
 
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(organisationFee);
+      });
+    });
+    describe("Aave tests", function () {
+      this.beforeEach(async () => {
+        let raffle1Address;
+        let organizationID;
+        let treasuryAddress;
+        
+        organizationID = await WrapperInstance.organisationCount();
+
+        let deployedContractsArray = await WrapperInstance.connect(owner)
+            .getDeployedContracts(organizationID);
+
+        raffle1Address = deployedContractsArray[0];
+
+        RaffleInstance = await ethers.getContractAt(
+            "RaffleModule",
+            raffle1Address,
+            owner
+        );
+
+        await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+        treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+
+        let newRaffle = await createRaffleObject(
+            NFTInstance.address,
+            ownerAddress,
+            1,
+            startTime,
+            endTime,
+            ethers.utils.parseUnits("25", 6),
+            owner.address,
+            ethers.utils.parseUnits("25", 6),
+            BigNumber.from(1000),
+            BigNumber.from(1000),
+        );
+        await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+        let donation1 = await createDonationObject(
+            donor1Address,
+            1,
+            ethers.utils.parseUnits("200", 6),
+            0
+        );
+
+        await RaffleInstance.connect(donor1).donate(donation1);
+    });
+    it("deposits correctly into aave");
+    it("withdraws correctly from aave");
+    it("claims rewards correctly from aave");
+  });
+  describe.only("View Functions", function () {
+    this.beforeEach(async () => {
+      let raffle1Address;
+      let organizationID;
+      let treasuryAddress;
+      
+      organizationID = await WrapperInstance.organisationCount();
+
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+          .getDeployedContracts(organizationID);
+
+      raffle1Address = deployedContractsArray[0];
+
+      RaffleInstance = await ethers.getContractAt(
+          "RaffleModule",
+          raffle1Address,
+          owner
+      );
+
+      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+
+      let newRaffle = await createRaffleObject(
+          NFTInstance.address,
+          ownerAddress,
+          1,
+          startTime,
+          endTime,
+          ethers.utils.parseUnits("25", 6),
+          owner.address,
+          ethers.utils.parseUnits("25", 6),
+          BigNumber.from(1000),
+          BigNumber.from(1000),
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      let donation1 = await createDonationObject(
+          donor1Address,
+          1,
+          ethers.utils.parseUnits("200", 6),
+          0
+      );
+
+      await RaffleInstance.connect(donor1).donate(donation1);
+    });
+    it("getTotalDonationsPerRaffle", async () => {
+      let organizationID = await WrapperInstance.organisationCount();
+
+      let deployedContractsArray = await WrapperInstance.connect(owner)
+          .getDeployedContracts(organizationID);
+
+      let raffle1Address = deployedContractsArray[0];
+
+      let organisationFeePercent = await WrapperInstance.getOrganisationFee(organizationID);
+      let protocolFeePercent = await WrapperInstance.getProtocolFee();
+      let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercent)).div(100);
+      let protocolFee = (ethers.utils.parseUnits("200", 6).mul(protocolFeePercent)).div(100);
+
+      let fees = organisationFee.add(protocolFee);
+
+      let treasuryBal = await USDC.balanceOf(treasuryAddress);
+
+      expect(await TreasuryInstance.connect(owner).getTotalDonationsPerRaffle(
+        raffle1Address,
+        1
+      )).to.equal(treasuryBal.sub(organisationFee));
+    });
+    it("getUSDCInAave");
+    it("getUSDCFromTreasury", async () => {
+      let treasuryBal = await USDC.balanceOf(treasuryAddress);
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(treasuryBal);
     });
   });
 });

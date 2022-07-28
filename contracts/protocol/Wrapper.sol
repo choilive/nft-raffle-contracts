@@ -1,5 +1,6 @@
 pragma solidity 0.8.11;
 // import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
@@ -12,6 +13,8 @@ contract Wrapper is AccessControl {
     uint256 public organisationCount;
     address public tokenRewardsModuleAddress;
     address public protocolWalletAddress;
+
+    IERC20 public USDC;
 
     struct Organisation {
         uint256 organisationID;
@@ -31,6 +34,10 @@ contract Wrapper is AccessControl {
     event OrganizationCreated(uint256 id, address walletAddress);
     event RaffleModuleAdded(uint256 organisationID);
     event TreasuryModuleAdded(uint256 organisationID);
+    event FundsWithdrawnToOrganisationWallet(
+        uint256 amount,
+        address organisationWallet
+    );
 
     // --------------------------------------------------------------
     // CUSTOM ERRORS
@@ -40,12 +47,14 @@ contract Wrapper is AccessControl {
     error NoZeroAddressAllowed();
     error OnlyOneTreasuryPerOrganisation();
     error NeedToCreateTreasuryFirst();
+     error InsufficentFunds();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
     // --------------------------------------------------------------
 
-    constructor() {
+    constructor(address _USDC) {
+        USDC = IERC20(_USDC);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -122,6 +131,19 @@ contract Wrapper is AccessControl {
     // --------------------------------------------------------------
     // ONLY OWNER FUNCTIONS
     // --------------------------------------------------------------
+
+    function withdrawFundsToOrganisationWallet(
+        uint256 organisationID,
+        uint256 amount,
+        address organisationWallet
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        address treasuryAddress = organisation[organisationID].centralTreasury;
+        if (USDC.balanceOf(treasuryAddress) < amount) revert InsufficentFunds();
+        USDC.approve(treasuryAddress, amount);
+        USDC.transferFrom(treasuryAddress, organisationWallet, amount);
+
+        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
+    }
 
     function setProtocolWalletAddress(address _protocolWalletAddress)
         public

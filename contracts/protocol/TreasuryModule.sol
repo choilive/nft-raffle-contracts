@@ -1,6 +1,6 @@
 pragma solidity 0.8.11;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "contracts/interfaces/AaveIntegration/ILendingPool.sol";
 import "contracts/interfaces/AaveIntegration/IAToken.sol";
@@ -41,10 +41,6 @@ contract TreasuryModule is Ownable {
         uint256 amount,
         address raffleContract
     );
-    event FundsWithdrawnToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
-    );
     event ProtocolFeesPaidOnDonation(uint256 amount);
     event FundsDepositedToAave(uint256 amount);
     event FundsWithdrawnFromAave(uint256 amount);
@@ -82,6 +78,7 @@ contract TreasuryModule is Ownable {
         // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
+        USDC.approve(_wrapperContractAddress, type(uint256).max);
     }
 
     // --------------------------------------------------------------
@@ -122,17 +119,6 @@ contract TreasuryModule is Ownable {
             amount,
             raffleContractAddress
         );
-    }
-
-    function withdrawFundsToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
-    ) public onlyOwner {
-        if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
-        USDC.approve(address(this), amount);
-        USDC.transferFrom(address(this), organisationWallet, amount);
-
-        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
     }
 
     // ** AAVE DEPOSIT AND WITHDRAWAL ** //

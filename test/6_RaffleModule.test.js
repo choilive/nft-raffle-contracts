@@ -96,7 +96,9 @@ describe("Raffle Module Tests", function () {
     );
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
-    WrapperInstance = await WrapperContract.connect(owner).deploy();
+    WrapperInstance = await WrapperContract.connect(owner).deploy(
+      constants.POLYGON.USDC
+    );
 
     // deploy ArtToken as RewardsToken
     RewardTokenContract = await ethers.getContractFactory("ArtToken");
