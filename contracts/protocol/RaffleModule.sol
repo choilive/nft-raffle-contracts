@@ -293,13 +293,18 @@ contract RaffleModule is
         raffles[raffleID].cancelled = true;
 
         // refund donors
-        address[] memory donorsArray = getDonorsPerCycle(raffleID);
+         address[] memory donorsArray = getDonorsPerCycle(raffleID);
         for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
-                raffleID,
-                donorsArray[i]
-            );
-
+            uint256 totalDonationPerAddress = getTotalDonationPerAddressPerCycle(
+                    raffleID,
+                    donorsArray[i]
+                );
+            uint256 protocolFee = IWrapper(wrapperContractAddress)
+                .getProtocolFee();
+            uint256 calculateprotocolFee = (totalDonationPerAddress *
+                protocolFee) / 100;
+            uint256 refundPerAddress = totalDonationPerAddress -
+                calculateprotocolFee;
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],

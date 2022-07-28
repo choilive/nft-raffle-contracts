@@ -337,6 +337,7 @@ describe("Raffle Module Tests", function () {
         .getDeployedContracts(organizationID);
 
       raffle1Address = deployedContractsArray[0];
+      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -345,6 +346,18 @@ describe("Raffle Module Tests", function () {
       );
 
       await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
+      await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+      
+      TreasuryInstance = await ethers.getContractAt(
+        "TreasuryModule",
+        treasuryAddress,
+        owner
+      );
+
+      await TreasuryInstance.connect(organisationWallet).approveRaffleContract(
+        raffle1Address,
+        organizationID
+      );
 
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -479,7 +492,11 @@ describe("Raffle Module Tests", function () {
       );
       await RaffleInstance.connect(curator).createRaffle(Raffle2);
 
-      let raffle = await RaffleInstance.connect(owner).getRaffle(2);
+      organizationID = await WrapperInstance.organisationCount();
+
+      await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
+
+      let raffle = await RaffleInstance.raffles(2);
 
       expect(raffle.nftOwner).to.equal(ownerAddress);
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(4);
@@ -490,7 +507,7 @@ describe("Raffle Module Tests", function () {
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(0);
       expect(await NFTInstance.balanceOf(ownerAddress, 2)).to.equal(4);
     });
-    it("sends rewardTokens to daoWallet", async () => {
+    it("sends rewardTokens to orgaisationWallet", async () => {
       let Raffle2 = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -505,13 +522,18 @@ describe("Raffle Module Tests", function () {
       );
       await RaffleInstance.connect(curator).createRaffle(Raffle2);
 
+      organizationID = await WrapperInstance.organisationCount();
+
+      await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
+
+
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(1000);
-      expect(await RewardTokenInstance.balanceOf(daoWalletAddress)).to.equal(28000);
+      expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(29000);
 
       await RaffleInstance.connect(owner).cancelRaffle(2);
 
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(0);
-      expect(await RewardTokenInstance.balanceOf(daoWalletAddress)).to.equal(29000);
+      expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(30000);
     });
   });
 
@@ -558,12 +580,12 @@ describe("Raffle Module Tests", function () {
 
       await RaffleInstance.connect(donor1).donate(donation1);
     });
-    it("donation processes correctly", async () => {
+    it.only("donation processes correctly", async () => {
       let organizationID = await WrapperInstance.organisationCount();
       
       let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
       let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
-      let protocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 10000;
+      let protocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
       
       expect(await USDC.balanceOf(treasuryAddress)).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee));
     });
@@ -797,11 +819,10 @@ describe("Raffle Module Tests", function () {
       // await RaffleInstance.connect(curator).setNftAuthorWalletAddress(ownerAddress);
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
     });
-    it.only("calculates winners correctly, NFT reflect in winners balances", async () => {
+    it("calculates winners correctly, NFT reflect in winners balances", async () => {
       // The tokenRewards part of this function is tested in 4_TokenRewardsCalculation.test.js
       // NOTE : this test result for the random donor changes every time you run the test because the random donor is different each time
       let raffle = await RaffleInstance.connect(owner).raffles(1);
-      let nftAuthorAddress = raffle.nftOwner;
 
       let newDonation = await createDonationObject(
         donor1Address,

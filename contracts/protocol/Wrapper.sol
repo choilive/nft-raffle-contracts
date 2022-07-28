@@ -104,6 +104,7 @@ contract Wrapper is AccessControl {
             organisationID
         );
         raffleModuleAddress = address(_raffleModule);
+        _raffleModule.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         // register deployed contract with organization
 
