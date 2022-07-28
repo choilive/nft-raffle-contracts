@@ -8,7 +8,7 @@ import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
-import "../interfaces/ILimitedNFTCollection.sol";
+// import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is
     AccessControl,
@@ -292,6 +292,9 @@ contract RaffleModule is
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
+        uint256 protocolFee = IWrapper(wrapperContractAddress)
+                .getProtocolFee();
+
         // refund donors
          address[] memory donorsArray = getDonorsPerCycle(raffleID);
         for (uint256 i = 0; i < donorsArray.length; i++) {
@@ -299,12 +302,10 @@ contract RaffleModule is
                     raffleID,
                     donorsArray[i]
                 );
-            uint256 protocolFee = IWrapper(wrapperContractAddress)
-                .getProtocolFee();
+            
             uint256 calculateprotocolFee = (totalDonationPerAddress *
                 protocolFee) / 100;
-            uint256 refundPerAddress = totalDonationPerAddress -
-                calculateprotocolFee;
+            uint256 refundPerAddress = totalDonationPerAddress - calculateprotocolFee;
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],

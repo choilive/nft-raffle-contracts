@@ -69,17 +69,17 @@ describe("Raffle Module Tests", function () {
     // setting up donors with USDC
     await USDC.connect(usdcWhale).transfer(
       donor1.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1000", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor2.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1000", 6)
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor3.address,
-      ethers.utils.parseUnits("500", 6)
+      ethers.utils.parseUnits("1000", 6)
     );
 
     await USDC.connect(donor2).approve(
@@ -326,7 +326,7 @@ describe("Raffle Module Tests", function () {
         .withArgs(owner.address, 2, startTime, endTime, 10);
     });
   });
-  describe("cancelRaffle tests", function () {
+  describe.only("cancelRaffle tests", function () {
     this.beforeEach(async () => {
       let raffle1Address, treasuryAddress;
       let organizationID;
@@ -372,6 +372,8 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
 
       let donation1 = await createDonationObject(
         donor1Address,
@@ -471,8 +473,20 @@ describe("Raffle Module Tests", function () {
       const donor1BalAfterRefund = await USDC.balanceOf(donor1Address);
       const donor2BalAfterRefund = await USDC.balanceOf(donor2Address);
 
-      expect(donor1BalAfterRefund).to.equal(donor1BalAfterDonation.add(ethers.utils.parseUnits("440", 6)));
-      expect(donor2BalAfterRefund).to.equal(donor2BalAfterDonation.add(ethers.utils.parseUnits("600", 6)));
+      let protocolFeePercent = await WrapperInstance.connect(owner).getProtocolFee();
+      let donation1ProtocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercent) / 100;
+      let donation2ProtocolFee = (ethers.utils.parseUnits("300", 6) * protocolFeePercent) / 100;
+      let donation3ProtocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercent) / 100;
+      let donation4ProtocolFee = (ethers.utils.parseUnits("300", 6) * protocolFeePercent) / 100;
+
+      let donor1TotalProtocolFee = donation1ProtocolFee + donation3ProtocolFee;
+      let donor2TotalProtocolFee = donation2ProtocolFee + donation4ProtocolFee;
+
+      let donor1Refund = ethers.utils.parseUnits("400", 6) - donor1TotalProtocolFee;
+      let donor2Refund = ethers.utils.parseUnits("600", 6) - donor2TotalProtocolFee;
+
+      expect(donor1BalAfterRefund).to.equal(donor1BalAfterDonation.add(donor1Refund));
+      expect(donor2BalAfterRefund).to.equal(donor2BalAfterDonation.add(donor2Refund));
     });
     it("transfers NFTs back to author", async() => {
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(0);
@@ -508,29 +522,10 @@ describe("Raffle Module Tests", function () {
       expect(await NFTInstance.balanceOf(ownerAddress, 2)).to.equal(4);
     });
     it("sends rewardTokens to orgaisationWallet", async () => {
-      let Raffle2 = await createRaffleObject(
-        NFTInstance.address,
-        ownerAddress,
-        2,
-        startTime,
-        endTime,
-        ethers.utils.parseUnits("100", 6),
-        owner.address,
-        ethers.utils.parseUnits("100", 6),
-        BigNumber.from(1000),
-        BigNumber.from(1000),
-      );
-      await RaffleInstance.connect(curator).createRaffle(Raffle2);
-
-      organizationID = await WrapperInstance.organisationCount();
-
-      await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
-
-
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(1000);
       expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(29000);
 
-      await RaffleInstance.connect(owner).cancelRaffle(2);
+      await RaffleInstance.connect(owner).cancelRaffle(1);
 
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(0);
       expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(30000);
