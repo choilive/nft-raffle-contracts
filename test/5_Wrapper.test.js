@@ -243,10 +243,9 @@ describe("Raffle Contract Tests", function () {
 
         expect(await WrapperInstance.protocolWalletAddress()).to.equal(daoWalletAddress);
     });
-    it("only admin can call setProtocolWalletAddress", async () => {
-        const adminHash = await WrapperInstance.DEFAULT_ADMIN_ROLE();
+    it("only owner can call setProtocolWalletAddress", async () => {
         await expect(WrapperInstance.connect(donor1).setProtocolWalletAddress(daoWalletAddress))
-            .to.be.revertedWith(`AccessControl: account ${donor1Address.toLowerCase()} is missing role ${adminHash.toLowerCase()}`);
+            .to.be.revertedWith("Ownable: caller is not the owner");
     });
     it("setTokenRewardsCalculationAddress", async () => {
         let TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
@@ -258,12 +257,11 @@ describe("Raffle Contract Tests", function () {
 
         expect(await WrapperInstance.tokenRewardsModuleAddress()).to.equal(TokenRewardsInstance.address);
     });
-    it("only admin can call setTokenRewardsCalculationAddress", async () => {
-        const adminHash = await WrapperInstance.DEFAULT_ADMIN_ROLE();
+    it("only owner can call setTokenRewardsCalculationAddress", async () => {
         let TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
         let TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
         await expect(WrapperInstance.connect(donor1).setTokenRewardsCalculationAddress(TokenRewardsInstance.address))
-            .to.be.revertedWith(`AccessControl: account ${donor1Address.toLowerCase()} is missing role ${adminHash.toLowerCase()}`);
+            .to.be.revertedWith("Ownable: caller is not the owner");
     });
     it("setProtocolFee", async () => {
         expect(await WrapperInstance.protocolFee()).to.equal(0);
@@ -276,10 +274,9 @@ describe("Raffle Contract Tests", function () {
         await expect(WrapperInstance.connect(owner).setProtocolFee(101))
             .to.be.revertedWith("FeeOutOfRange()");
     });
-    it("only admin can call setProtocolFee", async () => {
-        const adminHash = await WrapperInstance.DEFAULT_ADMIN_ROLE();
+    it("only owner can call setProtocolFee", async () => {
         await expect(WrapperInstance.connect(donor1).setProtocolFee(10))
-            .to.be.revertedWith(`AccessControl: account ${donor1Address.toLowerCase()} is missing role ${adminHash.toLowerCase()}`);
+            .to.be.revertedWith("Ownable: caller is not the owner");
     });
   });
   describe("view functions", function () {
