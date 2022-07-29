@@ -82,7 +82,7 @@ contract RaffleModule is
     // raffleID => amount
     mapping(uint256 => uint256) highestDonation;
     //  raffleID => address => donationIDs
-    mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
+    // mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
     //raffleID => account => if they've claimed funds already
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
@@ -106,7 +106,6 @@ contract RaffleModule is
         uint256 minimumDonationAmount
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
-    event organisationWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
@@ -419,9 +418,9 @@ contract RaffleModule is
         @param raffleID id of raffle
     */
     function sendRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
-        if (raffles[raffleID].endTime > block.timestamp)
-            revert RaffleHasNotEnded();
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
+        if (raffles[raffleID].endTime > block.timestamp)
+            revert RaffleHasNotEnded();     
         if (tokenRewardsActivated[raffleID] == false)
             revert NoRewardsForRaffle();
 
@@ -488,8 +487,8 @@ contract RaffleModule is
         if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
-        if (raffles[raffleID].endTime > block.timestamp)
-            revert RaffleHasNotEnded();
+        // if (raffles[raffleID].endTime > block.timestamp)
+        //     revert RaffleHasNotEnded();
 
         uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
             raffleID,
@@ -681,16 +680,15 @@ contract RaffleModule is
         return topDonor[raffleID];
     }
 
-    // why is this end of cycle? Does it change during the raffle?
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
         return raffles[raffleID].buffer;
     }
 
-    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return raffles[raffleID].tokenAllocation;
-    }
+    // function getTokensInTheBufferEndOfCycle(uint256 raffleID)
+    //     public
+    //     view
+    //     returns (uint256)
+    // {
+    //     return raffles[raffleID].tokenAllocation;
+    // }
 }

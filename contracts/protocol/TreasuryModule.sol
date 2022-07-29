@@ -28,19 +28,13 @@ contract TreasuryModule {
     //                  EVENTS                    //
     // ------------------------------------------ //
 
-    event USDCWithdrawal(uint256 amountWithdrawn);
-    event USDCWithdrawalAdmin(address indexed recipient, uint256 amount);
-    event USDCMovedFromAaveToTreasury(uint256 amount);
-    event USDCMovedFromTreasuryToAave(uint256 amount);
-    event ProtocolFeesReduced(uint256 amount);
     event DonationReceivedFromRaffle(
         uint256 raffleID,
         uint256 amount,
         address raffleContract
     );
     event FundsWithdrawnToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
+        uint256 amount
     );
     event ProtocolFeesPaidOnDonation(uint256 amount);
     event FundsDepositedToAave(uint256 amount);
@@ -148,9 +142,10 @@ contract TreasuryModule {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
 
         address organisationWallet = wrapperContract.getOrgaisationWalletAddess(organisationID);
+        // USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
-        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
+        emit FundsWithdrawnToOrganisationWallet(amount);
     }
 
     // ** AAVE DEPOSIT AND WITHDRAWAL ** //
@@ -180,7 +175,7 @@ contract TreasuryModule {
         onlyOrganisation(organisationID)
     {
         uint256 AaveBalance = getUSDCInAave();
-        if (amount > 0) revert NoZeroWithDrawals();
+        if (amount == 0) revert NoZeroWithDrawals();
         if (amount > AaveBalance) revert InsufficentFunds();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
 

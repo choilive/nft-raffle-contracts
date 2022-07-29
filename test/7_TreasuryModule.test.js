@@ -341,6 +341,7 @@ describe("Treasury Module Tests", function () {
             BigNumber.from(1000),
         );
         await RaffleInstance.connect(curator).createRaffle(newRaffle);
+        
 
         let donation1 = await createDonationObject(
             donor1Address,
@@ -351,17 +352,16 @@ describe("Treasury Module Tests", function () {
 
         await RaffleInstance.connect(donor1).donate(donation1);
     });
-    it("withdraws to organisation wallet", async () => {
+    it.only("withdraws to organisation wallet", async () => {
         let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
         let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
 
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(0);
         
-        await WrapperInstance.connect(owner).withdrawFundsToOrganisationWallet(
-          1,
+        await TreasuryInstance.connect(organisationWallet).withdrawFundsToOrganisationWallet(
           organisationFee,
-          organisationWalletAddress
+          1
         );
 
         expect(await USDC.balanceOf(organisationWalletAddress))
@@ -417,7 +417,7 @@ describe("Treasury Module Tests", function () {
     it("withdraws correctly from aave");
     it("claims rewards correctly from aave");
   });
-  describe.only("View Functions", function () {
+  describe("View Functions", function () {
     this.beforeEach(async () => {
       let raffle1Address;
       let organizationID;
