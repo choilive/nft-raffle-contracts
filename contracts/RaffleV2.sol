@@ -194,7 +194,7 @@ contract RaffleV2 is
         address _tokenRewardsModuleAddress,
         address _rewardTokenAddress,
         uint256 _raffleID
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    ) public onlyRole(CURATOR_ROLE) {
         if (
             _rewardTokenAddress == address(0) ||
             _tokenRewardsModuleAddress == address(0)
@@ -217,7 +217,7 @@ contract RaffleV2 is
     */
     function withdraw(address account, uint256 amount)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyRole(CURATOR_ROLE)
     {
         if (REWARD_TOKEN.balanceOf(address(this)) < amount)
             revert InsufficientAmount();
@@ -267,12 +267,11 @@ contract RaffleV2 is
         @notice cancels an existing raffle, refunds donors and sends NFT back to artist
         @param raffleID id of raffle
     */
-    function cancelRaffle(uint256 raffleID)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        if (raffles[raffleID].endTime < block.timestamp)
-            revert RaffleHasEnded(); // check this logic
+    function cancelRaffle(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
+        if (
+            getTotalDonationsPerCycle(raffleID) > 0 &&
+            raffles[raffleID].endTime < block.timestamp
+        ) revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
         // refund donors
