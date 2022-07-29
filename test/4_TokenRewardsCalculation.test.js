@@ -191,6 +191,9 @@ describe("Token Rewards Contract Tests", function () {
     // Add curator role
     await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
 
+    await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+
+
     // set times
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;

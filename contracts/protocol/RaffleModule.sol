@@ -1,20 +1,20 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
-import "../interfaces/ILimitedNFTCollection.sol";
 
-contract RaffleModule is
-    AccessControl,
-    ReentrancyGuard,
-    BaseRelayRecipient
-{
+// import "../interfaces/ILimitedNFTCollection.sol";
+
+contract RaffleModule is BaseRelayRecipient, Context, Ownable {
+
     uint256 public raffleCount;
     uint256 public donationCount;
 
@@ -22,7 +22,6 @@ contract RaffleModule is
     IERC20 public REWARD_TOKEN;
 
     address public wrapperContractAddress;
-    // CHANGED DAOWallet to  organisationWallet as DAOWallet is misleading
     address public organisationWallet;
     address public tokenRewardsModuleAddress;
     // address public nftAuthorWallet;
@@ -30,9 +29,7 @@ contract RaffleModule is
 
     uint256 organisationID;
 
-    // bool optionalTokenRewards;
-
-    bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
+    //   bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
     string public override versionRecipient = "2.2.6";
 
@@ -51,7 +48,7 @@ contract RaffleModule is
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
         uint256 buffer;
-        address limitedNftCollectionAddress;
+        // address limitedNftCollectionAddress;
         bool cancelled;
     }
 
@@ -67,7 +64,7 @@ contract RaffleModule is
     // RaffleID => token rewards
     mapping(uint256 => bool) public tokenRewardsActivated;
     // RaffleID => limited nft collection
-    mapping(uint256 => bool) public limitedNFTCollectionActivated;
+    // mapping(uint256 => bool) public limitedNFTCollectionActivated;
     mapping(uint256 => uint256) public minimumNFTDonation;
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
@@ -83,7 +80,7 @@ contract RaffleModule is
     // raffleID => amount
     mapping(uint256 => uint256) highestDonation;
     //  raffleID => address => donationIDs
-    mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
+    // mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
     //raffleID => account => if they've claimed funds already
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
@@ -107,9 +104,8 @@ contract RaffleModule is
         uint256 minimumDonationAmount
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
-    // event organisationWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
-    // event nftAuthorWalletAddressSet(address nftAuthorWallet);
+    event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
     event tokensWithdrawnFromContract(address account, uint256 amount);
@@ -147,21 +143,23 @@ contract RaffleModule is
         address _usdc,
         address _forwarder,
         address _wrapperContractAddress,
-        uint256 _organisationID
+        uint256 _organisationID,
+        address newOwner
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
 
         // Sets deployer as DEFAULT_ADMIN_ROLE
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
-        organisationWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
-            organisationID
-        );
+        organisationWallet = IWrapper(wrapperContractAddress)
+            .getOrgaisationWalletAddess(organisationID);
+
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
             organisationID
         );
+        transferOwnership(newOwner);
     }
 
     // --------------------------------------------------------------
@@ -172,37 +170,19 @@ contract RaffleModule is
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
         @param _nftAuthorWallet address of NFT author wallet
     */
-    // THIS IS NOT NEEDED AS WE CAN GET THE nftAuthorWallet FROM THE RAFFLE OBJECT
-    // function setNftAuthorWalletAddress(address _nftAuthorWallet)
-    //     public
-    //     onlyRole(CURATOR_ROLE)
-    // {
-    //     if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
-    //     nftAuthorWallet = _nftAuthorWallet;
-    //     emit nftAuthorWalletAddressSet(_nftAuthorWallet);
-    // }
 
-    /**
-        @notice sets curator address for curator role
-        @param  curator address of curator wallet
-    */
-    function setCuratorRole(address curator)
+    function setNftAuthorWalletAddress(address _nftAuthorWallet)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyOwner
     {
-        _grantRole(CURATOR_ROLE, curator);
-    }
-
-    function revokeCuratorRole(address curator)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        revokeRole(CURATOR_ROLE, curator);
+        if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
+        nftAuthorWallet = _nftAuthorWallet;
+        emit nftAuthorWalletAddressSet(_nftAuthorWallet);
     }
 
     function turnOnTokenRewards(address _rewardTokenAddress, uint256 _raffleID)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        onlyOwner
     {
         if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
         REWARD_TOKEN = IERC20(_rewardTokenAddress);
@@ -215,18 +195,18 @@ contract RaffleModule is
         emit RewardTokenAddressSet(_rewardTokenAddress);
     }
 
-    function turnOnLimitedNftCollection(
-        address _limitedNftCollectionAddress,
-        uint256 raffleID,
-        uint256 _minimumNFTDonation
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        if (_limitedNftCollectionAddress == address(0))
-            revert ZeroAddressNotAllowed();
-        limitedNFTCollectionActivated[raffleID] = true;
-        raffles[raffleID]
-            .limitedNftCollectionAddress = _limitedNftCollectionAddress;
-        minimumNFTDonation[raffleID] = _minimumNFTDonation;
-    }
+    // function turnOnLimitedNftCollection(
+    //     address _limitedNftCollectionAddress,
+    //     uint256 raffleID,
+    //     uint256 _minimumNFTDonation
+    // ) public {
+    //     if (_limitedNftCollectionAddress == address(0))
+    //         revert ZeroAddressNotAllowed();
+    //     limitedNFTCollectionActivated[raffleID] = true;
+    //     raffles[raffleID]
+    //         .limitedNftCollectionAddress = _limitedNftCollectionAddress;
+    //     minimumNFTDonation[raffleID] = _minimumNFTDonation;
+    // }
 
     /**
         @notice function for withdrawing reward token from contract
@@ -234,10 +214,7 @@ contract RaffleModule is
         @param  amount amount of tokens to be withdrawn
        
     */
-    function withdraw(address account, uint256 amount)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function withdraw(address account, uint256 amount) public onlyOwner {
         if (REWARD_TOKEN.balanceOf(address(this)) < amount)
             revert InsufficientAmount();
         REWARD_TOKEN.approve(address(this), amount);
@@ -252,7 +229,7 @@ contract RaffleModule is
     */
     function createRaffle(Raffle memory _raffle)
         public
-        onlyRole(CURATOR_ROLE)
+        onlyOwner
         returns (uint256)
     {
         address nftContractAddress = _raffle.nftContract;
@@ -286,21 +263,26 @@ contract RaffleModule is
         @notice cancels an existing raffle, refunds donors and sends NFT back to artist
         @param raffleID id of raffle
     */
-    function cancelRaffle(uint256 raffleID)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function cancelRaffle(uint256 raffleID) public onlyOwner {
         if (raffles[raffleID].endTime < block.timestamp)
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
+        uint256 protocolFee = IWrapper(wrapperContractAddress).getProtocolFee();
+
         // refund donors
         address[] memory donorsArray = getDonorsPerCycle(raffleID);
         for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
-                raffleID,
-                donorsArray[i]
-            );
+            uint256 totalDonationPerAddress = getTotalDonationPerAddressPerCycle(
+                    raffleID,
+                    donorsArray[i]
+                );
+
+            uint256 calculateprotocolFee = (totalDonationPerAddress *
+                protocolFee) / 100;
+            uint256 refundPerAddress = totalDonationPerAddress -
+                calculateprotocolFee;
+
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],
@@ -333,11 +315,7 @@ contract RaffleModule is
         @notice creates a donation on an raffle
         @param _donation object contains parameters for donation created
     */
-    function donate(Donation memory _donation)
-        public
-        nonReentrant
-        returns (uint256)
-    {
+    function donate(Donation memory _donation) public returns (uint256) {
         uint256 raffleId = _donation.raffleID;
 
         // Loading Raffle obj into memory for top donor calc
@@ -397,13 +375,13 @@ contract RaffleModule is
             address(this)
         );
 
-        if (limitedNFTCollectionActivated[raffleId] == true) {
-            if (_donation.amount < minimumNFTDonation[raffleId])
-                revert MinimumDonationRequired();
-            address nftCollectionAddress = raffles[_donation.raffleID]
-                .limitedNftCollectionAddress;
-            ILimitedNFTCollection(nftCollectionAddress).mint(msg.sender);
-        }
+        // if (limitedNFTCollectionActivated[raffleId] == true) {
+        //     if (_donation.amount < minimumNFTDonation[raffleId])
+        //         revert MinimumDonationRequired();
+        //     address nftCollectionAddress = raffles[_donation.raffleID]
+        //         .limitedNftCollectionAddress;
+        //     ILimitedNFTCollection(nftCollectionAddress).mint(msg.sender);
+        // }
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
         return donationCount;
@@ -413,11 +391,14 @@ contract RaffleModule is
         @notice distributes NFTs to winners at the end of a raffle cycle
         @param raffleID id of raffle
     */
-    function sendRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
+    function sendRewards(uint256 raffleID) public onlyOwner {
+        if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
-        if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
-        if (tokenRewardsActivated[raffleID] == false) revert NoRewardsForRaffle();
+
+        if (tokenRewardsActivated[raffleID] == false)
+            revert NoRewardsForRaffle();
+
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -483,8 +464,8 @@ contract RaffleModule is
         if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
-        if (raffles[raffleID].endTime > block.timestamp)
-            revert RaffleHasNotEnded();
+        // if (raffles[raffleID].endTime > block.timestamp)
+        //     revert RaffleHasNotEnded();
 
         uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
             raffleID,
@@ -595,7 +576,8 @@ contract RaffleModule is
 
     // *** BICONOMY *** //
 
-    function setTrustedForwarder(address _forwarder) public onlyRole(DEFAULT_ADMIN_ROLE) {
+
+    function setTrustedForwarder(address _forwarder) public {
         _setTrustedForwarder(_forwarder);
     }
 
@@ -676,16 +658,7 @@ contract RaffleModule is
         return topDonor[raffleID];
     }
 
-    // why is this end of cycle? Does it change during the raffle?
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
         return raffles[raffleID].buffer;
-    }
-
-    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return raffles[raffleID].tokenAllocation;
     }
 }

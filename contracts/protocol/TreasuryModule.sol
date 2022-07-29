@@ -1,7 +1,6 @@
 pragma solidity 0.8.11;
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "contracts/interfaces/AaveIntegration/ILendingPool.sol";
 import "contracts/interfaces/AaveIntegration/IAToken.sol";
 import "contracts/interfaces/AaveIntegration/IAaveIncentivesController.sol";
@@ -9,10 +8,10 @@ import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
 contract TreasuryModule is Ownable {
-    // TODO change scale to 100
-    uint256 constant SCALE = 10000; // Scale is 10 000
+    uint256 constant SCALE = 100;
+    IWrapper public wrapperContract;
 
-    IWrapper WrapperContract;
+
     IERC20 public USDC;
     IAToken public aUSDC;
     IAaveIncentivesController public AaveIncentivesController;
@@ -31,20 +30,12 @@ contract TreasuryModule is Ownable {
     //                  EVENTS                    //
     // ------------------------------------------ //
 
-    event USDCWithdrawal(uint256 amountWithdrawn);
-    event USDCWithdrawalAdmin(address indexed recipient, uint256 amount);
-    event USDCMovedFromAaveToTreasury(uint256 amount);
-    event USDCMovedFromTreasuryToAave(uint256 amount);
-    event ProtocolFeesReduced(uint256 amount);
     event DonationReceivedFromRaffle(
         uint256 raffleID,
         uint256 amount,
         address raffleContract
     );
-    event FundsWithdrawnToOrganisationWallet(
-        uint256 amount,
-        address organisationWallet
-    );
+    event FundsWithdrawnToOrganisationWallet(uint256 amount);
     event ProtocolFeesPaidOnDonation(uint256 amount);
     event FundsDepositedToAave(uint256 amount);
     event FundsWithdrawnFromAave(uint256 amount);
@@ -67,7 +58,8 @@ contract TreasuryModule is Ownable {
         address _aUSDC,
         address _aaveIncentivesController,
         address _lendingPool,
-        address _wrapperContractAddress
+        address _wrapperContractAddress,
+        address newOwner
     ) {
         USDCAddress = _USDC;
         aaveLendingPoolAddress = _lendingPool;
@@ -77,17 +69,32 @@ contract TreasuryModule is Ownable {
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
-        WrapperContract = IWrapper(_wrapperContractAddress);
 
+        wrapperContract = IWrapper(_wrapperContractAddress);
         // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
+        transferOwnership(newOwner);
     }
 
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
 
+    function approveRaffleContract(address raffleContractAddress)
+        public
+        onlyOwner
+    {
+        USDC.approve(raffleContractAddress, type(uint256).max);
+    }
+
+    /**
+        @notice this function get's called by the Raffle externally after every donation
+        @param raffleID id of raffle donation is made to
+        @param amount amount of donation
+        @param organisationID id of organisation
+        @param raffleContractAddress address of raffle contract
+    */
     function processDonationFromRaffle(
         uint256 raffleID,
         uint256 amount,
@@ -97,8 +104,11 @@ contract TreasuryModule is Ownable {
         require(USDC.transfer(address(this), amount), "DONATION FAILED");
 
         // get protocol and organisation fees
-        uint256 protocolFee = WrapperContract.getProtocolFee();
-        uint256 organisationFee = WrapperContract.getOrganisationFee(organisationID);
+        uint256 protocolFee = wrapperContract.getProtocolFee();
+        uint256 organisationFee = wrapperContract.getOrganisationFee(
+            organisationID
+        );
+
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
         uint256 organisationFeesEarned = (amount * organisationFee) / SCALE;
 
@@ -124,19 +134,34 @@ contract TreasuryModule is Ownable {
         );
     }
 
+    /**
+        @notice withdraws function to organisation wallet address that was set in wrapper
+         @param amount amount to withdraw
+        @param organisationID id of organisation
+
+    */
     function withdrawFundsToOrganisationWallet(
         uint256 amount,
-        address organisationWallet
+        uint256 organisationID
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
-        USDC.approve(address(this), amount);
+
+
+        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
+            organisationID
+        );
+        // USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
-        emit FundsWithdrawnToOrganisationWallet(amount, organisationWallet);
+        emit FundsWithdrawnToOrganisationWallet(amount);
     }
 
     // ** AAVE DEPOSIT AND WITHDRAWAL ** //
-
+    /**
+        @notice depositing funds to Aave
+         @param amount amount to withdraw
+    
+    */
     function depositToAave(uint256 amount) public onlyOwner {
         if (amount > 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
@@ -145,15 +170,26 @@ contract TreasuryModule is Ownable {
         emit FundsDepositedToAave(amount);
     }
 
+    /**
+        @notice withdraw funds from Aave to treasury
+         @param amount amount to withdraw
+    
+    */
     function withdrawFromAave(uint256 amount) public onlyOwner {
         uint256 AaveBalance = getUSDCInAave();
-        if (amount > 0) revert NoZeroWithDrawals();
+        if (amount == 0) revert NoZeroWithDrawals();
         if (amount > AaveBalance) revert InsufficentFunds();
         AaveLendingPool.withdraw(USDCAddress, amount, address(this));
 
         emit FundsWithdrawnFromAave(amount);
     }
 
+    /**
+        @notice claims rewards earned in Aave
+         @param _amountToClaim amount to withdraw
+         @param _assets asset of the reward
+    
+    */
     function claimAaveRewards(
         address[] calldata _assets,
         uint256 _amountToClaim
@@ -170,7 +206,9 @@ contract TreasuryModule is Ownable {
     // --------------------------------------------------------------
 
     function _transferProtocolFee(uint256 amount) internal {
-        address protocolWallet = WrapperContract.getProtocolWalletAddress();
+
+        address protocolWallet = wrapperContract.getProtocolWalletAddress();
+
         USDC.transferFrom(address(this), protocolWallet, amount);
         emit ProtocolFeesPaidOnDonation(amount);
     }
@@ -188,11 +226,9 @@ contract TreasuryModule is Ownable {
 
     function getUSDCInAave() public view returns (uint256) {
         return aUSDC.balanceOf(address(this));
-        // return USDCInAave;
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {
         return USDC.balanceOf(address(this));
-        // return USDCInTreasury;
     }
 }
