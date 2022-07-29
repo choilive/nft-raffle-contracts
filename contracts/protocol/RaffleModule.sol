@@ -1,5 +1,6 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
@@ -11,7 +12,7 @@ import "../interfaces/ITreasuryModule.sol";
 
 // import "../interfaces/ILimitedNFTCollection.sol";
 
-contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
+contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     uint256 public raffleCount;
     uint256 public donationCount;
 
@@ -140,7 +141,8 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         address _usdc,
         address _forwarder,
         address _wrapperContractAddress,
-        uint256 _organisationID
+        uint256 _organisationID,
+        address newOwner
     ) {
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
@@ -154,6 +156,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
             organisationID
         );
+        transferOwnership(newOwner);
     }
 
     // --------------------------------------------------------------
@@ -164,7 +167,10 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
         @param _nftAuthorWallet address of NFT author wallet
     */
-    function setNftAuthorWalletAddress(address _nftAuthorWallet) public {
+    function setNftAuthorWalletAddress(address _nftAuthorWallet)
+        public
+        onlyOwner
+    {
         if (_nftAuthorWallet == address(0)) revert ZeroAddressNotAllowed();
         nftAuthorWallet = _nftAuthorWallet;
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
@@ -172,6 +178,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
 
     function turnOnTokenRewards(address _rewardTokenAddress, uint256 _raffleID)
         public
+        onlyOwner
     {
         if (_rewardTokenAddress == address(0)) revert ZeroAddressNotAllowed();
         REWARD_TOKEN = IERC20(_rewardTokenAddress);
@@ -203,7 +210,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @param  amount amount of tokens to be withdrawn
        
     */
-    function withdraw(address account, uint256 amount) public {
+    function withdraw(address account, uint256 amount) public onlyOwner {
         if (REWARD_TOKEN.balanceOf(address(this)) < amount)
             revert InsufficientAmount();
         REWARD_TOKEN.approve(address(this), amount);
@@ -216,7 +223,11 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @notice creates a raffle
         @param _raffle object contains parameters for raffle created
     */
-    function createRaffle(Raffle memory _raffle) public returns (uint256) {
+    function createRaffle(Raffle memory _raffle)
+        public
+        onlyOwner
+        returns (uint256)
+    {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
         if (_raffle.tokenAllocation != _raffle.buffer) revert AmountsNotEqual();
@@ -248,7 +259,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @notice cancels an existing raffle, refunds donors and sends NFT back to artist
         @param raffleID id of raffle
     */
-    function cancelRaffle(uint256 raffleID) public {
+    function cancelRaffle(uint256 raffleID) public onlyOwner {
         if (raffles[raffleID].endTime < block.timestamp)
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
@@ -299,11 +310,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @notice creates a donation on an raffle
         @param _donation object contains parameters for donation created
     */
-    function donate(Donation memory _donation)
-        public
-        nonReentrant
-        returns (uint256)
-    {
+    function donate(Donation memory _donation) public returns (uint256) {
         uint256 raffleId = _donation.raffleID;
 
         // Loading Raffle obj into memory for top donor calc
@@ -379,7 +386,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         @notice distributes NFTs to winners at the end of a raffle cycle
         @param raffleID id of raffle
     */
-    function sendRewards(uint256 raffleID) public {
+    function sendRewards(uint256 raffleID) public onlyOwner {
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
@@ -645,12 +652,4 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
         return raffles[raffleID].buffer;
     }
-
-    // function getTokensInTheBufferEndOfCycle(uint256 raffleID)
-    //     public
-    //     view
-    //     returns (uint256)
-    // {
-    //     return raffles[raffleID].tokenAllocation;
-    // }
 }

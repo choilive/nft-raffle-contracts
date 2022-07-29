@@ -1,5 +1,5 @@
 pragma solidity 0.8.11;
-
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "contracts/interfaces/AaveIntegration/ILendingPool.sol";
 import "contracts/interfaces/AaveIntegration/IAToken.sol";
@@ -7,7 +7,7 @@ import "contracts/interfaces/AaveIntegration/IAaveIncentivesController.sol";
 import "contracts/interfaces/IWrapper.sol";
 
 // TODO need to check who is the owner if you deploy it from a wrapper!!!!!!!
-contract TreasuryModule {
+contract TreasuryModule is Ownable {
     uint256 constant SCALE = 100;
     IWrapper public wrapperContract;
     IERC20 public USDC;
@@ -56,7 +56,8 @@ contract TreasuryModule {
         address _aUSDC,
         address _aaveIncentivesController,
         address _lendingPool,
-        address _wrapperContractAddress
+        address _wrapperContractAddress,
+        address newOwner
     ) {
         USDCAddress = _USDC;
         aaveLendingPoolAddress = _lendingPool;
@@ -71,16 +72,17 @@ contract TreasuryModule {
         // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
+        transferOwnership(newOwner);
     }
 
     // --------------------------------------------------------------
     // STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
 
-    function approveRaffleContract(
-        address raffleContractAddress,
-        uint256 organisationID
-    ) public onlyOrganisation(organisationID) {
+    function approveRaffleContract(address raffleContractAddress)
+        public
+        onlyOwner
+    {
         USDC.approve(raffleContractAddress, type(uint256).max);
     }
 
@@ -138,7 +140,7 @@ contract TreasuryModule {
     function withdrawFundsToOrganisationWallet(
         uint256 amount,
         uint256 organisationID
-    ) public onlyOrganisation(organisationID) {
+    ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
 
         address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
@@ -156,10 +158,7 @@ contract TreasuryModule {
          @param amount amount to withdraw
     
     */
-    function depositToAave(uint256 amount, uint256 organisationID)
-        public
-        onlyOrganisation(organisationID)
-    {
+    function depositToAave(uint256 amount) public onlyOwner {
         if (amount > 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
@@ -172,10 +171,7 @@ contract TreasuryModule {
          @param amount amount to withdraw
     
     */
-    function withdrawFromAave(uint256 amount, uint256 organisationID)
-        public
-        onlyOrganisation(organisationID)
-    {
+    function withdrawFromAave(uint256 amount) public onlyOwner {
         uint256 AaveBalance = getUSDCInAave();
         if (amount == 0) revert NoZeroWithDrawals();
         if (amount > AaveBalance) revert InsufficentFunds();
@@ -192,9 +188,8 @@ contract TreasuryModule {
     */
     function claimAaveRewards(
         address[] calldata _assets,
-        uint256 _amountToClaim,
-        uint256 organisationID
-    ) external onlyOrganisation(organisationID) {
+        uint256 _amountToClaim
+    ) external onlyOwner {
         AaveIncentivesController.claimRewards(
             _assets,
             _amountToClaim,
@@ -229,17 +224,5 @@ contract TreasuryModule {
 
     function getUSDCFromTreasury() public view returns (uint256) {
         return USDC.balanceOf(address(this));
-    }
-
-    // --------------------------------------------------------------
-    // INTERNAL FUNCTIONS
-    // --------------------------------------------------------------
-
-    modifier onlyOrganisation(uint256 organisationID) {
-        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
-            organisationID
-        );
-        require(msg.sender == organisationWallet);
-        _;
     }
 }

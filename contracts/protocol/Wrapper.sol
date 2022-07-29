@@ -82,7 +82,8 @@ contract Wrapper is Ownable {
             aUSDC,
             aaveIncentivesController,
             lendingPool,
-            address(this)
+            address(this),
+            msg.sender
         );
         treasuryModuleAddress = address(_treasuryModule);
 
@@ -101,7 +102,8 @@ contract Wrapper is Ownable {
             _usdc,
             _forwarder,
             address(this),
-            organisationID
+            organisationID,
+            msg.sender
         );
         raffleModuleAddress = address(_raffleModule);
         // _raffleModule.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
