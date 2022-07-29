@@ -33,9 +33,7 @@ contract TreasuryModule {
         uint256 amount,
         address raffleContract
     );
-    event FundsWithdrawnToOrganisationWallet(
-        uint256 amount
-    );
+    event FundsWithdrawnToOrganisationWallet(uint256 amount);
     event ProtocolFeesPaidOnDonation(uint256 amount);
     event FundsDepositedToAave(uint256 amount);
     event FundsWithdrawnFromAave(uint256 amount);
@@ -103,14 +101,16 @@ contract TreasuryModule {
 
         // get protocol and organisation fees
         uint256 protocolFee = wrapperContract.getProtocolFee();
-        uint256 organisationFee = wrapperContract.getOrganisationFee(organisationID);
+        uint256 organisationFee = wrapperContract.getOrganisationFee(
+            organisationID
+        );
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
         uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
 
         // add organisation fee to balance
         organisationFeeBalance += organisationFeesEarned;
 
-        USDC.approve(address(this),protocolFeesEarned);
+        USDC.approve(address(this), protocolFeesEarned);
 
         // transfer protocol fee to protocol wallet
         _transferProtocolFee(protocolFeesEarned);
@@ -141,7 +141,9 @@ contract TreasuryModule {
     ) public onlyOrganisation(organisationID) {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
 
-        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(organisationID);
+        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
+            organisationID
+        );
         // USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
@@ -234,7 +236,9 @@ contract TreasuryModule {
     // --------------------------------------------------------------
 
     modifier onlyOrganisation(uint256 organisationID) {
-        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(organisationID);
+        address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
+            organisationID
+        );
         require(msg.sender == organisationWallet);
         _;
     }

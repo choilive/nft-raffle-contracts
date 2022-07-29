@@ -3,7 +3,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
-contract Wrapper is AccessControl {
+contract Wrapper {
     uint256 public constant SCALE = 100;
     uint256 public protocolFee;
     uint256 public organisationFee;
@@ -43,7 +43,7 @@ contract Wrapper is AccessControl {
     // --------------------------------------------------------------
 
     constructor() {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     // --------------------------------------------------------------
@@ -104,7 +104,7 @@ contract Wrapper is AccessControl {
             organisationID
         );
         raffleModuleAddress = address(_raffleModule);
-        _raffleModule.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        // _raffleModule.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         // register deployed contract with organization
 
@@ -121,7 +121,6 @@ contract Wrapper is AccessControl {
 
     function setProtocolWalletAddress(address _protocolWalletAddress)
         public
-        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (address)
     {
         protocolWalletAddress = _protocolWalletAddress;
@@ -129,15 +128,11 @@ contract Wrapper is AccessControl {
 
     function setTokenRewardsCalculationAddress(
         address _tokenRewardsModuleAddress
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
+    ) public returns (address) {
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
     }
 
-    function setProtocolFee(uint256 _protocolFee)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (uint256)
-    {
+    function setProtocolFee(uint256 _protocolFee) public returns (uint256) {
         if (_protocolFee > SCALE) revert FeeOutOfRange();
         protocolFee = _protocolFee;
         return protocolFee;
