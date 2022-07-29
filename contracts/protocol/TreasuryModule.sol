@@ -10,6 +10,8 @@ import "contracts/interfaces/IWrapper.sol";
 contract TreasuryModule is Ownable {
     uint256 constant SCALE = 100;
     IWrapper public wrapperContract;
+
+
     IERC20 public USDC;
     IAToken public aUSDC;
     IAaveIncentivesController public AaveIncentivesController;
@@ -20,7 +22,7 @@ contract TreasuryModule is Ownable {
 
     // address public wrapperContractAddress;
 
-    uint256 organisationFeeBalance;
+    uint256 public organisationFeeBalance;
 
     // raffleContractAddress => raffleID => total amount of donations
     mapping(address => mapping(uint256 => uint256)) totaldonationsPerRaffle;
@@ -67,8 +69,8 @@ contract TreasuryModule is Ownable {
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
-        wrapperContract = IWrapper(_wrapperContractAddress);
 
+        wrapperContract = IWrapper(_wrapperContractAddress);
         // wrapperContractAddress = _wrapperContractAddress;
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
@@ -106,8 +108,9 @@ contract TreasuryModule is Ownable {
         uint256 organisationFee = wrapperContract.getOrganisationFee(
             organisationID
         );
+
         uint256 protocolFeesEarned = (amount * protocolFee) / SCALE;
-        uint256 organisationFeesEarned = (amount * protocolFee) / SCALE;
+        uint256 organisationFeesEarned = (amount * organisationFee) / SCALE;
 
         // add organisation fee to balance
         organisationFeeBalance += organisationFeesEarned;
@@ -142,6 +145,7 @@ contract TreasuryModule is Ownable {
         uint256 organisationID
     ) public onlyOwner {
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
+
 
         address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
             organisationID
@@ -202,7 +206,9 @@ contract TreasuryModule is Ownable {
     // --------------------------------------------------------------
 
     function _transferProtocolFee(uint256 amount) internal {
+
         address protocolWallet = wrapperContract.getProtocolWalletAddress();
+
         USDC.transferFrom(address(this), protocolWallet, amount);
         emit ProtocolFeesPaidOnDonation(amount);
     }

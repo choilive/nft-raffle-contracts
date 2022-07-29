@@ -70,16 +70,20 @@ describe("Raffle Module Tests", function () {
     await USDC.connect(usdcWhale).transfer(
       donor1.address,
       ethers.utils.parseUnits("1000", 6)
+
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor2.address,
       ethers.utils.parseUnits("1000", 6)
+
     );
 
     await USDC.connect(usdcWhale).transfer(
       donor3.address,
+
       ethers.utils.parseUnits("1000", 6)
+
     );
 
     await USDC.connect(donor2).approve(
@@ -326,7 +330,9 @@ describe("Raffle Module Tests", function () {
         .withArgs(owner.address, 2, startTime, endTime, 10);
     });
   });
+  
   describe("cancelRaffle tests", function () {
+
     this.beforeEach(async () => {
       let raffle1Address, treasuryAddress;
       let organizationID;
@@ -337,7 +343,7 @@ describe("Raffle Module Tests", function () {
         .getDeployedContracts(organizationID);
 
       raffle1Address = deployedContractsArray[0];
-      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -359,6 +365,7 @@ describe("Raffle Module Tests", function () {
         organizationID
       );
 
+
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -373,8 +380,10 @@ describe("Raffle Module Tests", function () {
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
+
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
 
+n
       let donation1 = await createDonationObject(
         donor1Address,
         1,
@@ -398,7 +407,9 @@ describe("Raffle Module Tests", function () {
 
       await expect(RaffleInstance.connect(owner).cancelRaffle(1)).to.be.revertedWith("RaffleHasEnded()");
     });
+
     it("updates raffle.cancelled bool to true", async () => {
+
       
       let raffle = await RaffleInstance.raffles(1);
 
@@ -473,6 +484,7 @@ describe("Raffle Module Tests", function () {
       const donor1BalAfterRefund = await USDC.balanceOf(donor1Address);
       const donor2BalAfterRefund = await USDC.balanceOf(donor2Address);
 
+
       let protocolFeePercent = await WrapperInstance.connect(owner).getProtocolFee();
       let donation1ProtocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercent) / 100;
       let donation2ProtocolFee = (ethers.utils.parseUnits("300", 6) * protocolFeePercent) / 100;
@@ -487,6 +499,7 @@ describe("Raffle Module Tests", function () {
 
       expect(donor1BalAfterRefund).to.equal(donor1BalAfterDonation.add(donor1Refund));
       expect(donor2BalAfterRefund).to.equal(donor2BalAfterDonation.add(donor2Refund));
+
     });
     it("transfers NFTs back to author", async() => {
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(0);
@@ -506,11 +519,13 @@ describe("Raffle Module Tests", function () {
       );
       await RaffleInstance.connect(curator).createRaffle(Raffle2);
 
+
       organizationID = await WrapperInstance.organisationCount();
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
 
       let raffle = await RaffleInstance.raffles(2);
+
 
       expect(raffle.nftOwner).to.equal(ownerAddress);
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(4);
@@ -521,6 +536,7 @@ describe("Raffle Module Tests", function () {
       expect(await NFTInstance.balanceOf(RaffleInstance.address, 2)).to.equal(0);
       expect(await NFTInstance.balanceOf(ownerAddress, 2)).to.equal(4);
     });
+
     it("sends rewardTokens to orgaisationWallet", async () => {
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(1000);
       expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(29000);
@@ -581,6 +597,7 @@ describe("Raffle Module Tests", function () {
       let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
       let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
       let protocolFee = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+
       
       expect(await USDC.balanceOf(treasuryAddress)).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee));
     });
@@ -794,8 +811,10 @@ describe("Raffle Module Tests", function () {
         owner
       );
 
+
       await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
       await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+
       
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -811,12 +830,14 @@ describe("Raffle Module Tests", function () {
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
 
+
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
     });
     it("calculates winners correctly, NFT reflect in winners balances", async () => {
       // The tokenRewards part of this function is tested in 4_TokenRewardsCalculation.test.js
       // NOTE : this test result for the random donor changes every time you run the test because the random donor is different each time
       let raffle = await RaffleInstance.connect(owner).raffles(1);
+
 
       let newDonation = await createDonationObject(
         donor1Address,
@@ -884,12 +905,14 @@ describe("Raffle Module Tests", function () {
         RaffleInstance.connect(curator).sendRewards(1)
       ).to.be.revertedWith("RaffleHasNotEnded()");
     });
+
     it("reverts if raffle is cancelled", async () => {
       await RaffleInstance.connect(owner).cancelRaffle(1);
 
       await expect(RaffleInstance.connect(curator).sendRewards(1))
         .to.be.revertedWith("RaffleCancelled()");
     });
+
   });
   describe("withdraw function tests", function () {
     this.beforeEach(async () => {
@@ -973,7 +996,9 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
       );
       await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
       await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
 
@@ -981,6 +1006,7 @@ describe("Raffle Module Tests", function () {
         donor1Address,
         1,
         ethers.utils.parseUnits("50", 6),
+
         0
       );
 
@@ -988,6 +1014,7 @@ describe("Raffle Module Tests", function () {
         donor2Address,
         1,
         ethers.utils.parseUnits("200", 6),
+
         0
       );
 
@@ -1025,7 +1052,9 @@ describe("Raffle Module Tests", function () {
           1,
           donor1Address
         )
+
       ).to.equal(ethers.utils.parseUnits("150", 6));
+
 
       expect(
         await RaffleInstance.getTotalDonationPerAddressPerCycle(
@@ -1037,6 +1066,7 @@ describe("Raffle Module Tests", function () {
     it("returns highest donation per cycle", async () => {
       expect(await RaffleInstance.getHighestDonationPerCycle(1)).to.equal(
         ethers.utils.parseUnits("200", 6)
+
       );
 
       let donor3Donation1 = await createDonationObject(
@@ -1067,6 +1097,7 @@ describe("Raffle Module Tests", function () {
       expect(await RaffleInstance.connect(owner).getTokenBuffer(1))
         .to.equal(1000);
     });
+
     it("getTokensInTheBufferEndOfCycle", async () => {
       expect(await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1))
         .to.equal(1000);
@@ -1078,6 +1109,7 @@ describe("Raffle Module Tests", function () {
       expect(await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1))
         .to.equal(1); 
     });
+
   });
 
   describe("Turn on Token Rewards", function () {

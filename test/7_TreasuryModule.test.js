@@ -28,6 +28,7 @@ let WrapperContract, WrapperInstance;
 let RaffleInstance, TreasuryInstance;
 let treasuryAddress;
 
+
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
 const { start } = require("repl");
@@ -123,6 +124,7 @@ describe("Treasury Module Tests", function () {
     let organization1 = await createOrganizationObject(
       "organisation1",
       1,
+
       organisationWalletAddress
     );
     await WrapperInstance.connect(owner).createOrganization(organization1);
@@ -149,6 +151,7 @@ describe("Treasury Module Tests", function () {
     await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
     await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
     await WrapperInstance.connect(owner).setProtocolFee(1);
+
 
     await WrapperInstance.connect(owner).addNewRaffleModule(
       organizationID,
@@ -250,6 +253,7 @@ describe("Treasury Module Tests", function () {
 
         let treasuryBalAfterDonation1 = await USDC.balanceOf(treasuryAddress);
         let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+
         let protocolFee1 =  (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
 
         expect(treasuryBalAfterDonation1).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
@@ -257,7 +261,9 @@ describe("Treasury Module Tests", function () {
         await RaffleInstance.connect(donor2).donate(donation2);
 
         treasuryBalAfterDonation2 = await USDC.balanceOf(treasuryAddress);
+
         let protocolFee2 =  (ethers.utils.parseUnits("100", 6) * protocolFeePercentage) / 100;
+
         let donationAfterProtocolFee = ethers.utils.parseUnits("100", 6).sub(protocolFee2);
         expect(treasuryBalAfterDonation2).to.equal(treasuryBalAfterDonation1.add(donationAfterProtocolFee));
 
@@ -341,7 +347,6 @@ describe("Treasury Module Tests", function () {
             BigNumber.from(1000),
         );
         await RaffleInstance.connect(curator).createRaffle(newRaffle);
-        
 
         let donation1 = await createDonationObject(
             donor1Address,
@@ -353,6 +358,7 @@ describe("Treasury Module Tests", function () {
         await RaffleInstance.connect(donor1).donate(donation1);
     });
     it.only("withdraws to organisation wallet", async () => {
+
         let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
         let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
 
@@ -362,7 +368,7 @@ describe("Treasury Module Tests", function () {
         await TreasuryInstance.connect(organisationWallet).withdrawFundsToOrganisationWallet(
           organisationFee,
           1
-        );
+
 
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(organisationFee);
@@ -489,6 +495,7 @@ describe("Treasury Module Tests", function () {
       let treasuryBal = await USDC.balanceOf(treasuryAddress);
       expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
         .to.equal(treasuryBal);
+
     });
   });
 });

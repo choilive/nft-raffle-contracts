@@ -1,5 +1,6 @@
 pragma solidity 0.8.11;
 
+
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
@@ -13,6 +14,7 @@ import "../interfaces/ITreasuryModule.sol";
 // import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is BaseRelayRecipient, Context, Ownable {
+
     uint256 public raffleCount;
     uint256 public donationCount;
 
@@ -22,7 +24,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     address public wrapperContractAddress;
     address public organisationWallet;
     address public tokenRewardsModuleAddress;
-    address public nftAuthorWallet;
+    // address public nftAuthorWallet;
     address public treasuryAddress;
 
     uint256 organisationID;
@@ -153,6 +155,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         wrapperContractAddress = _wrapperContractAddress;
         organisationWallet = IWrapper(wrapperContractAddress)
             .getOrgaisationWalletAddess(organisationID);
+
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
             organisationID
         );
@@ -167,6 +170,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         @notice sets NFT author wallet address for transfering NFT at the end of raffle cycle
         @param _nftAuthorWallet address of NFT author wallet
     */
+
     function setNftAuthorWalletAddress(address _nftAuthorWallet)
         public
         onlyOwner
@@ -278,6 +282,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
                 protocolFee) / 100;
             uint256 refundPerAddress = totalDonationPerAddress -
                 calculateprotocolFee;
+
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],
@@ -390,8 +395,10 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
+
         if (tokenRewardsActivated[raffleID] == false)
             revert NoRewardsForRaffle();
+
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -401,6 +408,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         address topDonor = getTopDonor(raffleID);
 
         address nftContractAddress = raffles[raffleID].nftContract;
+        address nftAuthorWallet = raffles[raffleID].nftOwner;
         uint256 tokenID = raffles[raffleID].tokenID;
 
         // transfer to random donor
@@ -568,6 +576,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
 
     // *** BICONOMY *** //
 
+
     function setTrustedForwarder(address _forwarder) public {
         _setTrustedForwarder(_forwarder);
     }
@@ -602,17 +611,17 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
-        return raffles[raffleID];
-    }
+    // function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
+    //     return raffles[raffleID];
+    // }
 
-    function getDonation(uint256 donationID)
-        public
-        view
-        returns (Donation memory)
-    {
-        return donations[donationID];
-    }
+    // function getDonation(uint256 donationID)
+    //     public
+    //     view
+    //     returns (Donation memory)
+    // {
+    //     return donations[donationID];
+    // }
 
     function getTotalDonationsPerCycle(uint256 raffleID)
         public

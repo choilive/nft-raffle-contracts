@@ -1,10 +1,12 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/Ownable.sol";
+// import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
 contract Wrapper is Ownable {
     uint256 public constant SCALE = 100;
+
     uint256 public protocolFee;
     uint256 public organisationFee;
     uint256 public organisationCount;
@@ -17,6 +19,7 @@ contract Wrapper is Ownable {
         address centralTreasury;
         address[] contractsDeployed;
     }
+
     mapping(uint256 => Organisation) public organisation;
     // organisationID => bool
     mapping(uint256 => bool) public treasuryExist;
@@ -43,7 +46,7 @@ contract Wrapper is Ownable {
     // --------------------------------------------------------------
 
     constructor() {
-        // _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+
     }
 
     // --------------------------------------------------------------
@@ -54,7 +57,9 @@ contract Wrapper is Ownable {
         public
         returns (uint256)
     {
+
         if (_organisation.organisationFee > SCALE) revert FeeOutOfRange();
+
         if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
         organisationCount++;
@@ -106,7 +111,6 @@ contract Wrapper is Ownable {
             msg.sender
         );
         raffleModuleAddress = address(_raffleModule);
-        // _raffleModule.grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
         // register deployed contract with organization
 
@@ -123,7 +127,7 @@ contract Wrapper is Ownable {
 
     function setProtocolWalletAddress(address _protocolWalletAddress)
         public
-        onlyOwner
+        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (address)
     {
         protocolWalletAddress = _protocolWalletAddress;
@@ -131,16 +135,17 @@ contract Wrapper is Ownable {
 
     function setTokenRewardsCalculationAddress(
         address _tokenRewardsModuleAddress
-    ) public onlyOwner returns (address) {
+    ) public onlyRole(DEFAULT_ADMIN_ROLE) returns (address) {
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
     }
 
     function setProtocolFee(uint256 _protocolFee)
         public
-        onlyOwner
+        onlyRole(DEFAULT_ADMIN_ROLE)
         returns (uint256)
     {
         if (_protocolFee > SCALE) revert FeeOutOfRange();
+
         protocolFee = _protocolFee;
         return protocolFee;
     }
