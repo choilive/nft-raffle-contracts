@@ -1,5 +1,4 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,10 +8,9 @@ import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
-import "../interfaces/ILimitedNFTCollection.sol";
+// import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is
-    Ownable,
     AccessControl,
     ReentrancyGuard,
     BaseRelayRecipient
@@ -24,7 +22,7 @@ contract RaffleModule is
     IERC20 public REWARD_TOKEN;
 
     address public wrapperContractAddress;
-    address public DAOWallet;
+    address public organisationWallet;
     address public tokenRewardsModuleAddress;
     address public nftAuthorWallet;
     address public treasuryAddress;
@@ -84,7 +82,7 @@ contract RaffleModule is
     // raffleID => amount
     mapping(uint256 => uint256) highestDonation;
     //  raffleID => address => donationIDs
-    mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
+    // mapping(uint256 => mapping(address => uint256[])) donationCountPerAddressPerCycle;
     //raffleID => account => if they've claimed funds already
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
@@ -108,7 +106,6 @@ contract RaffleModule is
         uint256 minimumDonationAmount
     );
     event DonationPlaced(address from, uint256 raffleId, uint256 amount);
-    event DAOWalletAddressSet(address walletAddress);
     event RewardTokenAddressSet(address tokenAddress);
     event nftAuthorWalletAddressSet(address nftAuthorWallet);
     event NFTsentToWinner(uint256 raffleID, address winner);
@@ -157,7 +154,7 @@ contract RaffleModule is
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         organisationID = _organisationID;
         wrapperContractAddress = _wrapperContractAddress;
-        DAOWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
+        organisationWallet = IWrapper(wrapperContractAddress).getOrgaisationWalletAddess(
                 organisationID
             );
         treasuryAddress = IWrapper(wrapperContractAddress).getTreasuryAddress(
@@ -294,14 +291,20 @@ contract RaffleModule is
             revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
-        // refund donors
-        address[] memory donorsArray = getDonorsPerCycle(raffleID);
-        for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 refundPerAddress = getTotalDonationPerAddressPerCycle(
-                raffleID,
-                donorsArray[i]
-            );
+        uint256 protocolFee = IWrapper(wrapperContractAddress)
+                .getProtocolFee();
 
+        // refund donors
+         address[] memory donorsArray = getDonorsPerCycle(raffleID);
+        for (uint256 i = 0; i < donorsArray.length; i++) {
+            uint256 totalDonationPerAddress = getTotalDonationPerAddressPerCycle(
+                    raffleID,
+                    donorsArray[i]
+                );
+            
+            uint256 calculateprotocolFee = (totalDonationPerAddress *
+                protocolFee) / 100;
+            uint256 refundPerAddress = totalDonationPerAddress - calculateprotocolFee;
             USDC.transferFrom(
                 treasuryAddress,
                 donorsArray[i],
@@ -327,7 +330,7 @@ contract RaffleModule is
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
-        withdraw(DAOWallet, refundAmount);
+        withdraw(organisationWallet, refundAmount);
     }
 
     /**
@@ -415,9 +418,11 @@ contract RaffleModule is
         @param raffleID id of raffle
     */
     function sendRewards(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
-        if (raffles[raffleID].endTime > block.timestamp)
-            revert RaffleHasNotEnded();
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
+        if (raffles[raffleID].endTime > block.timestamp)
+            revert RaffleHasNotEnded();     
+        if (tokenRewardsActivated[raffleID] == false)
+            revert NoRewardsForRaffle();
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -453,12 +458,12 @@ contract RaffleModule is
         // transfer to DAO Wallet
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
-            DAOWallet,
+            organisationWallet,
             tokenID,
             1,
             ""
         );
-        emit NFTsentToWinner(raffleID, DAOWallet);
+        emit NFTsentToWinner(raffleID, organisationWallet);
         // transfer to NFT author
         IERC1155(nftContractAddress).safeTransferFrom(
             address(this),
@@ -479,13 +484,11 @@ contract RaffleModule is
     }
 
     function claimTokenRewards(uint256 raffleID, address donor) internal {
-        if (tokenRewardsActivated[raffleID] == false)
-            revert NoRewardsForRaffle();
         if (!donorExistsInArray[raffleID][donor]) revert CannotClaimRewards();
         if (rewardsClaimedPerCycle[raffleID][donor] == true)
             revert CannotClaimRewards();
-        if (raffles[raffleID].endTime > block.timestamp)
-            revert RaffleHasNotEnded();
+        // if (raffles[raffleID].endTime > block.timestamp)
+        //     revert RaffleHasNotEnded();
 
         uint256 totalUserDonation = getTotalDonationPerAddressPerCycle(
             raffleID,
@@ -589,14 +592,14 @@ contract RaffleModule is
         internal
     {
         raffles[raffleID].tokenAllocation = amount;
-        REWARD_TOKEN.transferFrom(DAOWallet, address(this), amount);
+        REWARD_TOKEN.transferFrom(organisationWallet, address(this), amount);
 
         emit RewardTokenBalanceToppedUp(amount);
     }
 
     // *** BICONOMY *** //
 
-    function setTrustedForwarder(address _forwarder) public onlyOwner {
+    function setTrustedForwarder(address _forwarder) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _setTrustedForwarder(_forwarder);
     }
 
@@ -630,17 +633,17 @@ contract RaffleModule is
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
 
-    function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
-        return raffles[raffleID];
-    }
+    // function getRaffle(uint256 raffleID) public view returns (Raffle memory) {
+    //     return raffles[raffleID];
+    // }
 
-    function getDonation(uint256 donationID)
-        public
-        view
-        returns (Donation memory)
-    {
-        return donations[donationID];
-    }
+    // function getDonation(uint256 donationID)
+    //     public
+    //     view
+    //     returns (Donation memory)
+    // {
+    //     return donations[donationID];
+    // }
 
     function getTotalDonationsPerCycle(uint256 raffleID)
         public
@@ -677,16 +680,15 @@ contract RaffleModule is
         return topDonor[raffleID];
     }
 
-    // why is this end of cycle? Does it change during the raffle?
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
         return raffles[raffleID].buffer;
     }
 
-    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
-        public
-        view
-        returns (uint256)
-    {
-        return raffles[raffleID].tokenAllocation;
-    }
+    // function getTokensInTheBufferEndOfCycle(uint256 raffleID)
+    //     public
+    //     view
+    //     returns (uint256)
+    // {
+    //     return raffles[raffleID].tokenAllocation;
+    // }
 }
