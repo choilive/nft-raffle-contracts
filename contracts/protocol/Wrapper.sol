@@ -1,10 +1,12 @@
 pragma solidity 0.8.11;
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
 contract Wrapper is Ownable {
-    uint256 public constant SCALE = 10000; // Scale is 10 000
+    uint256 public constant SCALE = 100;
+
     uint256 public protocolFee;
     uint256 public organisationFee;
     uint256 public organisationCount;
@@ -12,16 +14,16 @@ contract Wrapper is Ownable {
     address public protocolWalletAddress;
 
     struct Organisation {
-        uint256 organisationID;
         uint256 organisationFee;
         address walletAddress; // wallet address given by organization
         address centralTreasury;
         address[] contractsDeployed;
     }
 
-    mapping(uint256 => Organisation) organisation;
+    mapping(uint256 => Organisation) public organisation;
     // organisationID => bool
     mapping(uint256 => bool) public treasuryExist;
+
     // --------------------------------------------------------------
     // EVENTS
     // --------------------------------------------------------------
@@ -53,14 +55,14 @@ contract Wrapper is Ownable {
         public
         returns (uint256)
     {
-        if (_organisation.organisationFee < SCALE) revert FeeOutOfRange();
+        if (_organisation.organisationFee > SCALE) revert FeeOutOfRange();
+
         if (_organisation.walletAddress == address(0))
             revert NoZeroAddressAllowed();
         organisationCount++;
-        _organisation.organisationID = organisationCount;
         organisation[organisationCount] = _organisation;
         emit OrganizationCreated(
-            _organisation.organisationID,
+            organisationCount,
             _organisation.walletAddress
         );
         return organisationCount;
@@ -82,7 +84,8 @@ contract Wrapper is Ownable {
             aUSDC,
             aaveIncentivesController,
             lendingPool,
-            address(this)
+            address(this),
+            msg.sender
         );
         treasuryModuleAddress = address(_treasuryModule);
 
@@ -101,7 +104,8 @@ contract Wrapper is Ownable {
             _usdc,
             _forwarder,
             address(this),
-            organisationID
+            organisationID,
+            msg.sender
         );
         raffleModuleAddress = address(_raffleModule);
 
@@ -137,7 +141,8 @@ contract Wrapper is Ownable {
         onlyOwner
         returns (uint256)
     {
-        if (_protocolFee < SCALE) revert FeeOutOfRange();
+        if (_protocolFee > SCALE) revert FeeOutOfRange();
+
         protocolFee = _protocolFee;
         return protocolFee;
     }
@@ -145,14 +150,6 @@ contract Wrapper is Ownable {
     // --------------------------------------------------------------
     // VIEW FUNCTIONS
     // --------------------------------------------------------------
-
-    //   function getOrganisationDetails(uint256 organisationID)
-    //     public
-    //     view
-    //     returns (Organisation memory)
-    //   {
-    //     return organisation[organisationID];
-    //   }
 
     function getProtocolWalletAddress() public view returns (address) {
         return protocolWalletAddress;
