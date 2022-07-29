@@ -1,9 +1,9 @@
 pragma solidity 0.8.11;
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./RaffleModule.sol";
 import "./TreasuryModule.sol";
 
-contract Wrapper {
+contract Wrapper is Ownable {
     uint256 public constant SCALE = 100;
     uint256 public protocolFee;
     uint256 public organisationFee;
@@ -121,6 +121,7 @@ contract Wrapper {
 
     function setProtocolWalletAddress(address _protocolWalletAddress)
         public
+        onlyOwner
         returns (address)
     {
         protocolWalletAddress = _protocolWalletAddress;
@@ -128,11 +129,15 @@ contract Wrapper {
 
     function setTokenRewardsCalculationAddress(
         address _tokenRewardsModuleAddress
-    ) public returns (address) {
+    ) public onlyOwner returns (address) {
         tokenRewardsModuleAddress = _tokenRewardsModuleAddress;
     }
 
-    function setProtocolFee(uint256 _protocolFee) public returns (uint256) {
+    function setProtocolFee(uint256 _protocolFee)
+        public
+        onlyOwner
+        returns (uint256)
+    {
         if (_protocolFee > SCALE) revert FeeOutOfRange();
         protocolFee = _protocolFee;
         return protocolFee;

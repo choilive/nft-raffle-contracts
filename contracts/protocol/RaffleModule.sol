@@ -45,7 +45,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
         uint256 buffer;
-        address limitedNftCollectionAddress;
+        // address limitedNftCollectionAddress;
         bool cancelled;
     }
 
@@ -61,7 +61,7 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
     // RaffleID => token rewards
     mapping(uint256 => bool) public tokenRewardsActivated;
     // RaffleID => limited nft collection
-    mapping(uint256 => bool) public limitedNFTCollectionActivated;
+    // mapping(uint256 => bool) public limitedNFTCollectionActivated;
     mapping(uint256 => uint256) public minimumNFTDonation;
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
@@ -170,17 +170,6 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         emit nftAuthorWalletAddressSet(_nftAuthorWallet);
     }
 
-    //   function setCuratorRole(address curator) public onlyRole(DEFAULT_ADMIN_ROLE) {
-    //     _grantRole(CURATOR_ROLE, curator);
-    //   }
-
-    //   function revokeCuratorRole(address curator)
-    //     public
-    //     onlyRole(DEFAULT_ADMIN_ROLE)
-    //   {
-    //     revokeRole(CURATOR_ROLE, curator);
-    //   }
-
     function turnOnTokenRewards(address _rewardTokenAddress, uint256 _raffleID)
         public
     {
@@ -195,18 +184,18 @@ contract RaffleModule is ReentrancyGuard, BaseRelayRecipient, Context {
         emit RewardTokenAddressSet(_rewardTokenAddress);
     }
 
-    function turnOnLimitedNftCollection(
-        address _limitedNftCollectionAddress,
-        uint256 raffleID,
-        uint256 _minimumNFTDonation
-    ) public {
-        if (_limitedNftCollectionAddress == address(0))
-            revert ZeroAddressNotAllowed();
-        limitedNFTCollectionActivated[raffleID] = true;
-        raffles[raffleID]
-            .limitedNftCollectionAddress = _limitedNftCollectionAddress;
-        minimumNFTDonation[raffleID] = _minimumNFTDonation;
-    }
+    // function turnOnLimitedNftCollection(
+    //     address _limitedNftCollectionAddress,
+    //     uint256 raffleID,
+    //     uint256 _minimumNFTDonation
+    // ) public {
+    //     if (_limitedNftCollectionAddress == address(0))
+    //         revert ZeroAddressNotAllowed();
+    //     limitedNFTCollectionActivated[raffleID] = true;
+    //     raffles[raffleID]
+    //         .limitedNftCollectionAddress = _limitedNftCollectionAddress;
+    //     minimumNFTDonation[raffleID] = _minimumNFTDonation;
+    // }
 
     /**
         @notice function for withdrawing reward token from contract
