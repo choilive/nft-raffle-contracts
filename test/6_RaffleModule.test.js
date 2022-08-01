@@ -17,10 +17,8 @@ let nftAuthor, nftAuthorAddress;
 let donor1, donor1Address;
 let donor2, donor2Address;
 let donor3, donor3Address;
-let donor4, donor4Address;
-let curator, curatorAddress;
 let forwarder, forwarderAddress;
-let usdcWhale, usdcWhaleAddress;
+let usdcWhale;
 let NFTContract, NFTInstance;
 let RewardTokenContract, RewardTokenInstance;
 let TokenRewardsContract, TokenRewardsInstance;
@@ -46,7 +44,7 @@ const amUSDC = new ethers.Contract(
 
 describe("Raffle Module Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
+    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
@@ -56,7 +54,6 @@ describe("Raffle Module Tests", function () {
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
-    curatorAddress = await curator.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
     await hre.network.provider.request({

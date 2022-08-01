@@ -18,10 +18,9 @@ let donor1, donor1Address;
 let donor2, donor2Address;
 let donor3, donor3Address;
 let donor4, donor4Address;
-let curator, curatorAddress;
 let forwarder, forwarderAddress;
-let usdcWhale, usdcWhaleAddress;
-let RaffleContract, RaffleInstance;
+let usdcWhale;
+let RaffleInstance;
 let NFTContract, NFTInstance;
 let RewardTokenContract, RewardTokenInstance;
 let TokenRewardsContract, TokenRewardsInstance;
@@ -29,7 +28,6 @@ let WrapperContract, WrapperInstance;
 
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
-const { start } = require("repl");
 
 const USDC = new ethers.Contract(
   constants.POLYGON.USDC,
@@ -39,7 +37,7 @@ const USDC = new ethers.Contract(
 
 describe("Token Rewards Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, donor4, curator, forwarder] =
+    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, donor4, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
@@ -50,7 +48,6 @@ describe("Token Rewards Contract Tests", function () {
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
     donor4Address = await donor4.getAddress();
-    curatorAddress = await curator.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
     // deploy ArtToken as RewardsToken

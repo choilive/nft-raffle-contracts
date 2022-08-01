@@ -4,30 +4,18 @@ const hre = require("hardhat");
 const { BigNumber } = require("ethers");
 const { constants } = require("./utils/TestConstants");
 const {
-  createRaffleObject,
-  createDonationObject,
   createOrganizationObject,
-  fastForward,
-  currentTime,
 } = require("./utils/TestUtils");
 
-let owner, ownerAddress;
+let owner;
 let daoWallet, daoWalletAddress;
 let nftAuthor, nftAuthorAddress;
 let donor1, donor1Address;
 let donor2, donor2Address;
 let donor3, donor3Address;
-let donor4, donor4Address;
-let curator, curatorAddress;
 let forwarder, forwarderAddress;
-let usdcWhale, usdcWhaleAddress;
-let RaffleContract, RaffleInstance;
-let NFTContract, NFTInstance;
-let ArtTokenContract, ArtTokenInstance;
-let TokenRewardsContract, TokenRewardsInstance;
 let WrapperContract, WrapperInstance;
 
-let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
 const { start } = require("repl");
 
@@ -37,9 +25,9 @@ const USDC = new ethers.Contract(
   ethers.provider
 );
 
-describe("Raffle Contract Tests", function () {
+describe("Wrapper Contract Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, curator, forwarder] =
+    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, forwarder] =
       await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
@@ -49,7 +37,6 @@ describe("Raffle Contract Tests", function () {
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
     donor3Address = await donor3.getAddress();
-    curatorAddress = await curator.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
     WrapperContract = await ethers.getContractFactory("Wrapper");
