@@ -189,36 +189,6 @@ describe("Raffle Module Tests", function () {
     // console.log("Wrapper: " + WrapperInstance.address);
 
   });
-  describe("Setter functions", function () {
-    this.beforeEach(async () => {
-      let organizationID = await WrapperInstance.organisationCount();
-
-      let deployedContractsArray = await WrapperInstance.connect(owner)
-        .getDeployedContracts(organizationID);
-
-      let raffle1Address = deployedContractsArray[0];
-
-      RaffleInstance = await ethers.getContractAt(
-        "RaffleModule",
-        raffle1Address,
-        owner
-      );
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-    });
-    it("setCuratorRole gives correct permissions", async () => {
-      // CURATOR_ROLE is set in beforeEach
-      const curatorHash = await RaffleInstance.CURATOR_ROLE();
-      expect(await RaffleInstance.connect(owner).hasRole(curatorHash, curatorAddress)).to.equal(true);
-    });
-    it("revokeCuratorRole revokes correct permissions", async () => {
-      // CURATOR_ROLE is set in beforeEach
-      const curatorHash = await RaffleInstance.CURATOR_ROLE();
-      expect(await RaffleInstance.connect(owner).hasRole(curatorHash, curatorAddress)).to.equal(true);
-      await RaffleInstance.connect(owner).revokeCuratorRole(curatorAddress);
-      expect(await RaffleInstance.connect(owner).hasRole(curatorHash, curatorAddress)).to.equal(false);
-    });
-  });
   describe("Create raffle function", function () {
     this.beforeEach(async () => {
       let raffle1Address;
@@ -237,8 +207,6 @@ describe("Raffle Module Tests", function () {
         owner
       );
 
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -251,7 +219,7 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
     it("creates raffle with correct details", async () => {
       let raffle = await RaffleInstance.raffles(1);
@@ -270,8 +238,6 @@ describe("Raffle Module Tests", function () {
     });
 
     it("only curator can create raffle", async () => {
-      const curatorHash = await RaffleInstance.CURATOR_ROLE();
-
       let newRaffle2 = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -285,10 +251,8 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
       );
       await expect(
-        RaffleInstance.connect(owner).createRaffle(newRaffle2)
-        ).to.be.revertedWith(
-        `AccessControl: account ${ownerAddress.toLowerCase()} is missing role ${curatorHash.toLowerCase()}`
-        );
+        RaffleInstance.connect(donor1).createRaffle(newRaffle2)
+        ).to.be.revertedWith("Ownable: caller is not the owner");
     });
     it("reverts if incorrect times given", async () => {
       let newRaffle2 = await createRaffleObject(
@@ -304,7 +268,7 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
       );
       await expect(
-        RaffleInstance.connect(curator).createRaffle(newRaffle2)
+        RaffleInstance.connect(owner).createRaffle(newRaffle2)
       ).to.be.revertedWith("IncorrectTimesGiven()");
     });
     it("contract receives NFTs on raffle creation", async () => {
@@ -325,7 +289,7 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      expect(await RaffleInstance.connect(curator).createRaffle(newRaffle2))
+      expect(await RaffleInstance.connect(owner).createRaffle(newRaffle2))
         .to.emit(RaffleInstance, "RaffleCreated")
         .withArgs(owner.address, 2, startTime, endTime, 10);
     });
@@ -343,6 +307,7 @@ describe("Raffle Module Tests", function () {
         .getDeployedContracts(organizationID);
 
       raffle1Address = deployedContractsArray[0];
+      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
 
 
       RaffleInstance = await ethers.getContractAt(
@@ -350,9 +315,7 @@ describe("Raffle Module Tests", function () {
         raffle1Address,
         owner
       );
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-      await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+      await RaffleInstance.connect(owner).setNftAuthorWalletAddress(nftAuthorAddress);
       
       TreasuryInstance = await ethers.getContractAt(
         "TreasuryModule",
@@ -378,12 +341,11 @@ describe("Raffle Module Tests", function () {
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, organizationID);
 
-n
       let donation1 = await createDonationObject(
         donor1Address,
         1,
@@ -402,7 +364,7 @@ n
 
       await RaffleInstance.connect(donor2).donate(donation2);
     });
-    it("reverts if raffle has ended", async () => {
+    it.only("reverts if raffle has ended", async () => {
       await fastForward(constants.TEST.twoMonths);
 
       await expect(RaffleInstance.connect(owner).cancelRaffle(1)).to.be.revertedWith("RaffleHasEnded()");
@@ -517,7 +479,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(Raffle2);
+      await RaffleInstance.connect(owner).createRaffle(Raffle2);
 
 
       organizationID = await WrapperInstance.organisationCount();
@@ -566,8 +528,6 @@ n
         owner
       );
 
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
         ownerAddress,
@@ -580,7 +540,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
       let donation1 = await createDonationObject(
         donor1Address,
@@ -675,7 +635,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(Raffle2);
+      await RaffleInstance.connect(owner).createRaffle(Raffle2);
 
       let raffle2Donation1 = await createDonationObject(
         donor1Address,
@@ -752,8 +712,6 @@ n
       );
 
       // await RewardTokenInstance.connect(daoWallet).approve(raffle1Address, 30000);
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
       
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -767,7 +725,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
     it("reverts on zero address", async () => {
       await expect(RaffleInstance.connect(owner).turnOnTokenRewards(ethers.constants.AddressZero, 1))
@@ -811,9 +769,7 @@ n
         owner
       );
 
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-      await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+      await RaffleInstance.connect(owner).setNftAuthorWalletAddress(nftAuthorAddress);
 
       
       let newRaffle = await createRaffleObject(
@@ -828,7 +784,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
@@ -857,7 +813,7 @@ n
 
       await fastForward(endTime);
 
-      await RaffleInstance.connect(curator).sendRewards(1);
+      await RaffleInstance.connect(owner).sendRewards(1);
 
       expect(await NFTInstance.balanceOf(donor1Address, 1)).to.be.at.least(1);
       expect(await NFTInstance.balanceOf(donor1Address, 1)).to.be.at.most(2);
@@ -887,7 +843,7 @@ n
 
       await fastForward(endTime);
 
-      expect(await RaffleInstance.connect(curator).sendRewards(1))
+      expect(await RaffleInstance.connect(owner).sendRewards(1))
         .to.emit(RaffleInstance, "NFTsentToWinner")
         .withArgs(1, donor1Address);
     });
@@ -902,14 +858,14 @@ n
       await RaffleInstance.connect(donor1).donate(newDonation);
 
       await expect(
-        RaffleInstance.connect(curator).sendRewards(1)
+        RaffleInstance.connect(owner).sendRewards(1)
       ).to.be.revertedWith("RaffleHasNotEnded()");
     });
 
     it("reverts if raffle is cancelled", async () => {
       await RaffleInstance.connect(owner).cancelRaffle(1);
 
-      await expect(RaffleInstance.connect(curator).sendRewards(1))
+      await expect(RaffleInstance.connect(owner).sendRewards(1))
         .to.be.revertedWith("RaffleCancelled()");
     });
 
@@ -928,8 +884,6 @@ n
         raffle1Address,
         owner
       );
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
       
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -943,7 +897,7 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
     });
@@ -980,8 +934,6 @@ n
         raffle1Address,
         owner
       );
-
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
       
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -995,9 +947,9 @@ n
         BigNumber.from(1000),
         BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
-      await RaffleInstance.connect(curator).setNftAuthorWalletAddress(nftAuthorAddress);
+      await RaffleInstance.connect(owner).setNftAuthorWalletAddress(nftAuthorAddress);
 
 
       await RaffleInstance.connect(owner).turnOnTokenRewards(RewardTokenInstance.address, 1);
@@ -1104,7 +1056,7 @@ n
       
       await fastForward(constants.TEST.twoMonths);
 
-      await RaffleInstance.connect(curator).sendRewards(1);
+      await RaffleInstance.connect(owner).sendRewards(1);
 
       expect(await RaffleInstance.connect(owner).getTokensInTheBufferEndOfCycle(1))
         .to.equal(1); 
