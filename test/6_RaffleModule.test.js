@@ -25,7 +25,8 @@ let NFTContract, NFTInstance;
 let RewardTokenContract, RewardTokenInstance;
 let TokenRewardsContract, TokenRewardsInstance;
 let WrapperContract, WrapperInstance;
-let RaffleInstance, TreasuryInstance;
+let RaffleInstance;
+let treasuryAddress;
 
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
@@ -154,6 +155,8 @@ describe("Raffle Module Tests", function () {
         .getDeployedContracts(organizationID);
 
     let raffle1Address = deployedContractsArray[0];
+
+    treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
 
     await USDC.connect(donor1).approve(
       raffle1Address,
@@ -298,17 +301,13 @@ describe("Raffle Module Tests", function () {
   describe("cancelRaffle tests", function () {
 
     this.beforeEach(async () => {
-      let raffle1Address, treasuryAddress;
-      let organizationID;
-      
-      organizationID = await WrapperInstance.organisationCount();
+
+      let organizationID = await WrapperInstance.organisationCount();
 
       let deployedContractsArray = await WrapperInstance.connect(owner)
         .getDeployedContracts(organizationID);
 
       raffle1Address = deployedContractsArray[0];
-      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
-
 
       RaffleInstance = await ethers.getContractAt(
         "RaffleModule",
@@ -316,18 +315,6 @@ describe("Raffle Module Tests", function () {
         owner
       );
       await RaffleInstance.connect(owner).setNftAuthorWalletAddress(nftAuthorAddress);
-      
-      TreasuryInstance = await ethers.getContractAt(
-        "TreasuryModule",
-        treasuryAddress,
-        owner
-      );
-
-      await TreasuryInstance.connect(organisationWallet).approveRaffleContract(
-        raffle1Address,
-        organizationID
-      );
-
 
       let newRaffle = await createRaffleObject(
         NFTInstance.address,
@@ -363,8 +350,10 @@ describe("Raffle Module Tests", function () {
       );
 
       await RaffleInstance.connect(donor2).donate(donation2);
+
+      let organisation1 = await WrapperInstance.organisation(1);
     });
-    it.only("reverts if raffle has ended", async () => {
+    it("reverts if raffle has ended", async () => {
       await fastForward(constants.TEST.twoMonths);
 
       await expect(RaffleInstance.connect(owner).cancelRaffle(1)).to.be.revertedWith("RaffleHasEnded()");
@@ -372,6 +361,15 @@ describe("Raffle Module Tests", function () {
 
     it("updates raffle.cancelled bool to true", async () => {
 
+      let TreasuryInstance = await ethers.getContractAt(
+        "TreasuryModule",
+        treasuryAddress,
+        owner
+      );
+
+      await TreasuryInstance.connect(owner).approveRaffleContract(
+        raffle1Address
+      );
       
       let raffle = await RaffleInstance.raffles(1);
 
@@ -415,6 +413,16 @@ describe("Raffle Module Tests", function () {
       expect(donorsArray.length).to.equal(3);
     });
     it("refunds donors USDC correctly", async () => {
+      let TreasuryInstance = await ethers.getContractAt(
+        "TreasuryModule",
+        treasuryAddress,
+        owner
+      );
+
+      await TreasuryInstance.connect(owner).approveRaffleContract(
+        raffle1Address
+      );
+      
       const donor1BalBefore = await USDC.balanceOf(donor1Address);
       const donor2BalBefore = await USDC.balanceOf(donor2Address);
 
@@ -500,6 +508,16 @@ describe("Raffle Module Tests", function () {
     });
 
     it("sends rewardTokens to orgaisationWallet", async () => {
+      let TreasuryInstance = await ethers.getContractAt(
+        "TreasuryModule",
+        treasuryAddress,
+        owner
+      );
+
+      await TreasuryInstance.connect(owner).approveRaffleContract(
+        raffle1Address
+      );
+
       expect(await RewardTokenInstance.balanceOf(RaffleInstance.address)).to.equal(1000);
       expect(await RewardTokenInstance.balanceOf(organisationWalletAddress)).to.equal(29000);
 
