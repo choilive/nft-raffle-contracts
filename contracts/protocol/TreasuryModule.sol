@@ -12,7 +12,7 @@ contract TreasuryModule is Ownable {
     IWrapper public wrapperContract;
 
     IERC20 public USDC;
-    IAToken public aUSDC;
+    IAToken public amUSDC;
     IAaveIncentivesController public AaveIncentivesController;
     ILendingPool public AaveLendingPool;
 
@@ -54,7 +54,7 @@ contract TreasuryModule is Ownable {
 
     constructor(
         address _USDC,
-        address _aUSDC,
+        address _amUSDC,
         address _aaveIncentivesController,
         address _lendingPool,
         address _wrapperContractAddress,
@@ -63,7 +63,7 @@ contract TreasuryModule is Ownable {
         USDCAddress = _USDC;
         aaveLendingPoolAddress = _lendingPool;
         USDC = IERC20(_USDC);
-        aUSDC = IAToken(_aUSDC);
+        amUSDC = IAToken(_amUSDC);
         AaveIncentivesController = IAaveIncentivesController(
             _aaveIncentivesController
         );
@@ -222,7 +222,7 @@ contract TreasuryModule is Ownable {
     }
 
     function getUSDCInAave() public view returns (uint256) {
-        return aUSDC.balanceOf(address(this));
+        return amUSDC.balanceOf(address(this));
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {
