@@ -148,7 +148,7 @@ contract TreasuryModule is Ownable {
         address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
             organisationID
         );
-        // USDC.approve(address(this), amount);
+        USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount);

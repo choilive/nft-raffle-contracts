@@ -216,8 +216,6 @@ describe("Treasury Module Tests", function () {
             owner
         );
 
-        await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-
         let newRaffle = await createRaffleObject(
             NFTInstance.address,
             ownerAddress,
@@ -230,7 +228,7 @@ describe("Treasury Module Tests", function () {
             BigNumber.from(1000),
             BigNumber.from(1000),
         );
-        await RaffleInstance.connect(curator).createRaffle(newRaffle);
+        await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
     it("deducts the correct protocol fee", async () => {
         let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
@@ -291,7 +289,7 @@ describe("Treasury Module Tests", function () {
             0
         );
 
-        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
+        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
 
         await RaffleInstance.connect(donor1).donate(donation1);
 
@@ -305,7 +303,7 @@ describe("Treasury Module Tests", function () {
             0
         );
 
-        let secondOrganisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
+        let secondOrganisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
 
         await RaffleInstance.connect(donor2).donate(donation2);
 
@@ -332,8 +330,6 @@ describe("Treasury Module Tests", function () {
             owner
         );
 
-        await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
-
         let newRaffle = await createRaffleObject(
             NFTInstance.address,
             ownerAddress,
@@ -346,7 +342,7 @@ describe("Treasury Module Tests", function () {
             BigNumber.from(1000),
             BigNumber.from(1000),
         );
-        await RaffleInstance.connect(curator).createRaffle(newRaffle);
+        await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
         let donation1 = await createDonationObject(
             donor1Address,
@@ -357,7 +353,7 @@ describe("Treasury Module Tests", function () {
 
         await RaffleInstance.connect(donor1).donate(donation1);
     });
-    it.only("withdraws to organisation wallet", async () => {
+    it("withdraws to organisation wallet", async () => {
 
         let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
         let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
@@ -365,9 +361,10 @@ describe("Treasury Module Tests", function () {
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(0);
         
-        await TreasuryInstance.connect(organisationWallet).withdrawFundsToOrganisationWallet(
+        await TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
           organisationFee,
           1
+        );
 
 
         expect(await USDC.balanceOf(organisationWalletAddress))
@@ -393,7 +390,6 @@ describe("Treasury Module Tests", function () {
             owner
         );
 
-        await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
         treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
 
         let newRaffle = await createRaffleObject(
@@ -408,7 +404,7 @@ describe("Treasury Module Tests", function () {
             BigNumber.from(1000),
             BigNumber.from(1000),
         );
-        await RaffleInstance.connect(curator).createRaffle(newRaffle);
+        await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
         let donation1 = await createDonationObject(
             donor1Address,
@@ -442,7 +438,6 @@ describe("Treasury Module Tests", function () {
           owner
       );
 
-      await RaffleInstance.connect(owner).setCuratorRole(curatorAddress);
       treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
 
       let newRaffle = await createRaffleObject(
@@ -457,7 +452,7 @@ describe("Treasury Module Tests", function () {
           BigNumber.from(1000),
           BigNumber.from(1000),
       );
-      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
       let donation1 = await createDonationObject(
           donor1Address,
