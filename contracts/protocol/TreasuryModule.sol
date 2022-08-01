@@ -12,7 +12,7 @@ contract TreasuryModule is Ownable {
     IWrapper public wrapperContract;
 
     IERC20 public USDC;
-    IAToken public aUSDC;
+    IAToken public amUSDC;
     IAaveIncentivesController public AaveIncentivesController;
     ILendingPool public AaveLendingPool;
 
@@ -54,7 +54,7 @@ contract TreasuryModule is Ownable {
 
     constructor(
         address _USDC,
-        address _aUSDC,
+        address _amUSDC,
         address _aaveIncentivesController,
         address _lendingPool,
         address _wrapperContractAddress,
@@ -63,14 +63,14 @@ contract TreasuryModule is Ownable {
         USDCAddress = _USDC;
         aaveLendingPoolAddress = _lendingPool;
         USDC = IERC20(_USDC);
-        aUSDC = IAToken(_aUSDC);
+        amUSDC = IAToken(_amUSDC);
         AaveIncentivesController = IAaveIncentivesController(
             _aaveIncentivesController
         );
         AaveLendingPool = ILendingPool(_lendingPool);
 
         wrapperContract = IWrapper(_wrapperContractAddress);
-        // wrapperContractAddress = _wrapperContractAddress;
+
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
         transferOwnership(newOwner);
@@ -148,7 +148,7 @@ contract TreasuryModule is Ownable {
         address organisationWallet = wrapperContract.getOrgaisationWalletAddess(
             organisationID
         );
-        // USDC.approve(address(this), amount);
+        USDC.approve(address(this), amount);
         USDC.transferFrom(address(this), organisationWallet, amount);
 
         emit FundsWithdrawnToOrganisationWallet(amount);
@@ -161,7 +161,7 @@ contract TreasuryModule is Ownable {
     
     */
     function depositToAave(uint256 amount) public onlyOwner {
-        if (amount > 0) revert NoZeroDeposits();
+        if (amount == 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
 
@@ -222,7 +222,7 @@ contract TreasuryModule is Ownable {
     }
 
     function getUSDCInAave() public view returns (uint256) {
-        return aUSDC.balanceOf(address(this));
+        return amUSDC.balanceOf(address(this));
     }
 
     function getUSDCFromTreasury() public view returns (uint256) {

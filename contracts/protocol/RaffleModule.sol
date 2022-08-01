@@ -405,7 +405,6 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         address topDonor = getTopDonor(raffleID);
 
         address nftContractAddress = raffles[raffleID].nftContract;
-        address nftAuthorWallet = raffles[raffleID].nftOwner;
         uint256 tokenID = raffles[raffleID].tokenID;
 
         // transfer to random donor
@@ -656,5 +655,9 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
 
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
         return raffles[raffleID].buffer;
+    }
+
+    function getTokensInTheBufferEndOfCycle(uint256 raffleID) public view returns (uint256) {
+        return raffles[raffleID].tokenAllocation;
     }
 }
