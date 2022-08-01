@@ -70,7 +70,7 @@ contract TreasuryModule is Ownable {
         AaveLendingPool = ILendingPool(_lendingPool);
 
         wrapperContract = IWrapper(_wrapperContractAddress);
-        // wrapperContractAddress = _wrapperContractAddress;
+
         // Infinite approve Aave for USDC deposits
         USDC.approve(_lendingPool, type(uint256).max);
         transferOwnership(newOwner);
@@ -161,7 +161,7 @@ contract TreasuryModule is Ownable {
     
     */
     function depositToAave(uint256 amount) public onlyOwner {
-        if (amount > 0) revert NoZeroDeposits();
+        if (amount == 0) revert NoZeroDeposits();
         if (USDC.balanceOf(address(this)) < amount) revert InsufficentFunds();
         AaveLendingPool.deposit(USDCAddress, amount, address(this), 0);
 

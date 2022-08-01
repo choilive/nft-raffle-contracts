@@ -356,7 +356,7 @@ describe("Treasury Module Tests", function () {
     it("withdraws to organisation wallet", async () => {
 
         let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
-        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(10000);
+        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
 
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(0);
@@ -366,9 +366,14 @@ describe("Treasury Module Tests", function () {
           1
         );
 
-
         expect(await USDC.balanceOf(organisationWalletAddress))
             .to.equal(organisationFee);
+      });
+      it("throws InsufficentFunds", async () => {
+        await expect(TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
+          ethers.utils.parseUnits("1000"),
+          1
+        )).to.be.revertedWith("InsufficentFunds()");
       });
     });
     describe("Aave tests", function () {
@@ -415,9 +420,78 @@ describe("Treasury Module Tests", function () {
 
         await RaffleInstance.connect(donor1).donate(donation1);
     });
-    it("deposits correctly into aave");
-    it("withdraws correctly from aave");
-    it("claims rewards correctly from aave");
+    it("deposits correctly into aave", async () => {
+      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+
+      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+
+      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
+
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+    });
+    it("deposit throws noZeroDeposits", async () => {
+      await expect(TreasuryInstance.connect(owner).depositToAave(0))
+        .to.be.revertedWith("NoZeroDeposits()");
+    });
+    it("deposit throws InsufficentFunds", async () => {
+      await expect(TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("1000", 6)))
+        .to.be.revertedWith("InsufficentFunds()");
+    });
+    it("withdraws correctly from aave", async () => {
+      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+
+      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+
+      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+
+      await TreasuryInstance.connect(owner).withdrawFromAave(ethers.utils.parseUnits("100", 6));
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(0);
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("198", 6));
+    });
+    it("withdraw throws NoZeroWithDrawals()", async () => {
+      await expect(TreasuryInstance.connect(owner).withdrawFromAave(0))
+        .to.be.revertedWith("NoZeroWithDrawals()");
+    });
+    it("deposit throws InsufficentFunds", async () => {
+      await expect(TreasuryInstance.connect(owner).withdrawFromAave(ethers.utils.parseUnits("1000", 6)))
+        .to.be.revertedWith("InsufficentFunds()");
+    });
+    it("claims rewards correctly from aave", async () => {
+      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+
+      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+
+      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address))
+        .to.equal(ethers.utils.parseUnits("100", 6));
+
+      await fastForward(constants.TEST.twoMonths);
+
+      await TreasuryInstance.connect(owner).claimAaveRewards([constants.POLYGON.amUSDC], 1000);
+
+      expect(await amUSDC.balanceOf(TreasuryInstance.address))
+        .to.equal(100199736);
+    });
   });
   describe("View Functions", function () {
     this.beforeEach(async () => {
@@ -485,7 +559,18 @@ describe("Treasury Module Tests", function () {
         1
       )).to.equal(treasuryBal.sub(organisationFee));
     });
-    it("getUSDCInAave");
+    it("getUSDCInAave", async () => {
+      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+
+      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
+        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+
+      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+
+      expect(await TreasuryInstance.connect(owner).getUSDCInAave())
+        .to.equal(ethers.utils.parseUnits("100", 6));
+    });
     it("getUSDCFromTreasury", async () => {
       let treasuryBal = await USDC.balanceOf(treasuryAddress);
       expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
