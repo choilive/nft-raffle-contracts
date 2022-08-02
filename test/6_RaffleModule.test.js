@@ -109,13 +109,20 @@ describe("Raffle Module Tests", function () {
     );
 
     // Deploy NFT
-    NFTContract = await ethers.getContractFactory("RewardNFT");
+    NFTContract = await ethers.getContractFactory("ArtizenERC1155");
     NFTInstance = await NFTContract.connect(owner).deploy();
 
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor1Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor2Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor3Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(nftAuthorAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(daoWalletAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(ownerAddress);
+
     // mint NFT to artist
-    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
-    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
-    await NFTInstance.connect(owner).mint(owner.address, 3, 4, "0x");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
 
     TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
     TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
@@ -182,13 +189,8 @@ describe("Raffle Module Tests", function () {
     // set times
     startTime = await currentTime();
     endTime = startTime + constants.TEST.oneMonth;
-
-    // set NFT Author address
-    // console.log("Curator: " + curatorAddress);
-    // console.log("Owner: " + ownerAddress);
-    // console.log("Wrapper: " + WrapperInstance.address);
-
   });
+  
   describe("Create raffle function", function () {
     this.beforeEach(async () => {
       let raffle1Address;

@@ -656,7 +656,11 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         return raffles[raffleID].buffer;
     }
 
-    function getTokensInTheBufferEndOfCycle(uint256 raffleID) public view returns (uint256) {
+    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
         return raffles[raffleID].tokenAllocation;
     }
 }
