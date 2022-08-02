@@ -30,7 +30,7 @@ describe("ArtizenERC1155 contract tests", function () {
     });
     it("throws NOT WHITELISTED", async () => {
       await expect(
-        ERC1155Instance.connect(bob).mint(bobAddress, 1, 4, "0x")
+        ERC1155Instance.connect(bob).mint(bobAddress, 1, "0x", "https://baseURI/")
       ).to.be.revertedWith("NOT WHITELISTED");
     });
   });
@@ -38,7 +38,7 @@ describe("ArtizenERC1155 contract tests", function () {
   describe("mint function", function () {
     it("mint works as expected", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x");
+      await ERC1155Instance.connect(owner).mint(ownerAddress, 4, "0x", "https://baseURI/");
       expect(await ERC1155Instance.balanceOf(ownerAddress, 1)).to.equal(4);
     });
     it("throws ERC1155: mint to the zero address", async () => {
@@ -48,16 +48,16 @@ describe("ArtizenERC1155 contract tests", function () {
       await expect(
         ERC1155Instance.connect(owner).mint(
           ethers.constants.AddressZero,
-          1,
-          4,
-          "0x"
+          1, 
+          "0x", 
+          "https://baseURI/"
         )
       ).to.be.revertedWith("ERC1155: mint to the zero address");
     });
     it("emits TransferSingle", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       expect(
-        await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x")
+        await ERC1155Instance.connect(owner).mint(ownerAddress, 4, "0x", "https://baseURI/")
       )
         .to.emit(ERC1155Instance, "TransferSingle")
         .withArgs(
@@ -75,9 +75,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       await ERC1155Instance.connect(owner).batchMint(
         ownerAddress,
-        [1, 2, 3, 4],
         [4, 3, 2, 1],
-        "0x"
+        "0x",
+        ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
       );
       expect(await ERC1155Instance.balanceOf(ownerAddress, 1)).to.equal(4);
       expect(await ERC1155Instance.balanceOf(ownerAddress, 2)).to.equal(3);
@@ -91,9 +91,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await expect(
         ERC1155Instance.connect(owner).batchMint(
           ethers.constants.AddressZero,
-          [1, 2, 3, 4],
           [4, 3, 2, 1],
-          "0x"
+        "0x",
+        ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
         )
       ).to.be.revertedWith("ERC1155: mint to the zero address");
     });
@@ -102,9 +102,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await expect(
         ERC1155Instance.connect(owner).batchMint(
           ownerAddress,
-          [1, 2, 3],
           [4, 3, 2, 1],
-          "0x"
+          "0x",
+          ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"],
         )
       ).to.be.revertedWith("ERC1155: ids and amounts length mismatch");
     });
@@ -113,9 +113,9 @@ describe("ArtizenERC1155 contract tests", function () {
       expect(
         await ERC1155Instance.connect(owner).batchMint(
           ownerAddress,
-          [1, 2, 3, 4],
           [4, 3, 2, 1],
-          "0x"
+          "0x",
+          ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
         )
       )
         .to.emit(ERC1155Instance, "TransferBatch")
@@ -131,7 +131,7 @@ describe("ArtizenERC1155 contract tests", function () {
   describe("safeTransferFrom function", function () {
     it("safeTransferFrom works as expected", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x");
+      await ERC1155Instance.connect(owner).mint(ownerAddress, 4, "0x", "https://baseURI/");
       expect(await ERC1155Instance.balanceOf(ownerAddress, 1)).to.equal(4);
 
       await ERC1155Instance.connect(owner).setApprovalForAll(bobAddress, true);
@@ -165,7 +165,7 @@ describe("ArtizenERC1155 contract tests", function () {
     });
     it("throws ERC1155: caller is not owner nor approved", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x");
+      await ERC1155Instance.connect(owner).mint(ownerAddress, 4, "0x", "https://baseURI/");
 
       await expect(
         ERC1155Instance.connect(bob).safeTransferFrom(
@@ -179,7 +179,7 @@ describe("ArtizenERC1155 contract tests", function () {
     });
     it("throws ERC1155: transfer to the zero address", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x");
+      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, "0x", "https://baseURI/");
 
       await expect(
         ERC1155Instance.connect(owner).safeTransferFrom(
@@ -207,7 +207,7 @@ describe("ArtizenERC1155 contract tests", function () {
     });
     it("emits TransferSingle", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await ERC1155Instance.connect(owner).mint(ownerAddress, 1, 4, "0x");
+      await ERC1155Instance.connect(owner).mint(ownerAddress, 4, "0x", "https://baseURI/");
       await ERC1155Instance.connect(owner).setApprovalForAll(bobAddress, true);
       expect(
         await ERC1155Instance.connect(bob).safeTransferFrom(
@@ -227,9 +227,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       await ERC1155Instance.connect(owner).batchMint(
         ownerAddress,
-        [1, 2, 3, 4],
-        [4, 3, 2, 1],
-        "0x"
+        [4, 4, 4, 4],
+        "0x",
+        ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
       );
       await ERC1155Instance.connect(owner).setApprovalForAll(bobAddress, true);
 
@@ -259,9 +259,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       await ERC1155Instance.connect(owner).batchMint(
         ownerAddress,
-        [1, 2, 3, 4],
         [4, 3, 2, 1],
-        "0x"
+        "0x",
+        ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
       );
       await expect(
         ERC1155Instance.connect(bob).safeBatchTransferFrom(
@@ -279,9 +279,9 @@ describe("ArtizenERC1155 contract tests", function () {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       await ERC1155Instance.connect(owner).batchMint(
         ownerAddress,
-        [1, 2, 3, 4],
         [4, 3, 2, 1],
-        "0x"
+        "0x",
+        ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"]
       );
       await expect(
         ERC1155Instance.connect(owner).safeBatchTransferFrom(
@@ -297,7 +297,7 @@ describe("ArtizenERC1155 contract tests", function () {
     });
   });
   describe("URI Storage functions", function () {
-    it.only("can set URI per token id", async () => {
+    it("can set URI per token id", async () => {
 
       expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("");
 
@@ -306,10 +306,10 @@ describe("ArtizenERC1155 contract tests", function () {
 
       // Sets the token Uri per token id
       await ERC1155Instance.connect(owner).setURI(1, "1");
-      expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("https://baseURI/1.json");
+      expect(await ERC1155Instance.connect(owner).uri(1)).to.equal("https://baseURI/1");
 
       await ERC1155Instance.connect(owner).setURI(2, "2");
-      expect(await ERC1155Instance.connect(owner).uri(2)).to.equal("https://baseURI/2.json");
+      expect(await ERC1155Instance.connect(owner).uri(2)).to.equal("https://baseURI/2");
     });
   });
 });
