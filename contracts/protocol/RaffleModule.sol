@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "../interfaces/ITokenRewardsCalculation.sol";
 import "../interfaces/IWrapper.sol";
 import "../interfaces/ITreasuryModule.sol";
-
-// import "../interfaces/ILimitedNFTCollection.sol";
+import "../interfaces/ILimitedNFTCollection.sol";
 
 contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     uint256 public raffleCount;
@@ -46,7 +45,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
         uint256 buffer;
-        // address limitedNftCollectionAddress;
+        address limitedNftCollectionAddress;
         bool cancelled;
     }
 
@@ -62,7 +61,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     // RaffleID => token rewards
     mapping(uint256 => bool) public tokenRewardsActivated;
     // RaffleID => limited nft collection
-    // mapping(uint256 => bool) public limitedNFTCollectionActivated;
+    mapping(uint256 => bool) public limitedNFTCollectionActivated;
     mapping(uint256 => uint256) public minimumNFTDonation;
     mapping(uint256 => uint256) private totalDonationsPerCycle;
     // raffleID => address => amount
@@ -193,18 +192,18 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         emit RewardTokenAddressSet(_rewardTokenAddress);
     }
 
-    // function turnOnLimitedNftCollection(
-    //     address _limitedNftCollectionAddress,
-    //     uint256 raffleID,
-    //     uint256 _minimumNFTDonation
-    // ) public {
-    //     if (_limitedNftCollectionAddress == address(0))
-    //         revert ZeroAddressNotAllowed();
-    //     limitedNFTCollectionActivated[raffleID] = true;
-    //     raffles[raffleID]
-    //         .limitedNftCollectionAddress = _limitedNftCollectionAddress;
-    //     minimumNFTDonation[raffleID] = _minimumNFTDonation;
-    // }
+    function turnOnLimitedNftCollection(
+        address _limitedNftCollectionAddress,
+        uint256 raffleID,
+        uint256 _minimumNFTDonation
+    ) public {
+        if (_limitedNftCollectionAddress == address(0))
+            revert ZeroAddressNotAllowed();
+        limitedNFTCollectionActivated[raffleID] = true;
+        raffles[raffleID]
+            .limitedNftCollectionAddress = _limitedNftCollectionAddress;
+        minimumNFTDonation[raffleID] = _minimumNFTDonation;
+    }
 
     /**
         @notice function for withdrawing reward token from contract
@@ -373,13 +372,13 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
             address(this)
         );
 
-        // if (limitedNFTCollectionActivated[raffleId] == true) {
-        //     if (_donation.amount < minimumNFTDonation[raffleId])
-        //         revert MinimumDonationRequired();
-        //     address nftCollectionAddress = raffles[_donation.raffleID]
-        //         .limitedNftCollectionAddress;
-        //     ILimitedNFTCollection(nftCollectionAddress).mint(msg.sender);
-        // }
+        if (limitedNFTCollectionActivated[raffleId] == true) {
+            if (_donation.amount < minimumNFTDonation[raffleId])
+                revert MinimumDonationRequired();
+            address nftCollectionAddress = raffles[_donation.raffleID]
+                .limitedNftCollectionAddress;
+            ILimitedNFTCollection(nftCollectionAddress).mint(msg.sender);
+        }
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
         return donationCount;
@@ -657,7 +656,11 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         return raffles[raffleID].buffer;
     }
 
-    function getTokensInTheBufferEndOfCycle(uint256 raffleID) public view returns (uint256) {
+    function getTokensInTheBufferEndOfCycle(uint256 raffleID)
+        public
+        view
+        returns (uint256)
+    {
         return raffles[raffleID].tokenAllocation;
     }
 }
