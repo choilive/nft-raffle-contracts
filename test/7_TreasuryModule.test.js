@@ -16,7 +16,7 @@ let daoWallet, daoWalletAddress;
 let nftAuthor, nftAuthorAddress;
 let donor1, donor1Address;
 let donor2, donor2Address;
-let donor3;
+let donor3, donor3Address;
 let forwarder, forwarderAddress;
 let usdcWhale;
 let NFTContract, NFTInstance;
@@ -54,6 +54,7 @@ describe("Treasury Module Tests", function () {
     nftAuthorAddress = await nftAuthor.getAddress();
     donor1Address = await donor1.getAddress();
     donor2Address = await donor2.getAddress();
+    donor3Address = await donor3.getAddress();
     forwarderAddress = await forwarder.getAddress();
 
     await hre.network.provider.request({
@@ -105,13 +106,20 @@ describe("Treasury Module Tests", function () {
     );
 
     // Deploy NFT
-    NFTContract = await ethers.getContractFactory("RewardNFT");
+    NFTContract = await ethers.getContractFactory("ArtizenERC1155");
     NFTInstance = await NFTContract.connect(owner).deploy();
 
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor1Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor2Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor3Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(nftAuthorAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(daoWalletAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(ownerAddress);
+
     // mint NFT to artist
-    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
-    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
-    await NFTInstance.connect(owner).mint(owner.address, 3, 4, "0x");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
 
     TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
     TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
