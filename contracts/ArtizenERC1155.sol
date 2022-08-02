@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     using Counters for Counters.Counter;
 
-    Counters.Counter private _tokenIds;
+    Counters.Counter public tokenIds;
     mapping(address => bool) public whitelistedAddresses;
 
     constructor() ERC1155("") {}
@@ -22,8 +22,8 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
         string memory tokenURI
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
-        _tokenIds.increment();
-        uint256 id = _tokenIds.current();
+        tokenIds.increment();
+        uint256 id = tokenIds.current();
 
         _mint(to, id, amount, data);
         _setURI(id, tokenURI);
@@ -39,8 +39,8 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
 
         uint256[] memory ids;
         for (uint256 i = 0; i < amounts.length; i++) {
-            _tokenIds.increment();
-            ids[i] = _tokenIds.current();
+            tokenIds.increment();
+            ids[i] = tokenIds.current();
         }
 
         _mintBatch(to, ids, amounts, data);
