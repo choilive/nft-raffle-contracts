@@ -62,7 +62,7 @@ describe("Token Rewards Contract Tests", function () {
     WrapperInstance = await WrapperContract.connect(owner).deploy();
 
     // Deploy NFT
-    NFTContract = await ethers.getContractFactory("RewardNFT");
+    NFTContract = await ethers.getContractFactory("ArtizenERC1155");
     NFTInstance = await NFTContract.connect(owner).deploy();
 
     // Deploy token Rewards Module
@@ -169,9 +169,19 @@ describe("Token Rewards Contract Tests", function () {
       RaffleInstance.address,
       ethers.utils.parseUnits("1500", 6)
     );
+    
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor1Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor2Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(donor3Address);
+    await NFTInstance.connect(owner).addAddressToWhitelist(nftAuthorAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(daoWalletAddress);
+    await NFTInstance.connect(owner).addAddressToWhitelist(ownerAddress);
 
     // mint NFT to artist
-    await NFTInstance.connect(owner).mint(owner.address, 1, 4, "0x");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+
     await NFTInstance.connect(owner).setApprovalForAll(
       RaffleInstance.address,
       true
