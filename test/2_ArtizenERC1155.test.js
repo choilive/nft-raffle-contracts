@@ -97,17 +97,6 @@ describe("ArtizenERC1155 contract tests", function () {
         )
       ).to.be.revertedWith("ERC1155: mint to the zero address");
     });
-    it("throws ERC1155: ids and amounts length mismatch", async () => {
-      await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
-      await expect(
-        ERC1155Instance.connect(owner).batchMint(
-          ownerAddress,
-          [4, 3, 2, 1],
-          "0x",
-          ["https://baseURI/", "https://baseURI/", "https://baseURI/", "https://baseURI/"],
-        )
-      ).to.be.revertedWith("ERC1155: ids and amounts length mismatch");
-    });
     it("emits TransferBatch", async () => {
       await ERC1155Instance.connect(owner).addAddressToWhitelist(ownerAddress);
       expect(
