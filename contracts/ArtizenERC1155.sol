@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
+import "hardhat/console.sol";
+
 contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     using Counters for Counters.Counter;
 
@@ -37,11 +39,13 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
 
-        uint256[] memory ids;
+        uint256[] memory ids = new uint256[] (amounts.length);
         for (uint256 i = 0; i < amounts.length; i++) {
             _tokenIds.increment();
             ids[i] = _tokenIds.current();
         }
+
+        
 
         _mintBatch(to, ids, amounts, data);
 
