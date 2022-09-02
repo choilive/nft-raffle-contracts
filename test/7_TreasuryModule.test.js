@@ -26,7 +26,6 @@ let WrapperContract, WrapperInstance;
 let RaffleInstance, TreasuryInstance;
 let treasuryAddress;
 
-
 let startTime, endTime;
 const ERC20_ABI = require("../artifacts/@openzeppelin/contracts/token/ERC20/ERC20.sol/ERC20.json");
 const { start } = require("repl");
@@ -45,8 +44,16 @@ const amUSDC = new ethers.Contract(
 
 describe("Treasury Module Tests", function () {
   beforeEach(async () => {
-    [owner, daoWallet, organisationWallet, nftAuthor, donor1, donor2, donor3, forwarder] =
-      await ethers.getSigners();
+    [
+      owner,
+      daoWallet,
+      organisationWallet,
+      nftAuthor,
+      donor1,
+      donor2,
+      donor3,
+      forwarder,
+    ] = await ethers.getSigners();
 
     ownerAddress = await owner.getAddress();
     daoWalletAddress = await daoWallet.getAddress();
@@ -117,11 +124,28 @@ describe("Treasury Module Tests", function () {
     await NFTInstance.connect(owner).addAddressToWhitelist(ownerAddress);
 
     // mint NFT to artist
-    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
-    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
-    await NFTInstance.connect(owner).mint(owner.address, 4, "0x", "https://baseURI/");
+    await NFTInstance.connect(owner).mint(
+      owner.address,
+      4,
+      "0x",
+      "https://baseURI/"
+    );
+    await NFTInstance.connect(owner).mint(
+      owner.address,
+      4,
+      "0x",
+      "https://baseURI/"
+    );
+    await NFTInstance.connect(owner).mint(
+      owner.address,
+      4,
+      "0x",
+      "https://baseURI/"
+    );
 
-    TokenRewardsContract = await ethers.getContractFactory("TokenRewardsCalculationV2");
+    TokenRewardsContract = await ethers.getContractFactory(
+      "TokenRewardsCalculationV2"
+    );
     TokenRewardsInstance = await TokenRewardsContract.connect(owner).deploy();
 
     // Create Organisation
@@ -143,7 +167,9 @@ describe("Treasury Module Tests", function () {
       constants.POLYGON.AaveLendingPool
     );
 
-    treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+    treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(
+      organizationID
+    );
 
     // SET OWNER AS ADMIN IN TREASURY
     TreasuryInstance = await ethers.getContractAt(
@@ -152,10 +178,13 @@ describe("Treasury Module Tests", function () {
       owner
     );
 
-    await WrapperInstance.connect(owner).setProtocolWalletAddress(daoWalletAddress);
-    await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(TokenRewardsInstance.address);
+    await WrapperInstance.connect(owner).setProtocolWalletAddress(
+      daoWalletAddress
+    );
+    await WrapperInstance.connect(owner).setTokenRewardsCalculationAddress(
+      TokenRewardsInstance.address
+    );
     await WrapperInstance.connect(owner).setProtocolFee(1);
-
 
     await WrapperInstance.connect(owner).addNewRaffleModule(
       organizationID,
@@ -163,8 +192,9 @@ describe("Treasury Module Tests", function () {
       forwarderAddress
     );
 
-    let deployedContractsArray = await WrapperInstance.connect(owner)
-        .getDeployedContracts(organizationID);
+    let deployedContractsArray = await WrapperInstance.connect(
+      owner
+    ).getDeployedContracts(organizationID);
 
     let raffle1Address = deployedContractsArray[0];
 
@@ -183,14 +213,17 @@ describe("Treasury Module Tests", function () {
       ethers.utils.parseUnits("1000", 6)
     );
 
-    await NFTInstance.connect(owner).setApprovalForAll(
-      raffle1Address,
-      true
-    );
+    await NFTInstance.connect(owner).setApprovalForAll(raffle1Address, true);
 
     // Mint and approve REWARD TOKEN to organisation wallet
-    await RewardTokenInstance.connect(owner).mint(organisationWalletAddress, 30000);
-    await RewardTokenInstance.connect(organisationWallet).approve(raffle1Address, 30000);
+    await RewardTokenInstance.connect(owner).mint(
+      organisationWalletAddress,
+      30000
+    );
+    await RewardTokenInstance.connect(organisationWallet).approve(
+      raffle1Address,
+      30000
+    );
 
     // set times
     startTime = await currentTime();
@@ -200,301 +233,370 @@ describe("Treasury Module Tests", function () {
     // console.log("Curator: " + curatorAddress);
     // console.log("Owner: " + ownerAddress);
     // console.log("Wrapper: " + WrapperInstance.address);
-
   });
   describe("processDonationFromRaffle", function () {
     this.beforeEach(async () => {
-        let raffle1Address;
-        let organizationID;
-        
-        organizationID = await WrapperInstance.organisationCount();
+      let raffle1Address;
+      let organizationID;
 
-        let deployedContractsArray = await WrapperInstance.connect(owner)
-            .getDeployedContracts(organizationID);
+      organizationID = await WrapperInstance.organisationCount();
 
-        raffle1Address = deployedContractsArray[0];
+      let deployedContractsArray = await WrapperInstance.connect(
+        owner
+      ).getDeployedContracts(organizationID);
 
-        RaffleInstance = await ethers.getContractAt(
-            "RaffleModule",
-            raffle1Address,
-            owner
-        );
+      raffle1Address = deployedContractsArray[0];
 
-        let newRaffle = await createRaffleObject(
-            NFTInstance.address,
-            ownerAddress,
-            1,
-            startTime,
-            endTime,
-            ethers.utils.parseUnits("25", 6),
-            owner.address,
-            ethers.utils.parseUnits("25", 6),
-            BigNumber.from(1000),
-            BigNumber.from(1000),
-        );
-        await RaffleInstance.connect(owner).createRaffle(newRaffle);
+      RaffleInstance = await ethers.getContractAt(
+        "RaffleModule",
+        raffle1Address,
+        owner
+      );
+
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("25", 6),
+        owner.address,
+        ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000)
+      );
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
     });
     it("deducts the correct protocol fee", async () => {
-        let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
+      let treasuryAddress = await WrapperInstance.connect(
+        owner
+      ).getTreasuryAddress(1);
 
-        let donation1 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("200", 6),
-            0
-        );
+      let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
 
-        let donation2 = await createDonationObject(
-            donor2Address,
-            1,
-            ethers.utils.parseUnits("100", 6),
-            0
-        );
-    
-        await RaffleInstance.connect(donor1).donate(donation1);
+      let donation2 = await createDonationObject(
+        donor2Address,
+        1,
+        ethers.utils.parseUnits("100", 6),
+        0
+      );
 
-        let treasuryBalAfterDonation1 = await USDC.balanceOf(treasuryAddress);
-        let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+      await RaffleInstance.connect(donor1).donate(donation1);
 
-        let protocolFee1 =  (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      let treasuryBalAfterDonation1 = await USDC.balanceOf(treasuryAddress);
+      let protocolFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getProtocolFee();
 
-        expect(treasuryBalAfterDonation1).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+      let protocolFee1 =
+        (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
 
-        await RaffleInstance.connect(donor2).donate(donation2);
+      expect(treasuryBalAfterDonation1).to.equal(
+        ethers.utils.parseUnits("200", 6).sub(protocolFee1)
+      );
 
-        treasuryBalAfterDonation2 = await USDC.balanceOf(treasuryAddress);
+      await RaffleInstance.connect(donor2).donate(donation2);
 
-        let protocolFee2 =  (ethers.utils.parseUnits("100", 6) * protocolFeePercentage) / 100;
+      treasuryBalAfterDonation2 = await USDC.balanceOf(treasuryAddress);
 
-        let donationAfterProtocolFee = ethers.utils.parseUnits("100", 6).sub(protocolFee2);
-        expect(treasuryBalAfterDonation2).to.equal(treasuryBalAfterDonation1.add(donationAfterProtocolFee));
+      let protocolFee2 =
+        (ethers.utils.parseUnits("100", 6) * protocolFeePercentage) / 100;
 
-        // Check that dao wallet has received fees
+      let donationAfterProtocolFee = ethers.utils
+        .parseUnits("100", 6)
+        .sub(protocolFee2);
+      expect(treasuryBalAfterDonation2).to.equal(
+        treasuryBalAfterDonation1.add(donationAfterProtocolFee)
+      );
 
-        expect(await USDC.balanceOf(daoWalletAddress)).to.equal(protocolFee1 + protocolFee2);
+      // Check that dao wallet has received fees
+
+      expect(await USDC.balanceOf(daoWalletAddress)).to.equal(
+        protocolFee1 + protocolFee2
+      );
     });
     it("updates organisationFee balance", async () => {
-        let treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(1);
+      let treasuryAddress = await WrapperInstance.connect(
+        owner
+      ).getTreasuryAddress(1);
 
-        let TreasuryInstance = await ethers.getContractAt(
-            "TreasuryModule",
-            treasuryAddress,
-            owner
-        );
-        expect(await TreasuryInstance.organisationFeeBalance())
-            .to.equal(0);
+      let TreasuryInstance = await ethers.getContractAt(
+        "TreasuryModule",
+        treasuryAddress,
+        owner
+      );
+      expect(await TreasuryInstance.organisationFeeBalance()).to.equal(0);
 
-        let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
+      let organisationFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getOrganisationFee(1);
 
-        let donation1 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("200", 6),
-            0
-        );
+      let organisationFee = ethers.utils
+        .parseUnits("200", 6)
+        .mul(organisationFeePercentage)
+        .div(10000);
 
-        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
+      await RaffleInstance.connect(donor1).donate(donation1);
 
-        await RaffleInstance.connect(donor1).donate(donation1);
+      expect(await TreasuryInstance.organisationFeeBalance()).to.equal(
+        organisationFee
+      );
 
-        expect(await TreasuryInstance.organisationFeeBalance())
-            .to.equal(organisationFee);
+      let secondOrganisationFee = ethers.utils
+        .parseUnits("200", 6)
+        .mul(organisationFeePercentage)
+        .div(10000);
 
-        let donation2 = await createDonationObject(
-            donor2Address,
-            1,
-            ethers.utils.parseUnits("200", 6),
-            0
-        );
+      await RaffleInstance.connect(donor2).donate(donation2);
 
-        let secondOrganisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
-
-        await RaffleInstance.connect(donor2).donate(donation2);
-
-        expect(await TreasuryInstance.organisationFeeBalance())
-            .to.equal(organisationFee.add(secondOrganisationFee));
-
+      expect(await TreasuryInstance.organisationFeeBalance()).to.equal(
+        organisationFee.add(secondOrganisationFee)
+      );
     });
   });
   describe("withdrawFundsToOrganisationWallet", function () {
     this.beforeEach(async () => {
-        let raffle1Address;
-        let organizationID;
-        
-        organizationID = await WrapperInstance.organisationCount();
+      let raffle1Address;
+      let organizationID;
 
-        let deployedContractsArray = await WrapperInstance.connect(owner)
-            .getDeployedContracts(organizationID);
+      organizationID = await WrapperInstance.organisationCount();
 
-        raffle1Address = deployedContractsArray[0];
+      let deployedContractsArray = await WrapperInstance.connect(
+        owner
+      ).getDeployedContracts(organizationID);
 
-        RaffleInstance = await ethers.getContractAt(
-            "RaffleModule",
-            raffle1Address,
-            owner
-        );
+      raffle1Address = deployedContractsArray[0];
 
-        let newRaffle = await createRaffleObject(
-            NFTInstance.address,
-            ownerAddress,
-            1,
-            startTime,
-            endTime,
-            ethers.utils.parseUnits("25", 6),
-            owner.address,
-            ethers.utils.parseUnits("25", 6),
-            BigNumber.from(1000),
-            BigNumber.from(1000),
-        );
-        await RaffleInstance.connect(owner).createRaffle(newRaffle);
+      RaffleInstance = await ethers.getContractAt(
+        "RaffleModule",
+        raffle1Address,
+        owner
+      );
 
-        let donation1 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("200", 6),
-            0
-        );
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("25", 6),
+        owner.address,
+        ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000)
+      );
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
-        await RaffleInstance.connect(donor1).donate(donation1);
+      let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(donation1);
     });
     it("withdraws to organisation wallet", async () => {
+      let organisationFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getOrganisationFee(1);
+      let organisationFee = ethers.utils
+        .parseUnits("200", 6)
+        .mul(organisationFeePercentage)
+        .div(100);
 
-        let organisationFeePercentage = await WrapperInstance.connect(owner).getOrganisationFee(1);
-        let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercentage)).div(100);
+      expect(await USDC.balanceOf(organisationWalletAddress)).to.equal(0);
 
-        expect(await USDC.balanceOf(organisationWalletAddress))
-            .to.equal(0);
-        
-        await TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
-          organisationFee,
-          1
-        );
+      await TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
+        organisationFee,
+        1
+      );
 
-        expect(await USDC.balanceOf(organisationWalletAddress))
-            .to.equal(organisationFee);
-      });
-      it("throws InsufficentFunds", async () => {
-        await expect(TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
+      expect(await USDC.balanceOf(organisationWalletAddress)).to.equal(
+        organisationFee
+      );
+    });
+    it("throws InsufficentFunds", async () => {
+      await expect(
+        TreasuryInstance.connect(owner).withdrawFundsToOrganisationWallet(
           ethers.utils.parseUnits("1000"),
           1
-        )).to.be.revertedWith("InsufficentFunds()");
-      });
+        )
+      ).to.be.revertedWith("InsufficentFunds()");
     });
-    describe("Aave tests", function () {
-      this.beforeEach(async () => {
-        let raffle1Address;
-        let organizationID;
-        let treasuryAddress;
-        
-        organizationID = await WrapperInstance.organisationCount();
+  });
+  describe("Aave tests", function () {
+    this.beforeEach(async () => {
+      let raffle1Address;
+      let organizationID;
+      let treasuryAddress;
 
-        let deployedContractsArray = await WrapperInstance.connect(owner)
-            .getDeployedContracts(organizationID);
+      organizationID = await WrapperInstance.organisationCount();
 
-        raffle1Address = deployedContractsArray[0];
+      let deployedContractsArray = await WrapperInstance.connect(
+        owner
+      ).getDeployedContracts(organizationID);
 
-        RaffleInstance = await ethers.getContractAt(
-            "RaffleModule",
-            raffle1Address,
-            owner
-        );
+      raffle1Address = deployedContractsArray[0];
 
-        treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+      RaffleInstance = await ethers.getContractAt(
+        "RaffleModule",
+        raffle1Address,
+        owner
+      );
 
-        let newRaffle = await createRaffleObject(
-            NFTInstance.address,
-            ownerAddress,
-            1,
-            startTime,
-            endTime,
-            ethers.utils.parseUnits("25", 6),
-            owner.address,
-            ethers.utils.parseUnits("25", 6),
-            BigNumber.from(1000),
-            BigNumber.from(1000),
-        );
-        await RaffleInstance.connect(owner).createRaffle(newRaffle);
+      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(
+        organizationID
+      );
 
-        let donation1 = await createDonationObject(
-            donor1Address,
-            1,
-            ethers.utils.parseUnits("200", 6),
-            0
-        );
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("25", 6),
+        owner.address,
+        ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000)
+      );
+      await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
-        await RaffleInstance.connect(donor1).donate(donation1);
+      let donation1 = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(donation1);
     });
     it("deposits correctly into aave", async () => {
-      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+      let protocolFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getProtocolFee();
 
-      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+      let protocolFee1 =
+        (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
 
-      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+      await TreasuryInstance.connect(owner).depositToAave(
+        ethers.utils.parseUnits("100", 6)
+      );
 
-      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(
+        ethers.utils.parseUnits("100", 6)
+      );
 
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(
+        ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6))
+      );
     });
     it("deposit throws noZeroDeposits", async () => {
-      await expect(TreasuryInstance.connect(owner).depositToAave(0))
-        .to.be.revertedWith("NoZeroDeposits()");
+      await expect(
+        TreasuryInstance.connect(owner).depositToAave(0)
+      ).to.be.revertedWith("NoZeroDeposits()");
     });
     it("deposit throws InsufficentFunds", async () => {
-      await expect(TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("1000", 6)))
-        .to.be.revertedWith("InsufficentFunds()");
+      await expect(
+        TreasuryInstance.connect(owner).depositToAave(
+          ethers.utils.parseUnits("1000", 6)
+        )
+      ).to.be.revertedWith("InsufficentFunds()");
     });
     it("withdraws correctly from aave", async () => {
-      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+      let protocolFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getProtocolFee();
 
-      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+      let protocolFee1 =
+        (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
 
-      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+      await TreasuryInstance.connect(owner).depositToAave(
+        ethers.utils.parseUnits("100", 6)
+      );
 
-      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(
+        ethers.utils.parseUnits("100", 6)
+      );
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(
+        ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6))
+      );
 
-      await TreasuryInstance.connect(owner).withdrawFromAave(ethers.utils.parseUnits("100", 6));
+      await TreasuryInstance.connect(owner).withdrawFromAave(
+        ethers.utils.parseUnits("100", 6)
+      );
 
       expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(0);
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("198", 6));
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(ethers.utils.parseUnits("198", 6));
     });
     it("withdraw throws NoZeroWithDrawals()", async () => {
-      await expect(TreasuryInstance.connect(owner).withdrawFromAave(0))
-        .to.be.revertedWith("NoZeroWithDrawals()");
+      await expect(
+        TreasuryInstance.connect(owner).withdrawFromAave(0)
+      ).to.be.revertedWith("NoZeroWithDrawals()");
     });
     it("deposit throws InsufficentFunds", async () => {
-      await expect(TreasuryInstance.connect(owner).withdrawFromAave(ethers.utils.parseUnits("1000", 6)))
-        .to.be.revertedWith("InsufficentFunds()");
+      await expect(
+        TreasuryInstance.connect(owner).withdrawFromAave(
+          ethers.utils.parseUnits("1000", 6)
+        )
+      ).to.be.revertedWith("InsufficentFunds()");
     });
     it("claims rewards correctly from aave", async () => {
-      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+      let protocolFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getProtocolFee();
 
-      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+      let protocolFee1 =
+        (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
 
-      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+      await TreasuryInstance.connect(owner).depositToAave(
+        ethers.utils.parseUnits("100", 6)
+      );
 
-      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(ethers.utils.parseUnits("100", 6));
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6)));
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(
+        ethers.utils.parseUnits("100", 6)
+      );
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(
+        ethers.utils.parseUnits("198", 6).sub(ethers.utils.parseUnits("100", 6))
+      );
 
-      expect(await amUSDC.balanceOf(TreasuryInstance.address))
-        .to.equal(ethers.utils.parseUnits("100", 6));
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(
+        ethers.utils.parseUnits("100", 6)
+      );
 
       await fastForward(constants.TEST.twoMonths);
 
-      await TreasuryInstance.connect(owner).claimAaveRewards([constants.POLYGON.amUSDC], 1000);
+      await TreasuryInstance.connect(owner).claimAaveRewards(
+        [constants.POLYGON.amUSDC],
+        1000
+      );
 
-      expect(await amUSDC.balanceOf(TreasuryInstance.address))
-        .to.equal(100199736);
+      expect(await amUSDC.balanceOf(TreasuryInstance.address)).to.equal(
+        100199736
+      );
     });
   });
   describe("View Functions", function () {
@@ -502,41 +604,44 @@ describe("Treasury Module Tests", function () {
       let raffle1Address;
       let organizationID;
       let treasuryAddress;
-      
+
       organizationID = await WrapperInstance.organisationCount();
 
-      let deployedContractsArray = await WrapperInstance.connect(owner)
-          .getDeployedContracts(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(
+        owner
+      ).getDeployedContracts(organizationID);
 
       raffle1Address = deployedContractsArray[0];
 
       RaffleInstance = await ethers.getContractAt(
-          "RaffleModule",
-          raffle1Address,
-          owner
+        "RaffleModule",
+        raffle1Address,
+        owner
       );
 
-      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(organizationID);
+      treasuryAddress = await WrapperInstance.connect(owner).getTreasuryAddress(
+        organizationID
+      );
 
       let newRaffle = await createRaffleObject(
-          NFTInstance.address,
-          ownerAddress,
-          1,
-          startTime,
-          endTime,
-          ethers.utils.parseUnits("25", 6),
-          owner.address,
-          ethers.utils.parseUnits("25", 6),
-          BigNumber.from(1000),
-          BigNumber.from(1000),
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        ethers.utils.parseUnits("25", 6),
+        owner.address,
+        ethers.utils.parseUnits("25", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000)
       );
       await RaffleInstance.connect(owner).createRaffle(newRaffle);
 
       let donation1 = await createDonationObject(
-          donor1Address,
-          1,
-          ethers.utils.parseUnits("200", 6),
-          0
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
       );
 
       await RaffleInstance.connect(donor1).donate(donation1);
@@ -544,42 +649,60 @@ describe("Treasury Module Tests", function () {
     it("getTotalDonationsPerRaffle", async () => {
       let organizationID = await WrapperInstance.organisationCount();
 
-      let deployedContractsArray = await WrapperInstance.connect(owner)
-          .getDeployedContracts(organizationID);
+      let deployedContractsArray = await WrapperInstance.connect(
+        owner
+      ).getDeployedContracts(organizationID);
 
       let raffle1Address = deployedContractsArray[0];
 
-      let organisationFeePercent = await WrapperInstance.getOrganisationFee(organizationID);
+      let organisationFeePercent = await WrapperInstance.getOrganisationFee(
+        organizationID
+      );
       let protocolFeePercent = await WrapperInstance.getProtocolFee();
-      let organisationFee = (ethers.utils.parseUnits("200", 6).mul(organisationFeePercent)).div(100);
-      let protocolFee = (ethers.utils.parseUnits("200", 6).mul(protocolFeePercent)).div(100);
+      let organisationFee = ethers.utils
+        .parseUnits("200", 6)
+        .mul(organisationFeePercent)
+        .div(100);
+      let protocolFee = ethers.utils
+        .parseUnits("200", 6)
+        .mul(protocolFeePercent)
+        .div(100);
 
       let fees = organisationFee.add(protocolFee);
 
       let treasuryBal = await USDC.balanceOf(treasuryAddress);
 
-      expect(await TreasuryInstance.connect(owner).getTotalDonationsPerRaffle(
-        raffle1Address,
-        1
-      )).to.equal(treasuryBal.sub(organisationFee));
+      expect(
+        await TreasuryInstance.connect(owner).getTotalDonationsPerRaffle(
+          raffle1Address,
+          1
+        )
+      ).to.equal(treasuryBal.sub(organisationFee));
     });
     it("getUSDCInAave", async () => {
-      let protocolFeePercentage = await WrapperInstance.connect(owner).getProtocolFee();
+      let protocolFeePercentage = await WrapperInstance.connect(
+        owner
+      ).getProtocolFee();
 
-      let protocolFee1 = (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
+      let protocolFee1 =
+        (ethers.utils.parseUnits("200", 6) * protocolFeePercentage) / 100;
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(ethers.utils.parseUnits("200", 6).sub(protocolFee1));
 
-      await TreasuryInstance.connect(owner).depositToAave(ethers.utils.parseUnits("100", 6));
+      await TreasuryInstance.connect(owner).depositToAave(
+        ethers.utils.parseUnits("100", 6)
+      );
 
-      expect(await TreasuryInstance.connect(owner).getUSDCInAave())
-        .to.equal(ethers.utils.parseUnits("100", 6));
+      expect(await TreasuryInstance.connect(owner).getUSDCInAave()).to.equal(
+        ethers.utils.parseUnits("100", 6)
+      );
     });
     it("getUSDCFromTreasury", async () => {
       let treasuryBal = await USDC.balanceOf(treasuryAddress);
-      expect(await TreasuryInstance.connect(owner).getUSDCFromTreasury())
-        .to.equal(treasuryBal);
-
+      expect(
+        await TreasuryInstance.connect(owner).getUSDCFromTreasury()
+      ).to.equal(treasuryBal);
     });
   });
 });

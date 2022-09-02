@@ -1,4 +1,4 @@
-pragma solidity 0.8.11;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -44,7 +44,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         address topDonor;
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
-        uint256 buffer;
+        uint256 tokenBuffer;
         address limitedNftCollectionAddress;
         bool cancelled;
     }
@@ -231,7 +231,8 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
-        if (_raffle.tokenAllocation != _raffle.buffer) revert AmountsNotEqual();
+        if (_raffle.tokenAllocation != _raffle.tokenBuffer)
+            revert AmountsNotEqual();
         raffleCount++;
         // Set the id of the raffle in the raffle struct
         _raffle.raffleID = raffleCount;
@@ -588,7 +589,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
         internal
         view
         override(Context, BaseRelayRecipient)
-        returns (bytes memory)
+        returns (bytes calldata)
     {
         return BaseRelayRecipient._msgData();
     }
@@ -653,7 +654,7 @@ contract RaffleModule is BaseRelayRecipient, Context, Ownable {
     }
 
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
-        return raffles[raffleID].buffer;
+        return raffles[raffleID].tokenBuffer;
     }
 
     function getTokensInTheBufferEndOfCycle(uint256 raffleID)

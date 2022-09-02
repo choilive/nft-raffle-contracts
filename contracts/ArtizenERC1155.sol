@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.11;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -39,13 +39,11 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     ) public {
         require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
 
-        uint256[] memory ids = new uint256[] (amounts.length);
+        uint256[] memory ids = new uint256[](amounts.length);
         for (uint256 i = 0; i < amounts.length; i++) {
             tokenIds.increment();
             ids[i] = tokenIds.current();
         }
-
-        
 
         _mintBatch(to, ids, amounts, data);
 
