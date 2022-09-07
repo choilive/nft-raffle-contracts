@@ -18,6 +18,7 @@ const createRaffleObject = async (
   tokenID,
   startTime,
   endTime,
+  donationCount,
   minimumDonationAmount,
   topDonor,
   topDonatedAmount,
@@ -31,12 +32,14 @@ const createRaffleObject = async (
     tokenID: tokenID,
     startTime: startTime,
     endTime: endTime,
+    donationCount: donationCount,
     minimumDonationAmount: minimumDonationAmount,
     topDonor: topDonor,
     topDonatedAmount: topDonatedAmount,
-    tokenAllocation, tokenAllocation,
-    buffer: buffer,
+    tokenAllocation: tokenAllocation,
+    tokenBuffer: buffer,
     cancelled: false,
+    ended: false,
   };
 
   return _raffle;
@@ -45,7 +48,7 @@ const createRaffleObject = async (
 const createOrganizationObject = async (
   name,
   organisationFee,
-  walletAddress,
+  walletAddress
 ) => {
   const _organisation = {
     name: name,

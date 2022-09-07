@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: agpl-3.0
 // AAVE LENDING POOL
-pragma solidity 0.8.11;
+pragma solidity 0.8.16;
 pragma experimental ABIEncoderV2;
 
 interface ILendingPool {

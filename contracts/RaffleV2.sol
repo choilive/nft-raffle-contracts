@@ -1,4 +1,4 @@
-pragma solidity 0.8.11;
+pragma solidity 0.8.16;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -40,12 +40,14 @@ contract RaffleV2 is
         uint256 tokenID;
         uint256 startTime;
         uint256 endTime;
+        uint256 donationCount;
         uint256 minimumDonationAmount;
         address topDonor;
         uint256 topDonatedAmount;
         uint256 tokenAllocation;
-        uint256 buffer;
+        uint256 tokenBuffer;
         bool cancelled;
+        bool ended;
     }
 
     struct Donation {
@@ -114,6 +116,11 @@ contract RaffleV2 is
         uint256 raffleID,
         address donor,
         uint256 amountToPay
+    );
+    event DonationsTransferred(
+        address DAOWallet,
+        uint256 raffleID,
+        uint256 amount
     );
     // --------------------------------------------------------------
     // CUSTOM ERRORS
@@ -238,7 +245,8 @@ contract RaffleV2 is
     {
         address nftContractAddress = _raffle.nftContract;
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
-        if (_raffle.tokenAllocation != _raffle.buffer) revert AmountsNotEqual();
+        if (_raffle.tokenAllocation != _raffle.tokenBuffer)
+            revert AmountsNotEqual();
         raffleCount++;
         // Set the id of the raffle in the raffle struct
         _raffle.raffleID = raffleCount;
@@ -269,8 +277,9 @@ contract RaffleV2 is
     */
     function cancelRaffle(uint256 raffleID) public onlyRole(CURATOR_ROLE) {
         if (
-            getTotalDonationsPerCycle(raffleID) > 0 &&
-            raffles[raffleID].endTime < block.timestamp
+            (raffles[raffleID].ended == true) ||
+            (getTotalDonationsPerCycle(raffleID) > 0 &&
+                raffles[raffleID].endTime < block.timestamp)
         ) revert RaffleHasEnded(); // check this logic
         raffles[raffleID].cancelled = true;
 
@@ -282,7 +291,7 @@ contract RaffleV2 is
                 donorsArray[i]
             );
 
-            USDC.transferFrom(DAOWallet, donorsArray[i], refundPerAddress);
+            USDC.transfer(donorsArray[i], refundPerAddress);
         }
 
         // send NFTs back to owner
@@ -322,7 +331,7 @@ contract RaffleV2 is
 
         if (raffles[raffleId].endTime < block.timestamp)
             revert RaffleHasEnded();
-        if (_donation.amount <= raffles[raffleId].minimumDonationAmount)
+        if (_donation.amount < raffles[raffleId].minimumDonationAmount)
             revert DonationTooLow();
         donationCount++;
         _donation.timestamp = block.timestamp;
@@ -344,8 +353,10 @@ contract RaffleV2 is
             raffleId
         ][_msgSender()];
         uint256 topDonation = currentRaffle.topDonatedAmount;
-        // Calculate top donor and amount and update in Raffle obj
 
+        currentRaffle.donationCount++;
+
+        // Calculate top donor and amount and update in Raffle obj
         if (currentRaffle.topDonor == _msgSender()) {
             // dont change top donor, just change amount
             currentRaffle.topDonatedAmount += _donation.amount;
@@ -364,7 +375,7 @@ contract RaffleV2 is
         }
 
         //transfer funds to contract
-        USDC.transferFrom(_msgSender(), DAOWallet, _donation.amount);
+        USDC.transferFrom(_msgSender(), address(this), _donation.amount);
 
         emit DonationPlaced(_msgSender(), raffleId, _donation.amount);
 
@@ -379,6 +390,9 @@ contract RaffleV2 is
         if (raffles[raffleID].endTime > block.timestamp)
             revert RaffleHasNotEnded();
         if (raffles[raffleID].cancelled == true) revert RaffleCancelled();
+        if (raffles[raffleID].ended == true) revert RaffleHasEnded();
+
+        raffles[raffleID].ended = true;
 
         // calculate randomDonor
         address randomDonor = _calcRandomDonor(raffleID);
@@ -438,6 +452,11 @@ contract RaffleV2 is
                 claimTokenRewards(raffleID, donorsArray[i]);
             }
         }
+
+        // Send Raffle total donations to DAOWallet
+        uint256 totalDonations = getTotalDonationsPerCycle(raffleID);
+        USDC.transfer(DAOWallet, totalDonations);
+        emit DonationsTransferred(DAOWallet, raffleID, totalDonations);
     }
 
     function claimTokenRewards(uint256 raffleID, address donor) internal {
@@ -490,9 +509,6 @@ contract RaffleV2 is
         totalRewardsClaimedPerAddress[donor] += amountToPay;
 
         raffles[raffleID].tokenAllocation -= amountToPay;
-
-        if (raffles[raffleID].tokenAllocation == 0)
-            revert NoMoreTokensToClaim();
 
         //transferring rewards to donor
         REWARD_TOKEN.approve(address(this), amountToPay);
@@ -575,7 +591,7 @@ contract RaffleV2 is
         internal
         view
         override(Context, BaseRelayRecipient)
-        returns (bytes memory)
+        returns (bytes calldata)
     {
         return BaseRelayRecipient._msgData();
     }
@@ -641,7 +657,7 @@ contract RaffleV2 is
 
     // why is this end of cycle? Does it change during the raffle?
     function getTokenBuffer(uint256 raffleID) public view returns (uint256) {
-        return raffles[raffleID].buffer;
+        return raffles[raffleID].tokenBuffer;
     }
 
     function getTokensInTheBufferEndOfCycle(uint256 raffleID)
