@@ -289,6 +289,75 @@ describe("Token Rewards Contract Tests", function () {
     expect(donorbal1).to.equal(389);
     expect(donorbal2).to.equal(610);
   });
+
+  it("claimTokenRewards returns correct amount of tokens for two donations and 10k tokens allocated", async () => {
+    // mint NFT to artist
+    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
+    await NFTInstance.connect(owner).setApprovalForAll(
+      RaffleInstance.address,
+      true
+    );
+
+    // Create second raffle
+
+    startTime = await currentTime();
+    endTime = startTime + constants.TEST.oneMonth;
+
+    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
+    await RewardTokenInstance.connect(daoWallet).approve(
+      RaffleInstance.address,
+      30000
+    );
+
+    const raffle2 = await createRaffleObject(
+      NFTInstance.address,
+      ownerAddress,
+      2,
+      startTime,
+      endTime,
+      0,
+      ethers.utils.parseUnits("0", 6),
+      owner.address,
+      ethers.utils.parseUnits("0", 6),
+      BigNumber.from(10000),
+      BigNumber.from(10000)
+    );
+
+    await RaffleInstance.connect(curator).createRaffle(raffle2);
+
+    await RaffleInstance.connect(curator).turnOnTokenRewards(
+      TokenRewardsInstance.address,
+      RewardTokenInstance.address,
+      2
+    );
+
+    let donation1 = await createDonationObject(
+      donor1Address,
+      2,
+      ethers.utils.parseUnits("10", 6),
+      0
+    );
+    await RaffleInstance.connect(donor1).donate(donation1);
+
+    let donation2 = await createDonationObject(
+      donor1Address,
+      2,
+      ethers.utils.parseUnits("30", 6),
+      0
+    );
+    await RaffleInstance.connect(donor2).donate(donation2);
+
+    await fastForward(constants.TEST.twoMonths);
+
+    await RaffleInstance.connect(curator).sendRewards(2);
+
+    let donorbal1 = await RewardTokenInstance.balanceOf(donor1Address);
+
+    let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
+
+    expect(donorbal1).to.equal(3660);
+    expect(donorbal2).to.equal(6339);
+  });
   it("claimTokenRewards returns correct amount of tokens for three donations", async () => {
     await RaffleInstance.connect(curator).turnOnTokenRewards(
       TokenRewardsInstance.address,
