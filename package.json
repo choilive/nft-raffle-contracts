@@ -69,6 +69,7 @@
     "reset": "hardhat run scripts/reset.ts",
     "test": "hardhat test",
     "test:raffle": "hardhat test test/1_Raffle.test.js",
+    "test:reward": "hardhat test test/4_TokenRewardsCalculation.test.js",
     "coverage": "hardhat coverage --network hardhat",
     "compile": "prettier --write 'contracts/**/*.sol' && hardhat compile",
     "deploy": "hardhat run scripts/deploy.ts",

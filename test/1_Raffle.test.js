@@ -1129,7 +1129,7 @@ describe("Raffle Contract Tests", function () {
     });
   });
 
-  describe("withdraw function tests", function () {
+  describe("withdraw reward tokens function tests", function () {
     this.beforeEach(async () => {
       let raffle1 = await createRaffleObject(
         NFTInstance.address,
@@ -1153,13 +1153,19 @@ describe("Raffle Contract Tests", function () {
     });
     it("reverts if insufficient amount is available", async () => {
       await expect(
-        RaffleInstance.connect(curator).withdraw(daoWalletAddress, 2050)
+        RaffleInstance.connect(curator).withdrawRewardTokens(
+          daoWalletAddress,
+          2050
+        )
       ).to.be.revertedWith("InsufficientAmount()");
     });
     it("can withdraw", async () => {
       expect(await ArtTokenInstance.balanceOf(ownerAddress)).to.equal(0);
 
-      await RaffleInstance.connect(curator).withdraw(ownerAddress, 100);
+      await RaffleInstance.connect(curator).withdrawRewardTokens(
+        ownerAddress,
+        100
+      );
 
       expect(await ArtTokenInstance.balanceOf(ownerAddress)).to.equal(100);
       expect(await ArtTokenInstance.balanceOf(RaffleInstance.address)).to.equal(
@@ -1167,8 +1173,66 @@ describe("Raffle Contract Tests", function () {
       );
     });
     it("emits tokensWithdrawnFromContract", async () => {
-      await expect(RaffleInstance.connect(curator).withdraw(ownerAddress, 25))
+      await expect(
+        RaffleInstance.connect(curator).withdrawRewardTokens(ownerAddress, 25)
+      )
         .to.emit(RaffleInstance, "tokensWithdrawnFromContract")
+        .withArgs(ownerAddress, 25);
+    });
+  });
+
+  describe("withdraw donations function tests", function () {
+    this.beforeEach(async () => {
+      let raffle1 = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        0,
+        ethers.utils.parseUnits("0", 6),
+        owner.address,
+        ethers.utils.parseUnits("0", 6),
+        1000,
+        1000
+      );
+      await RaffleInstance.connect(curator).createRaffle(raffle1);
+      await RaffleInstance.connect(curator).turnOnTokenRewards(
+        TokenRewardsInstance.address,
+        ArtTokenInstance.address,
+        1
+      );
+
+      let newDonation = await createDonationObject(
+        donor1Address,
+        1,
+        ethers.utils.parseUnits("200", 6),
+        0
+      );
+
+      await RaffleInstance.connect(donor1).donate(newDonation);
+    });
+    it("reverts if insufficient amount is available", async () => {
+      await expect(
+        RaffleInstance.connect(owner).withdrawDonations(
+          daoWalletAddress,
+          599999950
+        )
+      ).to.be.revertedWith("InsufficientAmount()");
+    });
+    it("can withdraw", async () => {
+      expect(await USDC.balanceOf(ownerAddress)).to.equal(0);
+
+      await RaffleInstance.connect(owner).withdrawDonations(ownerAddress, 50);
+
+      expect(await USDC.balanceOf(ownerAddress)).to.equal(50);
+      expect(await USDC.balanceOf(RaffleInstance.address)).to.equal(199999950);
+    });
+    it("emits donationsWithdrawnFromContract", async () => {
+      await expect(
+        RaffleInstance.connect(owner).withdrawDonations(ownerAddress, 25)
+      )
+        .to.emit(RaffleInstance, "donationsWithdrawnFromContract")
         .withArgs(ownerAddress, 25);
     });
   });

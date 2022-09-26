@@ -99,7 +99,7 @@ https://mumbai.polygonscan.com/address/0x70FAc2461795E62c5a92F9C8A49618418dbe243
 ✅ ArtToken verified!
 
 Successfully verified contract RaffleV2 on Etherscan.
-https://mumbai.polygonscan.com/address/0x8D48c82180757cA7c8360A2ca080993F609E7cEC#code
+https://mumbai.polygonscan.com/address/0x374E81353e73A21F64B7bbe7869175883c562b7B#code
 ✅ RaffleV2 verified!
 
 Successfully verified contract ArtizenERC1155 on Etherscan.

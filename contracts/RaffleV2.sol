@@ -81,10 +81,6 @@ contract RaffleV2 is
     mapping(uint256 => mapping(address => bool)) rewardsClaimedPerCycle;
     mapping(address => uint256) totalRewardsClaimedPerAddress;
 
-    /* This is to prevent duplication of donations when calculating rewards. */
-    // checks if donation is already in allDonationsPerAddresses
-    // RaffleID => Amount donated => bool
-    mapping(uint256 => mapping(uint256 => bool)) addedToAllDonationsPerAddresses;
     // RaffleID => allDonationsPerAdrressArray
     mapping(uint256 => uint256[]) allDonationsPerAddresses;
 
@@ -107,6 +103,7 @@ contract RaffleV2 is
     event NFTsentToWinner(uint256 raffleID, address winner);
     event RewardTokenBalanceToppedUp(uint256 amount);
     event tokensWithdrawnFromContract(address account, uint256 amount);
+    event donationsWithdrawnFromContract(address account, uint256 amount);
     event RewardsClaimedPerCycle(
         address donor,
         uint256 raffleID,
@@ -222,7 +219,7 @@ contract RaffleV2 is
         @param  amount amount of tokens to be withdrawn
        
     */
-    function withdraw(address account, uint256 amount)
+    function withdrawRewardTokens(address account, uint256 amount)
         public
         onlyRole(CURATOR_ROLE)
     {
@@ -232,6 +229,23 @@ contract RaffleV2 is
         REWARD_TOKEN.transferFrom(address(this), account, amount);
 
         emit tokensWithdrawnFromContract(account, amount);
+    }
+
+    /**
+        @notice function for withdrawing donations from contract
+         @param  account address to withdraw tokens to
+        @param  amount amount of tokens to be withdrawn
+       
+    */
+    function withdrawDonations(address account, uint256 amount)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        if (USDC.balanceOf(address(this)) < amount) revert InsufficientAmount();
+        USDC.approve(address(this), amount);
+        USDC.transferFrom(address(this), account, amount);
+
+        emit donationsWithdrawnFromContract(account, amount);
     }
 
     /**
@@ -312,7 +326,7 @@ contract RaffleV2 is
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
-        withdraw(DAOWallet, refundAmount);
+        withdrawRewardTokens(DAOWallet, refundAmount);
     }
 
     /**
@@ -447,7 +461,8 @@ contract RaffleV2 is
         // send token rewards to all donors in raffle
         address[] memory donorsArray = getDonorsPerCycle(raffleID);
 
-        if (tokenRewardsActivated[raffleID] = true) {
+        if (tokenRewardsActivated[raffleID] == true) {
+            _buildAllDonationsPerAddresses(raffleID);
             for (uint256 i = 0; i < donorsArray.length; i++) {
                 claimTokenRewards(raffleID, donorsArray[i]);
             }
@@ -473,25 +488,6 @@ contract RaffleV2 is
             donor
         );
 
-        address[] memory donorsArray = getDonorsPerCycle(raffleID);
-
-        //get all donation from all addresses donated from the cycle and push it into an array
-        for (uint256 i = 0; i < donorsArray.length; i++) {
-            uint256 donationPerAddress = getTotalDonationPerAddressPerCycle(
-                raffleID,
-                donorsArray[i]
-            );
-            // Check if donation has been added to array. If not, add it. Prevents duplication of donation
-            if (
-                addedToAllDonationsPerAddresses[raffleID][donationPerAddress] ==
-                false
-            ) {
-                addedToAllDonationsPerAddresses[raffleID][
-                    donationPerAddress
-                ] = true;
-                allDonationsPerAddresses[raffleID].push(donationPerAddress);
-            }
-        }
         uint256 tokenBuffer = getTokenBuffer(raffleID);
         uint256[]
             storage allDonationsPerAddress = _getAllDonationsPerAddressesArray(
@@ -535,6 +531,19 @@ contract RaffleV2 is
     // --------------------------------------------------------------
     // INTERNAL STATE-MODIFYING FUNCTIONS
     // --------------------------------------------------------------
+
+    function _buildAllDonationsPerAddresses(uint256 raffleID) internal {
+        address[] memory donorsArray = getDonorsPerCycle(raffleID);
+
+        //get all donation from all addresses donated from the cycle and push it into an array
+        for (uint256 i = 0; i < donorsArray.length; i++) {
+            uint256 donationPerAddress = getTotalDonationPerAddressPerCycle(
+                raffleID,
+                donorsArray[i]
+            );
+            allDonationsPerAddresses[raffleID].push(donationPerAddress);
+        }
+    }
 
     function _calcRandomDonor(uint256 raffleID)
         internal
