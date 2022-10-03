@@ -600,6 +600,39 @@ describe("Raffle Contract Tests", function () {
         30000
       );
     });
+
+    it("does not send rewardTokens to daoWallet if reward is not enabled", async () => {
+      let newRaffle = await createRaffleObject(
+        NFTInstance.address,
+        ownerAddress,
+        1,
+        startTime,
+        endTime,
+        0,
+        ethers.utils.parseUnits("100", 6),
+        owner.address,
+        ethers.utils.parseUnits("100", 6),
+        BigNumber.from(1000),
+        BigNumber.from(1000)
+      );
+      await RaffleInstance.connect(curator).createRaffle(newRaffle);
+
+      expect(await ArtTokenInstance.balanceOf(RaffleInstance.address)).to.equal(
+        0
+      );
+      expect(await ArtTokenInstance.balanceOf(daoWalletAddress)).to.equal(
+        30000
+      );
+
+      await RaffleInstance.connect(curator).cancelRaffle(1);
+
+      expect(await ArtTokenInstance.balanceOf(RaffleInstance.address)).to.equal(
+        0
+      );
+      expect(await ArtTokenInstance.balanceOf(daoWalletAddress)).to.equal(
+        30000
+      );
+    });
   });
 
   describe("Donate function", function () {

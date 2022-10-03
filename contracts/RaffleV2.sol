@@ -326,7 +326,10 @@ contract RaffleV2 is
 
         uint256 refundAmount = raffles[raffleID].tokenAllocation;
         raffles[raffleID].tokenAllocation = 0;
-        withdrawRewardTokens(DAOWallet, refundAmount);
+
+        if (tokenRewardsActivated[raffleID] == true) {
+            withdrawRewardTokens(DAOWallet, refundAmount);
+        }
     }
 
     /**
