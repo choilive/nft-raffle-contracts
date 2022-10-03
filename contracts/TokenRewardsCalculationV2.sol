@@ -6,7 +6,7 @@ import "./RaffleV2.sol";
 import "@rari-capital/solmate/src/utils/FixedPointMathLib.sol";
 
 contract TokenRewardsCalculationV2 is Ownable {
-    uint256 private immutable SCALE = 1000;
+    uint256 private immutable SCALE = 1000000;
 
     function calculateUserRewards(
         uint256 tokensInTheBufferEndOfCycle,
@@ -21,8 +21,8 @@ contract TokenRewardsCalculationV2 is Ownable {
             totalDonationPerAddresses
         );
 
-        uint256 scaledUpMath = (userMatchUnits * SCALE) / totalMatchUnits;
-        uint256 userRewards = tokensInTheBufferEndOfCycle * scaledUpMath;
+        uint256 userRewards = (tokensInTheBufferEndOfCycle *
+            (userMatchUnits * SCALE)) / totalMatchUnits;
 
         return userRewards / SCALE;
     }
