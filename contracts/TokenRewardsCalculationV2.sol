@@ -21,8 +21,8 @@ contract TokenRewardsCalculationV2 is Ownable {
             totalDonationPerAddresses
         );
 
-        uint256 scaledUpMath = (userMatchUnits * SCALE) / totalMatchUnits;
-        uint256 userRewards = tokensInTheBufferEndOfCycle * scaledUpMath;
+        uint256 userRewards = (tokensInTheBufferEndOfCycle *
+            (userMatchUnits * SCALE)) / totalMatchUnits;
 
         return userRewards / SCALE;
     }
