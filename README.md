@@ -109,3 +109,68 @@ https://mumbai.polygonscan.com/address/0xaAfFF046B0A7c09F2e4350DEfCddC9a097Bd149
 Successfully verified contract TokenRewardsCalculationV2 on Etherscan.
 https://mumbai.polygonscan.com/address/0x47d8cC71536404A3f684363370D430963Dd39D24#code
 ✅ TokenRewardsCalculationV2 verified!
+
+# Testing ART token rewards on staging
+
+## Assumptions for testing
+
+We make the following assumptions for testing ART token rewards:
+
+* The MetaMask testing account is able to perform donations successfully
+    * In particular, this test flow does not aim to test for edge cases / failures in the donation flow
+    * Test account should have sufficient balance on mumbai testnet
+        * at least 500 USDC
+        * at least 5m ARTTEST
+        * at least 2 MATIC
+* Addresses listed below were used for testing in late September 2022
+
+## Useful links
+
+* contracts on Mumbai (polygon testnet)
+    * ARTTEST tokens
+        * contract (including methods): https://mumbai.polygonscan.com/address/0x70fac2461795e62c5a92f9c8a49618418dbe243b
+        * token (including total supply): https://mumbai.polygonscan.com/token/0x70fac2461795e62c5a92f9c8a49618418dbe243b
+
+## End-to-end test of ART token rewards on staging
+
+* Import Artizen Test Account into MetaMask (NB. here we assume familiarity with MetaMask)
+    * Artizen Test Account details:
+        * Address: 0x02F300C0C1ED345abB4386fb1e4761C0774dc361
+        * Private Key: (get from Artizen core team)
+    * Rename (under Metamask > Account Details) to “Artizen Test Account”
+    * Switch to Mumbai network (NB. may need to add Mumbai-Testnet network to metamask)
+    * Import tokens in metamask
+        * 0x566368d78DBdEc50F04b588E152dE3cEC0d5889f (USDC)
+        * 0x70FAc2461795E62c5a92F9C8A49618418dbe243B (ARTTEST)
+* Go to https://lab.artizen.fund/admin/raffles
+    * Connect MetaMask — BE SURE TO USE IMPORTED ARTIZEN TEST ACCOUNT ON MUMBAI NETWORK
+    * Create a raffle (if a raffle is not running)
+        * Example Token (NFT) URI: https://gateway.pinata.cloud/ipfs/QmaQu8ehhzX9qMfSEMoMKQonsHj7jnzEuothwk3rApc2ze
+        * Change end time to say 10 minutes in the future
+        * Change token allocation as you see fit (something between 100 and 1,000,000 say)
+        * Click “Create Raffle” button
+            * you’ll need to approve several transactions in MetaMask
+                * contract interaction
+                    * address: 0xaAfFF046B0A7c09F2e4350DEfCddC9a097Bd1492
+                    * optional: add nickname “ArtizenERC1155” in metamask for this address
+                * Approve Token with no spend limit (Give permission to access all of your NFT)
+                    * address: 0x374e81353e73a21f64b7bbe7869175883c562b7b
+                * contract interaction
+                    * address: 0x374e81353e73a21f64b7bbe7869175883c562b7b
+                    * Optional: add nickname “Artizen RaffleV2” in metamask for this address
+                * Approve ARTTEST spend limit (Give permission to access your ARTTEST?)
+                    * address: 0x374e81353e73a21f64b7bbe7869175883c562b7b (same as an earlier step)
+                * (contract interaction?)
+        * Make some donations (requires USDC on Mumbai)
+            * Test user 1: donate $10 via polygon 
+            * Test user 1: donate again, this time $20 via polygon
+            * Test user 2: donate $10 via polygon
+                * to do this, log out and log back in with a different email address
+            * So the donation total list is [$30, $10]
+            * ARTTEST rewards percentages are [63.39745962155614, 36.60254037844387]
+        * After raffle end time passes, end the raffle on the /admin/raffles UI
+            * This requires confirmation in MetaMask
+                * Send rewards
+                    * tx might fail due to “out of gas”
+                        * fix: increase gas limit in metamask for the transaction
+            * If total tokens allotted was 500,000, then expect users to receive close to [316987, 183012] tokens
