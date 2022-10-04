@@ -99,7 +99,7 @@ https://mumbai.polygonscan.com/address/0x70FAc2461795E62c5a92F9C8A49618418dbe243
 ✅ ArtToken verified!
 
 Successfully verified contract RaffleV2 on Etherscan.
-https://mumbai.polygonscan.com/address/0x374E81353e73A21F64B7bbe7869175883c562b7B#code
+https://mumbai.polygonscan.com/address/0x05990C6461ca044327903E5e0C5B7992A0AaD5E0#code
 ✅ RaffleV2 verified!
 
 Successfully verified contract ArtizenERC1155 on Etherscan.
@@ -107,7 +107,7 @@ https://mumbai.polygonscan.com/address/0xaAfFF046B0A7c09F2e4350DEfCddC9a097Bd149
 ✅ ArtizenERC1155 verified!
 
 Successfully verified contract TokenRewardsCalculationV2 on Etherscan.
-https://mumbai.polygonscan.com/address/0x47d8cC71536404A3f684363370D430963Dd39D24#code
+https://mumbai.polygonscan.com/address/0xE692765bCA154e20a3A174105c841d26F11CF0C3#code
 ✅ TokenRewardsCalculationV2 verified!
 
 # Testing ART token rewards on staging
