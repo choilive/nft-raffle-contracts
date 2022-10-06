@@ -64,7 +64,7 @@ describe("Token Rewards Contract Tests", function () {
     RewardTokenInstance = await RewardTokenContract.connect(owner).deploy(
       "Rewards Token",
       "ART",
-      30000
+      ethers.utils.parseUnits("1000000", "ether")
     );
 
     // Deploy NFT
@@ -182,10 +182,13 @@ describe("Token Rewards Contract Tests", function () {
     );
 
     // Mint Reward Tokens to daoWallet
-    await RewardTokenInstance.connect(owner).mint(daoWalletAddress, 30000);
+    await RewardTokenInstance.connect(owner).mint(
+      daoWalletAddress,
+      ethers.utils.parseUnits("1000000", "ether")
+    );
     await RewardTokenInstance.connect(daoWallet).approve(
       RaffleInstance.address,
-      30000
+      ethers.utils.parseUnits("1000000", "ether")
     );
 
     // SETUP
@@ -205,10 +208,6 @@ describe("Token Rewards Contract Tests", function () {
     endTime = startTime + constants.TEST.oneMonth;
 
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
-    await RewardTokenInstance.connect(daoWallet).approve(
-      RaffleInstance.address,
-      3000
-    );
 
     const raffle = await createRaffleObject(
       NFTInstance.address,
@@ -220,8 +219,8 @@ describe("Token Rewards Contract Tests", function () {
       ethers.utils.parseUnits("25", 6),
       owner.address,
       ethers.utils.parseUnits("25", 6),
-      BigNumber.from(1000),
-      BigNumber.from(1000)
+      ethers.utils.parseUnits("1000", "ether"),
+      ethers.utils.parseUnits("1000", "ether")
     );
     await RaffleInstance.connect(curator).createRaffle(raffle);
 
@@ -286,8 +285,8 @@ describe("Token Rewards Contract Tests", function () {
 
     let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
 
-    expect(donorbal1).to.equal(389);
-    expect(donorbal2).to.equal(610);
+    expect(donorbal1).to.equal("389015945619719204624");
+    expect(donorbal2).to.equal("610984054380280795375");
   });
 
   it("claimTokenRewards returns correct amount of tokens for two donations and 10k tokens allocated", async () => {
@@ -304,10 +303,6 @@ describe("Token Rewards Contract Tests", function () {
     endTime = startTime + constants.TEST.oneMonth;
 
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
-    await RewardTokenInstance.connect(daoWallet).approve(
-      RaffleInstance.address,
-      30000
-    );
 
     const raffle2 = await createRaffleObject(
       NFTInstance.address,
@@ -319,8 +314,8 @@ describe("Token Rewards Contract Tests", function () {
       ethers.utils.parseUnits("0", 6),
       owner.address,
       ethers.utils.parseUnits("0", 6),
-      BigNumber.from(10000),
-      BigNumber.from(10000)
+      ethers.utils.parseUnits("10000", "ether"),
+      ethers.utils.parseUnits("10000", "ether")
     );
 
     await RaffleInstance.connect(curator).createRaffle(raffle2);
@@ -355,8 +350,73 @@ describe("Token Rewards Contract Tests", function () {
 
     let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
 
-    expect(donorbal1).to.equal(3660);
-    expect(donorbal2).to.equal(6339);
+    expect(donorbal1).to.equal("3660145850214145155689");
+    expect(donorbal2).to.equal("6339854149785854844310");
+  });
+
+  it("claimTokenRewards returns correct amount of tokens for two donations and 500k tokens allocated", async () => {
+    // mint NFT to artist
+    await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
+    await NFTInstance.connect(owner).setApprovalForAll(
+      RaffleInstance.address,
+      true
+    );
+
+    // Create second raffle
+
+    startTime = await currentTime();
+    endTime = startTime + constants.TEST.oneMonth;
+
+    await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
+
+    const raffle2 = await createRaffleObject(
+      NFTInstance.address,
+      ownerAddress,
+      2,
+      startTime,
+      endTime,
+      0,
+      ethers.utils.parseUnits("0", 6),
+      owner.address,
+      ethers.utils.parseUnits("0", 6),
+      ethers.utils.parseUnits("500000", "ether"),
+      ethers.utils.parseUnits("500000", "ether")
+    );
+
+    await RaffleInstance.connect(curator).createRaffle(raffle2);
+
+    await RaffleInstance.connect(curator).turnOnTokenRewards(
+      TokenRewardsInstance.address,
+      RewardTokenInstance.address,
+      2
+    );
+
+    let donation1 = await createDonationObject(
+      donor1Address,
+      2,
+      ethers.utils.parseUnits("10", 6),
+      0
+    );
+    await RaffleInstance.connect(donor1).donate(donation1);
+
+    let donation2 = await createDonationObject(
+      donor1Address,
+      2,
+      ethers.utils.parseUnits("30", 6),
+      0
+    );
+    await RaffleInstance.connect(donor2).donate(donation2);
+
+    await fastForward(constants.TEST.twoMonths);
+
+    await RaffleInstance.connect(curator).sendRewards(2);
+
+    let donorbal1 = await RewardTokenInstance.balanceOf(donor1Address);
+
+    let donorbal2 = await RewardTokenInstance.balanceOf(donor2Address);
+
+    expect(donorbal1).to.equal("183007292510707257784465");
+    expect(donorbal2).to.equal("316992707489292742215534");
   });
   it("claimTokenRewards returns correct amount of tokens for three donations", async () => {
     await RaffleInstance.connect(curator).turnOnTokenRewards(
@@ -394,9 +454,9 @@ describe("Token Rewards Contract Tests", function () {
     let donorbal3 = await RewardTokenInstance.balanceOf(donor3Address);
     // console.log(donorbal3.toString());
 
-    expect(donorbal1).to.equal(257);
-    expect(donorbal2).to.equal(404);
-    expect(donorbal3).to.equal(338);
+    expect(donorbal1).to.equal("257257488551863210519");
+    expect(donorbal2).to.equal("404045708524135613158");
+    expect(donorbal3).to.equal("338696802924001176322");
   });
 
   it("claimTokenRewards returns correct amount of tokens for 4 donations where 2 have same amount", async () => {
@@ -437,10 +497,10 @@ describe("Token Rewards Contract Tests", function () {
 
     let donorbal4 = await RewardTokenInstance.balanceOf(donor4Address);
 
-    expect(donorbal1).to.equal(204);
-    expect(donorbal2).to.equal(321);
-    expect(donorbal3).to.equal(236);
-    expect(donorbal4).to.equal(236);
+    expect(donorbal1).to.equal("204915838436569286885");
+    expect(donorbal2).to.equal("321838503496971522270");
+    expect(donorbal3).to.equal("236622829033229595422");
+    expect(donorbal4).to.equal("236622829033229595422");
   });
 
   it("claims correctly for multiple raffles", async () => {
@@ -460,8 +520,8 @@ describe("Token Rewards Contract Tests", function () {
     let raffle1Donor2Bal = await RewardTokenInstance.balanceOf(donor2Address);
     // console.log(donorbal2.toString());
 
-    expect(raffle1Donor1Bal).to.equal(389);
-    expect(raffle1Donor2Bal).to.equal(610);
+    expect(raffle1Donor1Bal).to.equal("389015945619719204624");
+    expect(raffle1Donor2Bal).to.equal("610984054380280795375");
 
     // mint NFT to artist
     await NFTInstance.connect(owner).mint(owner.address, 2, 4, "0x");
@@ -476,10 +536,6 @@ describe("Token Rewards Contract Tests", function () {
     endTime = startTime + constants.TEST.oneMonth;
 
     await USDC.connect(daoWallet).approve(RaffleInstance.address, 5000000000);
-    await RewardTokenInstance.connect(daoWallet).approve(
-      RaffleInstance.address,
-      30000
-    );
 
     const raffle2 = await createRaffleObject(
       NFTInstance.address,
@@ -491,8 +547,8 @@ describe("Token Rewards Contract Tests", function () {
       ethers.utils.parseUnits("25", 6),
       owner.address,
       ethers.utils.parseUnits("25", 6),
-      BigNumber.from(1000),
-      BigNumber.from(1000)
+      ethers.utils.parseUnits("1000", "ether"),
+      ethers.utils.parseUnits("1000", "ether")
     );
 
     await RaffleInstance.connect(curator).createRaffle(raffle2);
@@ -533,7 +589,11 @@ describe("Token Rewards Contract Tests", function () {
     );
     // console.log(donorbal2.toString());
 
-    expect(raffle2Donor1BalAfter).to.equal(raffle1Donor1Bal.add(389));
-    expect(raffle2Donor2BalAfter).to.equal(raffle1Donor2Bal.add(610));
+    expect(raffle2Donor1BalAfter).to.equal(
+      raffle1Donor1Bal.add("389015945619719204624")
+    );
+    expect(raffle2Donor2BalAfter).to.equal(
+      raffle1Donor2Bal.add("610984054380280795375")
+    );
   });
 });
