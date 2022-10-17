@@ -7,12 +7,15 @@ import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import "@opengsn/contracts/src/BaseRelayRecipient.sol";
 import "./interfaces/ITokenRewardsCalculation.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
+import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
 contract RaffleV2 is
   Ownable,
   AccessControl,
   ReentrancyGuard,
-  BaseRelayRecipient
+  BaseRelayRecipient,
+  VRFConsumerBaseV2
 {
   uint256 public raffleCount;
   uint256 public donationCount;
@@ -25,6 +28,17 @@ contract RaffleV2 is
   address public nftAuthorWallet;
 
   // bool optionalTokenRewards;
+
+  // ** CHAINLINK ** //
+
+  // this configuration is for Goerli,gotta change this for other chains
+  uint64 s_subscriptionId;
+  address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D;
+  bytes32 s_keyHash =
+    0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
+  uint32 callbackGasLimit = 40000;
+  uint16 requestConfirmations = 3;
+  uint32 numWords = 1;
 
   bytes32 public constant CURATOR_ROLE = keccak256("CURATOR_ROLE");
 
@@ -137,9 +151,14 @@ contract RaffleV2 is
   // CONSTRUCTOR
   // --------------------------------------------------------------
 
-  constructor(address _usdc, address _forwarder) {
+  constructor(
+    address _usdc,
+    address _forwarder,
+    address _vrfCoordinator
+  ) VRFConsumerBaseV2(_vrfCoordinator) {
     if (_usdc == address(0)) revert ZeroAddressNotAllowed();
     if (_forwarder == address(0)) revert ZeroAddressNotAllowed();
+    if (_vrfCoordinator == address(0)) revert ZeroAddressNotAllowed();
 
     _setTrustedForwarder(_forwarder);
     USDC = IERC20(_usdc);
