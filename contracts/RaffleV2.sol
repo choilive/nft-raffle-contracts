@@ -165,6 +165,9 @@ contract RaffleV2 is
 
     // Sets deployer as DEFAULT_ADMIN_ROLE
     _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
+    s_owner = msg.sender;
+    s_subscriptionId = subscriptionId;
   }
 
   // --------------------------------------------------------------
@@ -589,6 +592,11 @@ contract RaffleV2 is
 
     return winner;
   }
+
+  function _calculateRandomDonorChainlink(uint256 raffleID)
+    internal
+    returns (uint256 requestId)
+  {}
 
   /**
         @notice transfers reward tokens to the contract
