@@ -227,8 +227,8 @@ contract RaffleV2 is
     {
         if (REWARD_TOKEN.balanceOf(address(this)) < amount)
             revert InsufficientAmount();
-        REWARD_TOKEN.approve(address(this), amount);
-        REWARD_TOKEN.transferFrom(address(this), account, amount);
+
+        REWARD_TOKEN.transfer(account, amount);
 
         emit tokensWithdrawnFromContract(account, amount);
     }
@@ -479,7 +479,7 @@ contract RaffleV2 is
 
         // Send Raffle total donations to DAOWallet
         uint256 totalDonations = getTotalDonationsPerCycle(raffleID);
-        USDC.transfer(DAOWallet, totalDonations);
+        USDC.transferFrom(address(this), DAOWallet, totalDonations);
         emit DonationsTransferred(DAOWallet, raffleID, totalDonations);
     }
 
@@ -516,8 +516,7 @@ contract RaffleV2 is
         raffles[raffleID].tokenAllocation -= amountToPay;
 
         //transferring rewards to donor
-        REWARD_TOKEN.approve(address(this), amountToPay);
-        REWARD_TOKEN.transferFrom(address(this), donor, amountToPay);
+        REWARD_TOKEN.transfer(donor, amountToPay);
 
         emit RewardsTransferred(raffleID, donor, amountToPay);
     }
