@@ -17,7 +17,7 @@ contract RaffleV2 is
     uint256 public raffleCount;
     uint256 public donationCount;
 
-    IERC20 public USDC;
+    IERC20 immutable USDC;
     IERC20 public REWARD_TOKEN;
 
     address public tokenRewardsModuleAddress;
