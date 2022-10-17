@@ -11,7 +11,6 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
     using Counters for Counters.Counter;
 
     Counters.Counter public tokenIds;
-    mapping(address => bool) public whitelistedAddresses;
 
     constructor() ERC1155("") {}
 
@@ -23,7 +22,6 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
         bytes memory data,
         string memory tokenURI
     ) public {
-        require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
         tokenIds.increment();
         uint256 id = tokenIds.current();
 
@@ -36,9 +34,7 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
         uint256[] memory amounts,
         bytes memory data,
         string[] memory tokenURIs
-    ) public {
-        require(whitelistedAddresses[to] == true, "NOT WHITELISTED");
-
+    ) public onlyOwner {
         uint256[] memory ids = new uint256[](amounts.length);
         for (uint256 i = 0; i < amounts.length; i++) {
             tokenIds.increment();
@@ -86,9 +82,5 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
 
     function setBaseURI(string memory _uri) public onlyOwner {
         _setBaseURI(_uri);
-    }
-
-    function addAddressToWhitelist(address whitelisted) public onlyOwner {
-        whitelistedAddresses[whitelisted] = true;
     }
 }
