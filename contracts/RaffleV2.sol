@@ -133,6 +133,8 @@ contract RaffleV2 is
     error NoRewardsForRaffle();
     error AmountsNotEqual();
     error NoMoreTokensToClaim();
+    error InitialAmountHasToBeZero();
+    error MinimumDonationCantBeZero();
 
     // --------------------------------------------------------------
     // CONSTRUCTOR
@@ -261,6 +263,10 @@ contract RaffleV2 is
         if (_raffle.startTime > _raffle.endTime) revert IncorrectTimesGiven();
         if (_raffle.tokenAllocation != _raffle.tokenBuffer)
             revert AmountsNotEqual();
+        if (_raffle.topDonatedAmount > 0) revert InitialAmountHasToBeZero();
+        if (_raffle.minimumDonationAmount <= 0)
+            revert MinimumDonationCantBeZero();
+
         raffleCount++;
         // Set the id of the raffle in the raffle struct
         _raffle.raffleID = raffleCount;
