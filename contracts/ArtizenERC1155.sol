@@ -21,7 +21,7 @@ contract ArtizenERC1155 is ERC1155URIStorage, Ownable {
         uint256 amount,
         bytes memory data,
         string memory tokenURI
-    ) public {
+    ) public onlyOwner {
         tokenIds.increment();
         uint256 id = tokenIds.current();
 
