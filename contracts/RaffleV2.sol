@@ -141,6 +141,9 @@ contract RaffleV2 is
     // --------------------------------------------------------------
 
     constructor(address _usdc, address _forwarder) {
+        if (_usdc == address(0)) revert ZeroAddressNotAllowed();
+        if (_forwarder == address(0)) revert ZeroAddressNotAllowed();
+
         _setTrustedForwarder(_forwarder);
         USDC = IERC20(_usdc);
 
