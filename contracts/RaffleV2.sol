@@ -454,6 +454,7 @@ contract RaffleV2 is
     raffles[raffleID].ended = true;
 
     // calculate randomDonor
+    _calculateRandomDonorChainlink(raffleID);
     address randomDonor = winner[raffleID];
 
     // get topDonor
