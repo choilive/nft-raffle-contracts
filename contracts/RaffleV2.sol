@@ -608,7 +608,8 @@ contract RaffleV2 is
   //   }
 
   function _calculateRandomDonorChainlink(uint256 raffleID)
-    internal
+    public
+    onlyRole(CURATOR_ROLE)
     returns (uint256 requestId)
   {
     requestId = COORDINATOR.requestRandomWords(
