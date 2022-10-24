@@ -464,7 +464,7 @@ contract RaffleV2 is
         raffles[raffleID].ended = true;
 
         // calculate randomDonor
-        address randomDonor = _calcRandomDonor(raffleID);
+        address randomDonor = winner[raffleID];
 
         // get topDonor
 
@@ -601,28 +601,24 @@ contract RaffleV2 is
         }
     }
 
-    function _calcRandomDonor(uint256 raffleID)
-        internal
-        view
-        returns (address)
-    {
-        uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
+    //   function _calcRandomDonor(uint256 raffleID) internal view returns (address) {
+    //     uint256 amountOfDonors = donorsArrayPerCycle[raffleID].length;
 
-        uint256 randomIndex = uint256(
-            keccak256(
-                abi.encodePacked(
-                    block.timestamp,
-                    block.number,
-                    block.difficulty,
-                    raffleID
-                )
-            )
-        ) % amountOfDonors;
+    //     uint256 randomIndex = uint256(
+    //       keccak256(
+    //         abi.encodePacked(
+    //           block.timestamp,
+    //           block.number,
+    //           block.difficulty,
+    //           raffleID
+    //         )
+    //       )
+    //     ) % amountOfDonors;
 
-        address winner = donorsArrayPerCycle[raffleID][randomIndex];
+    //     address winner = donorsArrayPerCycle[raffleID][randomIndex];
 
-        return winner;
-    }
+    //     return winner;
+    //   }
 
     function _calculateRandomDonorChainlink(uint256 raffleID)
         internal
